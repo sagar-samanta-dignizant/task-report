@@ -394,7 +394,7 @@ const Task = () => {
       return line;
     };
 
-    const getBullet = (index: number) => {
+    const getBullet = (_: number) => {
       switch (bulletType) {
         case ">>":
           return ">> ";
