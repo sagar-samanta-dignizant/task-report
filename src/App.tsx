@@ -1,6 +1,6 @@
 import "./task.less";
 
-import { AddIcon, deleteIcon } from "./assets/fontAwesomeIcons";
+import { AddIcon, deleteIcon, minusIcon } from "./assets/fontAwesomeIcons";
 import { Alert, Button, DatePicker, Input, Select, Switch } from "antd"; // Import Ant Design components
 import {
   CheckOutlined,
@@ -9,11 +9,19 @@ import {
   EditOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
-import { Link, Route, Routes, useLocation, useNavigate } from "react-router-dom"; // Import react-router-dom
+import {
+  Link,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 import { InputRef } from "antd"; // Import InputRef from Ant Design
 import moment from "moment"; // Import moment.js for date formatting
+
+// Import react-router-dom
 
 // Import Ant Design icons
 
@@ -115,8 +123,7 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
   </div>
 );
 
-interface ReportsPageProps {
-}
+interface ReportsPageProps {}
 
 const ReportsPage: React.FC<ReportsPageProps> = () => {
   const [reportData, setReportData] = useState<any[]>([]);
@@ -125,7 +132,7 @@ const ReportsPage: React.FC<ReportsPageProps> = () => {
   const navigate = useNavigate(); // Use navigate for redirection
 
   const handleDateRangeChange = (_: any, dateStrings: [string, string]) => {
-    setSelectedDateRange(dateStrings);
+    setSelectedDateRange(dateStrings as [string, string]); // Explicitly cast dateStrings
     const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
 
     const filteredReports = Object.entries(savedReports)
@@ -311,8 +318,12 @@ const EditTaskPage = () => {
   );
   const [name, setName] = useState(report?.data.name || "");
   const [date, setDate] = useState(report?.date || "");
-  const [bulletType, setBulletType] = useState(report?.data.bulletType || "bullet");
-  const [nextTaskValue, setNextTaskValue] = useState(report?.data.nextTask || "");
+  const [bulletType, setBulletType] = useState(
+    report?.data.bulletType || "bullet"
+  );
+  const [nextTaskValue, setNextTaskValue] = useState(
+    report?.data.nextTask || ""
+  );
 
   const workingTimeLimit = 8.5; // Total working time in hours
 
@@ -424,29 +435,30 @@ ${name.trim()}`;
             <h4>Personal Details</h4>
             <div className="task-info-row">
               <div className="input-group">
-                <label htmlFor="name">Your Name:</label>
+                <label htmlFor="name">User Name</label>
                 <Input
                   id="name"
-                  placeholder="Your Name"
+                  placeholder="Enter your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
               <div className="input-group">
-                <label htmlFor="date">Date:</label>
-                <Input
+                <label htmlFor="date">Date</label>
+                <DatePicker
                   id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
+                  value={date ? moment(date, "YYYY-MM-DD") : null} // Ensure only the default date is selected
+                  format="YYYY-MM-DD"
+                  onChange={(date, dateString) => setDate(dateString as string)}
+                  style={{ width: "100%" }}
                 />
               </div>
               <div className="input-group">
-                <label htmlFor="project">Project:</label>
+                <label htmlFor="project">Project</label>
                 <Select
                   id="project"
                   mode="multiple"
-                  placeholder="Select Project"
+                  placeholder="Select project(s)"
                   value={selectedProjects}
                   onChange={(value) => setSelectedProjects(value)}
                   style={{ width: "100%" }}
@@ -459,7 +471,7 @@ ${name.trim()}`;
                 </Select>
               </div>
               <div className="input-group">
-                <label htmlFor="bulletType">Bullet Type:</label>
+                <label htmlFor="bulletType">Options</label>
                 <Select
                   id="bulletType"
                   value={bulletType}
@@ -480,12 +492,14 @@ ${name.trim()}`;
               <h4>Task Details</h4>
               <div className="time-info">
                 <p className="total-time">
-                  Total: <span>{workingTimeLimit} hrs</span>
+                  Total: <span>8h 30min</span>
                 </p>
                 <p className="remaining-time">
                   Remaining:{" "}
                   <span
-                    className={isTimeExceeded ? "time-exceeded" : "time-in-limit"}
+                    className={
+                      isTimeExceeded ? "time-exceeded" : "time-in-limit"
+                    }
                   >
                     {formatRemainingTime(Math.abs(remainingTime))}
                   </span>
@@ -494,11 +508,12 @@ ${name.trim()}`;
               <div className="button-group">
                 <Button
                   type="primary"
-                  shape="circle"
-                  icon={AddIcon}
+                  icon={AddIcon} // Add icon for Add Task
                   onClick={addTask}
                   title="Add Task"
-                />
+                >
+                  Add Task
+                </Button>
               </div>
             </div>
             <div className="task-details-inputs" style={{ marginTop: "10px" }}>
@@ -508,89 +523,74 @@ ${name.trim()}`;
                   style={{
                     gridTemplateColumns: "1fr 3fr 1fr 1fr 1fr auto",
                   }}
-                  key={task.id}
+                  key={index}
                 >
                   <div className="input-group id-field">
-                    <label>
-                      Task ID:
-                      <Input
-                        placeholder="Task ID"
-                        value={task.taskId}
-                        onChange={(e) =>
-                          handleTaskChange(index, "taskId", e.target.value)
-                        }
-                      />
-                    </label>
+                    <Input
+                      placeholder="Task ID"
+                      value={task.taskId}
+                      onChange={(e) =>
+                        handleTaskChange(index, "taskId", e.target.value)
+                      }
+                    />
                   </div>
                   <div className="input-group title-field">
-                    <label>
-                      Title:
-                      <Input
-                        placeholder="Task Title"
-                        value={task.title}
-                        onChange={(e) =>
-                          handleTaskChange(index, "title", e.target.value)
-                        }
-                      />
-                    </label>
+                    <Input
+                      placeholder="Task Title"
+                      value={task.title}
+                      onChange={(e) =>
+                        handleTaskChange(index, "title", e.target.value)
+                      }
+                    />
                   </div>
                   <div className="input-group">
-                    <label>
-                      Hour:
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        value={task.hours}
-                        onChange={(e) =>
-                          handleTaskChange(index, "hours", e.target.value)
-                        }
-                      />
-                    </label>
+                    <Input
+                      type="number"
+                      placeholder="Hours"
+                      value={task.hours}
+                      onChange={(e) =>
+                        handleTaskChange(index, "hours", e.target.value)
+                      }
+                    />
                   </div>
                   <div className="input-group">
-                    <label>
-                      Minutes:
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        value={task.minutes}
-                        onChange={(e) =>
-                          handleTaskChange(index, "minutes", e.target.value)
-                        }
-                      />
-                    </label>
+                    <Input
+                      type="number"
+                      placeholder="Minutes"
+                      value={task.minutes}
+                      onChange={(e) =>
+                        handleTaskChange(index, "minutes", e.target.value)
+                      }
+                    />
                   </div>
                   <div className="input-group">
-                    <label>
-                      Status:
-                      <Select
-                        value={task.status}
-                        onChange={(value) =>
-                          handleTaskChange(index, "status", value)
-                        }
-                        style={{ width: "100%" }}
-                      >
-                        {statusOptions.map((status) => (
-                          <Option key={status} value={status}>
-                            {status}
-                          </Option>
-                        ))}
-                      </Select>
-                    </label>
+                    <Select
+                      placeholder="Select status"
+                      value={task.status}
+                      onChange={(value) =>
+                        handleTaskChange(index, "status", value)
+                      }
+                      style={{ width: "100%" }}
+                    >
+                      {statusOptions.map((status) => (
+                        <Option key={status} value={status}>
+                          {status}
+                        </Option>
+                      ))}
+                    </Select>
                   </div>
                   <Button
-                    type="primary"
+                    type="text" // Use "text" type to remove button styling
                     danger
-                    shape="circle"
                     icon={deleteIcon}
                     onClick={() => clearTask(task.id)}
                     title="Delete Task"
+                    style={{ marginBottom: "15px" }}
                   />
                 </div>
               ))}
             </div>
             <div className="input-group" style={{ marginTop: "20px" }}>
-              <label htmlFor="nextTask">Next Task:</label>
               <Input
                 id="nextTask"
                 placeholder="Enter next task"
@@ -666,7 +666,6 @@ const Task = () => {
   const taskIdInputRef = useRef<InputRef[]>([]); // Use an array of refs for multiple tasks
   const [editingReport, setEditingReport] = useState<any | null>(null); // State for editing a report
 
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (alertMessage) {
@@ -769,9 +768,8 @@ const Task = () => {
         status: "Completed",
       },
     ]);
-    setSelectedProjects([]);
     setNextTaskValue("");
-    setEditingReport(null); // Clear editing state
+    setDate(new Date().toISOString().split("T")[0]); // Reset to today's date
   };
 
   const clearTask = (taskId: number) => {
@@ -852,26 +850,6 @@ ${name.trim()}`;
     setTimeout(() => setCopySuccess(false), 2000); // Revert back after 2 seconds
   };
 
-  const handleEditReport = (report: any) => {
-    // Populate the form with the report data
-    setTasks(
-      report.data.tasks.map((task: any, index: number) => ({
-        id: index + 1, // Ensure unique IDs for tasks
-        taskId: task.taskId || "",
-        title: task.title || "",
-        hours: task.hours || "",
-        minutes: task.minutes || "",
-        status: task.status || "Completed",
-      }))
-    );
-    setSelectedProjects(report.data.selectedProjects || []);
-    setName(report.data.name || "");
-    setDate(report.date || "");
-    setBulletType(report.data.bulletType || "bullet");
-    setNextTaskValue(report.data.nextTask || "");
-    setEditingReport(report); // Set the editing report
-  };
-
   const savePreview = () => {
     const missingFields: string[] = [];
 
@@ -919,7 +897,9 @@ ${name.trim()}`;
     savedReports[date] = previewData; // Save only the filtered data
     localStorage.setItem("reports", JSON.stringify(savedReports));
     setAlertMessage(
-      editingReport ? "Record updated successfully!" : "Record saved successfully!"
+      editingReport
+        ? "Record updated successfully!"
+        : "Record saved successfully!"
     ); // Show success alert
 
     // Reset form data (excluding user details and selected projects)
@@ -957,7 +937,6 @@ ${name.trim()}`;
           element={
             <div className="content">
               <div className="task-input-container">
-                <h3>Create New Task</h3>
                 {alertMessage && (
                   <Alert
                     message={alertMessage}
@@ -975,31 +954,33 @@ ${name.trim()}`;
                   <h4>Personal Details</h4>
                   <div className="task-info-row">
                     <div className="input-group">
-                      <label htmlFor="name">Your Name:</label>
+                      <label htmlFor="name">User Name</label>
                       <Input
                         id="name"
-                        placeholder="Your Name"
+                        placeholder="Enter your name"
                         value={name}
                         required
                         onChange={(e) => setName(e.target.value)}
                       />
                     </div>
                     <div className="input-group">
-                      <label htmlFor="date">Date:</label>
-                      <Input
+                      <label htmlFor="date">Date</label>
+                      <DatePicker
                         id="date"
-                        type="date"
-                        required
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
+                        value={date ? moment(date, "YYYY-MM-DD") : null} // Ensure only the default date is selected
+                        format="YYYY-MM-DD"
+                        onChange={(_, dateString) =>
+                          setDate(dateString as string)
+                        } // Explicitly cast dateString to string
+                        style={{ width: "100%" }}
                       />
                     </div>
                     <div className="input-group">
-                      <label htmlFor="project">Project:</label>
+                      <label htmlFor="project">Project</label>
                       <Select
                         id="project"
                         mode="multiple" /* Enable multiple selection */
-                        placeholder="Select Project"
+                        placeholder="Select project(s)"
                         value={selectedProjects}
                         onChange={(value) => setSelectedProjects(value)}
                         style={{ width: "100%" }} /* Ensure full width */
@@ -1018,7 +999,7 @@ ${name.trim()}`;
                       className="input-group"
                       style={{ position: "relative" }}
                     >
-                      <label htmlFor="bulletType">Bullet Type:</label>
+                      <label htmlFor="bulletType">Options</label>
                       <Select
                         id="bulletType"
                         value={bulletType}
@@ -1040,7 +1021,7 @@ ${name.trim()}`;
                     <h4>Task Details</h4>
                     <div className="time-info">
                       <p className="total-time">
-                        Total: <span>{workingTimeLimit} hrs</span>
+                        Total: <span>8h 30min</span>
                       </p>
                       <p className="remaining-time">
                         Remaining:{" "}
@@ -1056,13 +1037,15 @@ ${name.trim()}`;
                     <div className="button-group">
                       <Button
                         type="primary"
-                        shape="circle"
-                        icon={AddIcon}
+                        icon={AddIcon} // Add icon for Add Task
                         onClick={addTask}
                         title="Add Task"
-                      />
+                      >
+                        Add Task
+                      </Button>
                       <Button
                         type="default"
+                        icon={<DeleteOutlined />} // Add icon for Reset
                         onClick={resetForm}
                         title="Reset Form"
                         style={{ marginLeft: "10px" }}
@@ -1087,118 +1070,91 @@ ${name.trim()}`;
                       >
                         {settings.showID && (
                           <div className="input-group id-field">
-                            <label>
-                              Task ID:
-                              <Input
-                                ref={(el) => {
-                                  taskIdInputRef.current[index] =
-                                    el as InputRef;
-                                }}
-                                placeholder="Task ID"
-                                value={task.taskId}
-                                onChange={(e) =>
-                                  handleTaskChange(
-                                    index,
-                                    "taskId",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                            </label>
-                          </div>
-                        )}
-                        <div className="input-group title-field">
-                          <label>
-                            Title:
                             <Input
-                              className="task-title-input"
-                              placeholder="Task Title"
-                              value={task.title}
+                              ref={(el) => {
+                                taskIdInputRef.current[index] = el as InputRef;
+                              }}
+                              placeholder="Task ID"
+                              value={task.taskId}
                               onChange={(e) =>
                                 handleTaskChange(
                                   index,
-                                  "title",
+                                  "taskId",
                                   e.target.value
                                 )
                               }
                             />
-                          </label>
+                          </div>
+                        )}
+                        <div className="input-group title-field">
+                          <Input
+                            className="task-title-input"
+                            placeholder="Task Title"
+                            value={task.title}
+                            onChange={(e) =>
+                              handleTaskChange(index, "title", e.target.value)
+                            }
+                          />
                         </div>
                         {settings.showHours && (
                           <div className="input-group">
-                            <label>
-                              Hour:
-                              <Input
-                                type="number"
-                                placeholder="0"
-                                value={task.hours}
-                                onChange={(e) =>
-                                  handleTaskChange(
-                                    index,
-                                    "hours",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                            </label>
+                            <Input
+                              type="number"
+                              placeholder="Hours"
+                              value={task.hours}
+                              onChange={(e) =>
+                                handleTaskChange(index, "hours", e.target.value)
+                              }
+                            />
                           </div>
                         )}
                         {settings.showHours && (
                           <div className="input-group">
-                            <label>
-                              Minutes:
-                              <Input
-                                type="number"
-                                placeholder="0"
-                                value={task.minutes}
-                                onChange={(e) =>
-                                  handleTaskChange(
-                                    index,
-                                    "minutes",
-                                    e.target.value
-                                  )
-                                }
-                              />
-                            </label>
+                            <Input
+                              type="number"
+                              placeholder="Minutes"
+                              value={task.minutes}
+                              onChange={(e) =>
+                                handleTaskChange(
+                                  index,
+                                  "minutes",
+                                  e.target.value
+                                )
+                              }
+                            />
                           </div>
                         )}
                         {settings.showStatus && (
                           <div className="input-group">
-                            <label>
-                              Status:
-                              <Select
-                                value={task.status}
-                                onChange={(value) =>
-                                  handleTaskChange(index, "status", value)
-                                }
-                                style={{ width: "100%" }}
-                              >
-                                {statusOptions.map((status) => (
-                                  <Option key={status} value={status}>
-                                    {status}
-                                  </Option>
-                                ))}
-                              </Select>
-                            </label>
+                            <Select
+                              placeholder="Select status"
+                              value={task.status}
+                              onChange={(value) =>
+                                handleTaskChange(index, "status", value)
+                              }
+                              style={{ width: "100%" }}
+                            >
+                              {statusOptions.map((status) => (
+                                <Option key={status} value={status}>
+                                  {status}
+                                </Option>
+                              ))}
+                            </Select>
                           </div>
                         )}
                         <Button
-                          type="primary"
+                          type="text" // Use "text" type to remove button styling
                           danger
-                          shape="circle"
                           icon={deleteIcon}
                           onClick={() => clearTask(task.id)}
                           title="Delete Task"
+                          style={{ marginBottom: "15px" }}
                         />
                       </div>
                     ))}
                   </div>
                   {settings.showNextTask && ( // Conditionally render the Next Task input
-                    <div
-                      className="input-group"
-                      style={{ marginTop: "20px" }}
-                    >
-                      <label htmlFor="nextTask">Next Task:</label>
+                    <div className="input-group" style={{ marginTop: "20px" }}>
                       <Input
                         id="nextTask"
                         placeholder="Enter next task"
@@ -1215,9 +1171,7 @@ ${name.trim()}`;
                   <div className="button-group">
                     <Button
                       type="primary"
-                      icon={
-                        copySuccess ? <CheckOutlined /> : <CopyOutlined />
-                      }
+                      icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
                       onClick={handleCopy}
                       title="Copy"
                     />
@@ -1246,20 +1200,14 @@ ${name.trim()}`;
             </div>
           }
         />
-        <Route
-          path="/edit-task"
-          element={<EditTaskPage />}
-        />
+        <Route path="/edit-task" element={<EditTaskPage />} />
         <Route
           path="/settings"
           element={
             <SettingsPage settings={settings} toggleSetting={toggleSetting} />
           }
         />
-        <Route
-          path="/reports"
-          element={<ReportsPage />}
-        />
+        <Route path="/reports" element={<ReportsPage />} />
       </Routes>
     </div>
   );

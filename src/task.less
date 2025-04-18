@@ -176,7 +176,7 @@ header {
 /* Task input container */
 .task-input-container {
   width: 65%; /* Fixed width for the first section */
-  padding: 25px; /* Increased padding for better spacing */
+  padding: 20px; /* Increased padding for better spacing */
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15); /* Enhanced shadow for better visibility */
@@ -192,13 +192,11 @@ header {
 }
 
 .input-group label {
-  display: flex;
-  flex-direction: column;
+  display: block; /* Ensure labels are visible */
   font-size: 14px;
   font-weight: bold;
   color: #333;
-  width: 100%; /* Ensure labels take full width */
-  gap: 5px; /* Add spacing between label and input */
+  margin-bottom: 5px; /* Add spacing below the label */
 }
 
 .input-group label input {
@@ -350,7 +348,7 @@ header {
 
   .total-time span {
     color: #007bff; /* Blue for total time value */
-  }
+  } 
 }
 
 .task-details-header {
@@ -363,7 +361,7 @@ header {
   display: grid;
   gap: 15px;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px; /* Reduced margin for less space between tasks */
   grid-template-columns: 1fr 3fr 1fr 1fr 1fr auto; /* Default layout */
 }
 
@@ -462,7 +460,7 @@ label .input-field {
 .task-row {
   display: flex;
   gap: 15px; /* Reduced gap for compactness */
-  margin-bottom: 15px; /* Reduced margin for better spacing */
+  margin-bottom: 10px; /* Reduced margin for less space between tasks */
   align-items: center; /* Align items vertically */
   justify-content: space-between; /* Distribute items evenly */
 }
@@ -529,7 +527,7 @@ label .input-field {
   display: grid;
   gap: 15px;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px; /* Reduced margin for less space between tasks */
   grid-template-columns: 1fr 3fr 1fr 1fr 1fr auto; /* Default layout */
 }
 
@@ -610,10 +608,27 @@ label .input-field {
     width: 100%; /* Full width for smaller screens */
   }
 }
+
+.personal-details-section h4 {
+  display: none; /* Hide the title for Personal Details */
+}
+
+.input-group label {
+  display: block; /* Ensure labels are visible for personal details inputs */
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px; /* Add spacing below the label */
+}
+
+/* Ensure task-related inputs do not have labels */
+.task-details-section .input-group label {
+  display: none; /* Hide labels for task-related inputs */
+}
+
 .personal-details-section h4,
 .task-details-section h4 {
   margin-bottom: 15px;
-  font-size: 18px;
   color: #333;
   font-weight: bold;
 }
@@ -627,7 +642,7 @@ label .input-field {
   display: grid;
   gap: 15px;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px; /* Reduced margin for less space between tasks */
   grid-template-columns: 1fr 3fr 1fr 1fr 1fr auto; /* Default layout */
 }
 
