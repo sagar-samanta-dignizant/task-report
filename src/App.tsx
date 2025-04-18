@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "./task.less";
 
 import { AddIcon, deleteIcon, minusIcon } from "./assets/fontAwesomeIcons";
@@ -123,9 +125,8 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
   </div>
 );
 
-interface ReportsPageProps {}
 
-const ReportsPage: React.FC<ReportsPageProps> = () => {
+const ReportsPage: React.FC = () => {
   const [reportData, setReportData] = useState<any[]>([]);
   const [_, setSelectedDateRange] = useState<[string, string] | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null); // Track which report was copied
@@ -231,18 +232,16 @@ const ReportsPage: React.FC<ReportsPageProps> = () => {
       "YYYY-MM-DD"
     )}
 
-${
-  selectedProjects.length > 0
-    ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
-    : ""
-} 
+${selectedProjects.length > 0
+        ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
+        : ""
+      } 
 ----------------------------------------
 ${formatTasks(tasks)}
-${
-  nextTask && nextTask.trim()
-    ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}` // Trim Next Task
-    : ""
-}
+${nextTask && nextTask.trim()
+        ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}` // Trim Next Task
+        : ""
+      }
 
 Thanks & regards
 ${name.trim()}`; // Trim Name
@@ -412,11 +411,10 @@ const EditTaskPage = () => {
 Project: ${selectedProjects.join(" & ") || "Not Selected"}
 ----------------------------------------
 ${formatTasks}
-${
-  nextTaskValue.trim()
-    ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
-    : ""
-}
+${nextTaskValue.trim()
+        ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
+        : ""
+      }
 
 Thanks & regards
 ${name.trim()}`;
@@ -749,8 +747,7 @@ const Task = () => {
           taskIdInputRef.current[lastTaskIndex]?.focus(); // Focus on Task ID if visible
         } else {
           document
-            .querySelectorAll<HTMLInputElement>(".task-title-input")
-            [lastTaskIndex]?.focus(); // Focus on Title if Task ID is hidden
+            .querySelectorAll<HTMLInputElement>(".task-title-input")[lastTaskIndex]?.focus(); // Focus on Title if Task ID is hidden
         }
       }, 0);
       return updatedTasks;
@@ -824,21 +821,17 @@ const Task = () => {
         .map((task, index) => `${getBullet(index)}${formatLine(task, index)}`)
         .join("\n");
 
-    return `Today's work update - ${
-      settings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""
-    }
+    return `Today's work update - ${settings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""
+      }
 
-${
-  settings.showProject
-    ? `Project : ${
-        selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
-      }\n---------------------\n`
-    : ""
-}${formatTasks(allTasks)}${
-      settings.showNextTask && nextTaskValue.trim()
+${settings.showProject
+        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
+        }\n---------------------\n`
+        : ""
+      }${formatTasks(allTasks)}${settings.showNextTask && nextTaskValue.trim()
         ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
         : ""
-    }
+      }
 
 Thanks & regards
 ${name.trim()}`;
