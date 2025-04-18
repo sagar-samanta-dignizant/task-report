@@ -103,7 +103,7 @@ interface ReportsPageProps {
   bulletType: "number" | "bullet" | "dot" | ">" | ">>" | "=>";
 }
 
-const ReportsPage: React.FC<ReportsPageProps> = ({ bulletType }) => {
+const ReportsPage: React.FC<ReportsPageProps> = () => {
   const [reportData, setReportData] = useState<any[]>([]);
   const [_, setSelectedDateRange] = useState<[string, string] | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null); // Track which report was copied
