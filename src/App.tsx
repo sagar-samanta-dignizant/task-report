@@ -3,11 +3,19 @@ import "./task.less";
 import { AddIcon, deleteIcon } from "./assets/fontAwesomeIcons";
 import { Alert, Button, DatePicker, Input, Select, Switch } from "antd"; // Import Ant Design components
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom"; // Import react-router-dom
-import { CheckOutlined, CopyOutlined, DeleteOutlined, SaveOutlined } from "@ant-design/icons"; // Import Ant Design icons
+import {
+  CheckOutlined,
+  CopyOutlined,
+  DeleteOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
 import { useEffect, useRef, useState } from "react";
 
 import { InputRef } from "antd"; // Import InputRef from Ant Design
 import moment from "moment"; // Import moment.js for date formatting
+
+// Import Ant Design icons
+
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -21,8 +29,14 @@ interface Task {
   status: string;
 }
 
-const allProjects = ["Rukkor", "Geometra","Deviaq"];
-const statusOptions = ["In Progress", "Hold", "Completed","Fixed" ,"Not Fixed"];
+const allProjects = ["Rukkor", "Geometra", "Deviaq"];
+const statusOptions = [
+  "In Progress",
+  "Hold",
+  "Completed",
+  "Fixed",
+  "Not Fixed",
+];
 
 const SettingsPage = ({ settings, toggleSetting }: any) => (
   <div className="settings-page">
@@ -86,9 +100,7 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
 
 const ReportsPage = () => {
   const [reportData, setReportData] = useState<any[]>([]);
-  const [_, setSelectedDateRange] = useState<
-    [string, string] | null
-  >(null);
+  const [_, setSelectedDateRange] = useState<[string, string] | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null); // Track which report was copied
 
   const handleDateRangeChange = (_: any, dateStrings: [string, string]) => {
@@ -175,11 +187,7 @@ const ReportsPage = () => {
 ${selectedProjects.length > 0 ? `Project: ${selectedProjects.join(" & ")}` : ""}
 ---------------------
 ${formatTasks(tasks)}
-${
-  nextTask
-    ? `\nNext's Tasks\n---------------------\n=> ${nextTask}`
-    : ""
-}
+${nextTask ? `\nNext's Tasks\n---------------------\n=> ${nextTask}` : ""}
 
 Thanks & regards
 ${name}`;
@@ -237,7 +245,14 @@ const Task = () => {
   const theme = "light";
   const workingTimeLimit = 8.5; // Total working time in hours
   const [tasks, setTasks] = useState<Task[]>([
-    { id: 1, taskId: "", title: "", hours: "", minutes: "", status: "Completed" }, // Default status set to "Completed"
+    {
+      id: 1,
+      taskId: "",
+      title: "",
+      hours: "",
+      minutes: "",
+      status: "Completed",
+    }, // Default status set to "Completed"
   ]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>(() => {
     try {
@@ -347,7 +362,9 @@ const Task = () => {
         if (settings.showID) {
           taskIdInputRef.current[lastTaskIndex]?.focus(); // Focus on Task ID if visible
         } else {
-          document.querySelectorAll<HTMLInputElement>(".task-title-input")[lastTaskIndex]?.focus(); // Focus on Title if Task ID is hidden
+          document
+            .querySelectorAll<HTMLInputElement>(".task-title-input")
+            [lastTaskIndex]?.focus(); // Focus on Title if Task ID is hidden
         }
       }, 0);
       return updatedTasks;
@@ -355,7 +372,16 @@ const Task = () => {
   };
 
   const resetForm = () => {
-    setTasks([{ id: 1, taskId: "", title: "", hours: "", minutes: "", status: "Completed" }]);
+    setTasks([
+      {
+        id: 1,
+        taskId: "",
+        title: "",
+        hours: "",
+        minutes: "",
+        status: "Completed",
+      },
+    ]);
     setSelectedProjects([]);
     setNextTaskValue("");
   };
@@ -370,14 +396,8 @@ const Task = () => {
   };
 
   const getFormattedPreview = () => {
-    const filteredTasks = tasks.filter((task) => task.title.trim()); // Only include tasks with a title
-    const completedTasks = filteredTasks.filter(
-      (task) => task.status === "Completed"
-    );
-    const inProgressTasks = filteredTasks.filter(
-      (task) => task.status === "In Progress"
-    );
-    const otherTasks = filteredTasks.filter((task) => !task.status);
+    const allTasks = tasks; // Include all tasks without filtering
+    console.log(allTasks);
 
     const formatLine = (task: Task, _: number) => {
       let line = "";
@@ -396,10 +416,18 @@ const Task = () => {
 
     const getBullet = (_: number) => {
       switch (bulletType) {
+        case "dot":
+          return ". "; // Correctly return a dot followed by a space
+        case "number":
+          return `${_ + 1}. `;
+        case ">":
+          return "> ";
         case ">>":
           return ">> ";
         case "=>":
           return "=> ";
+        case "bullet":
+          return "● "; // Use a bold dot for the "bullet" case
         default:
           return "- ";
       }
@@ -416,11 +444,11 @@ const Task = () => {
 
 ${
   settings.showProject
-    ? `Project : ${selectedProjects.join(" & ") || "Not Selected"}\n---------------------\n`
+    ? `Project : ${
+        selectedProjects.join(" & ") || "Not Selected"
+      }\n---------------------\n`
     : ""
-}${formatTasks(completedTasks)}
-${formatTasks(inProgressTasks)}
-${formatTasks(otherTasks)}${
+}${formatTasks(allTasks)}${
       settings.showNextTask && nextTaskValue.trim()
         ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue}`
         : ""
@@ -473,7 +501,16 @@ ${name}`;
     setAlertMessage("Record saved successfully!"); // Show success alert
 
     // Reset form data (excluding user details and selected projects)
-    setTasks([{ id: 1, taskId: "", title: "", hours: "", minutes: "", status: "Completed" }]);
+    setTasks([
+      {
+        id: 1,
+        taskId: "",
+        title: "",
+        hours: "",
+        minutes: "",
+        status: "Completed",
+      },
+    ]);
     setNextTaskValue("");
   };
 
@@ -502,7 +539,11 @@ ${name}`;
                   {alertMessage && (
                     <Alert
                       message={alertMessage}
-                      type={alertMessage.includes("successfully") ? "success" : "error"} // Success or error based on message
+                      type={
+                        alertMessage.includes("successfully")
+                          ? "success"
+                          : "error"
+                      } // Success or error based on message
                       closable
                       onClose={() => setAlertMessage(null)} // Clear alert on close
                       style={{ marginBottom: "15px" }}
@@ -540,7 +581,9 @@ ${name}`;
                           value={selectedProjects}
                           onChange={(value) => setSelectedProjects(value)}
                           style={{ width: "100%" }} /* Ensure full width */
-                          getPopupContainer={(triggerNode) => triggerNode.parentNode} // Ensure dropdown appears above other elements
+                          getPopupContainer={(triggerNode) =>
+                            triggerNode.parentNode
+                          } // Ensure dropdown appears above other elements
                         >
                           {allProjects.map((project) => (
                             <Option key={project} value={project}>
@@ -611,25 +654,38 @@ ${name}`;
                       style={{ marginTop: "10px" }}
                     >
                       {tasks.map((task, index) => (
-                        <div className="task-row" key={task.id}>
+                        <div
+                          className="task-row"
+                          style={{
+                            gridTemplateColumns: settings.showID
+                              ? "1fr 3fr 1fr 1fr 1fr auto" // Include space for ID field
+                              : "3fr 1fr 1fr 1fr auto", // Redistribute space when ID field is hidden
+                          }}
+                          key={task.id}
+                        >
                           {settings.showID && (
-                            <div className="input-group" style={{ flex: 1 }}>
+                            <div className="input-group id-field">
                               <label>
                                 Task ID:
                                 <Input
                                   ref={(el) => {
-                                    taskIdInputRef.current[index] = el as InputRef;
+                                    taskIdInputRef.current[index] =
+                                      el as InputRef;
                                   }}
                                   placeholder="Task ID"
                                   value={task.taskId}
                                   onChange={(e) =>
-                                    handleTaskChange(index, "taskId", e.target.value)
+                                    handleTaskChange(
+                                      index,
+                                      "taskId",
+                                      e.target.value
+                                    )
                                   }
                                 />
                               </label>
                             </div>
                           )}
-                          <div className="input-group" style={{ flex: 1 }}>
+                          <div className="input-group title-field">
                             <label>
                               Title:
                               <Input
@@ -637,13 +693,17 @@ ${name}`;
                                 placeholder="Task Title"
                                 value={task.title}
                                 onChange={(e) =>
-                                  handleTaskChange(index, "title", e.target.value)
+                                  handleTaskChange(
+                                    index,
+                                    "title",
+                                    e.target.value
+                                  )
                                 }
                               />
                             </label>
                           </div>
                           {settings.showHours && (
-                            <div className="input-group" style={{ flex: 0.8 }}>
+                            <div className="input-group">
                               <label>
                                 hour:
                                 <Input
@@ -651,14 +711,18 @@ ${name}`;
                                   placeholder="0"
                                   value={task.hours}
                                   onChange={(e) =>
-                                    handleTaskChange(index, "hours", e.target.value)
+                                    handleTaskChange(
+                                      index,
+                                      "hours",
+                                      e.target.value
+                                    )
                                   }
                                 />
                               </label>
                             </div>
                           )}
                           {settings.showHours && (
-                            <div className="input-group" style={{ flex: 0.8 }}>
+                            <div className="input-group">
                               <label>
                                 minutes:
                                 <Input
@@ -666,14 +730,18 @@ ${name}`;
                                   placeholder="0"
                                   value={task.minutes}
                                   onChange={(e) =>
-                                    handleTaskChange(index, "minutes", e.target.value)
+                                    handleTaskChange(
+                                      index,
+                                      "minutes",
+                                      e.target.value
+                                    )
                                   }
                                 />
                               </label>
                             </div>
                           )}
                           {settings.showStatus && (
-                            <div className="input-group" style={{ flex: 1 }}>
+                            <div className="input-group">
                               <label>
                                 Status:
                                 <Select
@@ -699,20 +767,24 @@ ${name}`;
                             icon={deleteIcon}
                             onClick={() => clearTask(task.id)}
                             title="Delete Task"
-                            style={{ marginTop: "10px" }}
                           />
                         </div>
                       ))}
                     </div>
-                    <div className="input-group" style={{ marginTop: "20px" }}>
-                      <label htmlFor="nextTask">Next Task:</label>
-                      <Input
-                        id="nextTask"
-                        placeholder="Enter next task"
-                        value={nextTaskValue}
-                        onChange={(e) => setNextTaskValue(e.target.value)}
-                      />
-                    </div>
+                    {settings.showNextTask && ( // Conditionally render the Next Task input
+                      <div
+                        className="input-group"
+                        style={{ marginTop: "20px" }}
+                      >
+                        <label htmlFor="nextTask">Next Task:</label>
+                        <Input
+                          id="nextTask"
+                          placeholder="Enter next task"
+                          value={nextTaskValue}
+                          onChange={(e) => setNextTaskValue(e.target.value)}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -724,7 +796,7 @@ ${name}`;
                         type="primary"
                         icon={
                           copySuccess ? <CheckOutlined /> : <CopyOutlined />
-                        } 
+                        }
                         onClick={handleCopy}
                         title="Copy"
                       />

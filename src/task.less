@@ -362,10 +362,14 @@ header {
 
 .task-row {
   display: grid;
-  grid-template-columns: 1fr 3fr 0.8fr 0.8fr 1fr auto; /* Adjust column widths */
   gap: 15px;
   align-items: center;
   margin-bottom: 15px;
+  grid-template-columns: 1fr 3fr 1fr 1fr 1fr auto; /* Default layout */
+}
+
+.id-field {
+  display: block; /* Ensure ID field is visible when enabled */
 }
 
 button.clear-task-btn {
@@ -523,11 +527,15 @@ label .input-field {
 
 /* Task row styles */
 .task-row {
-  display: flex;
-  gap: 15px; /* Reduced gap for compactness */
-  margin-bottom: 15px; /* Reduced margin for better spacing */
-  align-items: center; /* Align items vertically */
-  justify-content: space-between; /* Distribute items evenly */
+  display: grid;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 15px;
+  grid-template-columns: 1fr 3fr 1fr 1fr 1fr auto; /* Default layout */
+}
+
+.id-field {
+  display: block; /* Ensure ID field is visible when enabled */
 }
 
 /* Preview container */
@@ -618,10 +626,14 @@ label .input-field {
 
 .task-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto;
   gap: 15px;
   align-items: center;
   margin-bottom: 15px;
+  grid-template-columns: 1fr 3fr 1fr 1fr 1fr auto; /* Default layout */
+}
+
+.id-field {
+  display: block; /* Ensure ID field is visible when enabled */
 }
 
 /* Settings button styles */
