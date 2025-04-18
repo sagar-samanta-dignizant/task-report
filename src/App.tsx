@@ -206,6 +206,7 @@ ${name ? `\nThanks & regards\n${name}` : ""}`;
 
 const Task = () => {
   const theme = "light";
+  const workingTimeLimit = 8.5; // Total working time in hours
   const [tasks, setTasks] = useState<Task[]>([
     { id: 1, taskId: "", title: "", hours: "", status: "Completed" }, // Default status set to "Completed"
   ]);
@@ -233,6 +234,17 @@ const Task = () => {
     showNextTask: JSON.parse(localStorage.getItem("showNextTask") || "true"),
     showProject: JSON.parse(localStorage.getItem("showProject") || "true"),
   });
+
+  const calculateRemainingTime = () => {
+    const totalTaskTime = tasks.reduce(
+      (sum, task) => sum + (parseFloat(task.hours as string) || 0),
+      0
+    );
+    return workingTimeLimit - totalTaskTime;
+  };
+
+  const remainingTime = calculateRemainingTime();
+  const isTimeExceeded = remainingTime < 0;
 
   useEffect(() => {
     localStorage.setItem("name", name);
@@ -274,6 +286,14 @@ const Task = () => {
       status: "Completed", // Default status set to "Completed"
     };
     setTasks([...tasks, newTask]); // Allow adding tasks without restriction
+  };
+
+  const resetForm = () => {
+    setTasks([{ id: 1, taskId: "", title: "", hours: "", status: "Completed" }]);
+    setSelectedProjects([]);
+    setName("");
+    setDate(new Date().toISOString().split("T")[0]);
+    setNextTaskValue("");
   };
 
   const clearTask = (taskId: number) => {
@@ -377,14 +397,24 @@ ${name || "Sagar Samanta"}`;
     const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
     savedReports[date] = previewData; // Save only the filtered data
     localStorage.setItem("reports", JSON.stringify(savedReports));
-    alert("Preview saved successfully!");
+
+    // Reset form data
+    setTasks([{ id: 1, taskId: "", title: "", hours: "", status: "Completed" }]);
+    setSelectedProjects([]);
+    setName("");
+    setDate(new Date().toISOString().split("T")[0]);
+    setNextTaskValue("");
   };
 
   return (
     <BrowserRouter>
       <div className={`app-container ${theme}`}>
         <header className="header">
-          <h1>Report Manager</h1>
+          <h1>
+            <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
+              Report Manager
+            </Link>
+          </h1>
           <nav>
             <Link to="/">Home</Link> | <Link to="/settings">Settings</Link> |{" "}
             <Link to="/reports">Reports</Link>
@@ -460,64 +490,100 @@ ${name || "Sagar Samanta"}`;
                   <div className="task-details-section">
                     <div className="task-details-header">
                       <h4>Task Details</h4>
-                      <Button
-                        type="primary"
-                        shape="circle"
-                        icon={AddIcon}
-                        onClick={addTask}
-                        title="Add Task"
-                      />
+                      <div className="time-info">
+                        <p className="total-time">
+                          Total: <span>{workingTimeLimit} hrs</span>
+                        </p>
+                        <p className="remaining-time">
+                          Remaining:{" "}
+                          <span
+                            className={
+                              isTimeExceeded ? "time-exceeded" : "time-in-limit"
+                            }
+                          >
+                            {remainingTime.toFixed(2)} hrs
+                          </span>
+                        </p>
+                      </div>
+                      <div className="button-group">
+                        <Button
+                          type="primary"
+                          shape="circle"
+                          icon={AddIcon}
+                          onClick={addTask}
+                          title="Add Task"
+                        />
+                        <Button
+                          type="default"
+                          onClick={resetForm}
+                          title="Reset Form"
+                          style={{ marginLeft: "10px" }}
+                        >
+                          Reset
+                        </Button>
+                      </div>
                     </div>
-                    <div className="task-details-inputs">
+                    <div
+                      className="task-details-inputs"
+                      style={{ marginTop: "10px" }}
+                    >
                       {tasks.map((task, index) => (
                         <div className="task-row" key={task.id}>
-                          <label>
-                            Task ID:
-                            <Input
-                              placeholder="Task ID"
-                              value={task.taskId}
-                              onChange={(e) =>
-                                handleTaskChange(index, "taskId", e.target.value)
-                              }
-                            />
-                          </label>
-                          <label>
-                            Task Title:
-                            <Input
-                              placeholder="Task Title"
-                              value={task.title}
-                              onChange={(e) =>
-                                handleTaskChange(index, "title", e.target.value)
-                              }
-                            />
-                          </label>
-                          <label>
-                            Hours:
-                            <Input
-                              type="number"
-                              placeholder="Hours"
-                              value={task.hours}
-                              onChange={(e) =>
-                                handleTaskChange(index, "hours", e.target.value)
-                              }
-                            />
-                          </label>
-                          <label>
-                            Status:
-                            <Select
-                              value={task.status}
-                              onChange={(value) =>
-                                handleTaskChange(index, "status", value)
-                              }
-                              style={{ width: "100%" }}
-                            >
-                              {statusOptions.map((status) => (
-                                <Option key={status} value={status}>
-                                  {status}
-                                </Option>
-                              ))}
-                            </Select>
-                          </label>
+                          <div className="input-group">
+                            <label>
+                              Task ID:
+                              <Input
+                                placeholder="Task ID"
+                                value={task.taskId}
+                                onChange={(e) =>
+                                  handleTaskChange(index, "taskId", e.target.value)
+                                }
+                              />
+                            </label>
+                          </div>
+                          <div className="input-group">
+                            <label>
+                              Task Title:
+                              <Input
+                                placeholder="Task Title"
+                                value={task.title}
+                                onChange={(e) =>
+                                  handleTaskChange(index, "title", e.target.value)
+                                }
+                              />
+                            </label>
+                          </div>
+                          <div className="input-group">
+                            <label>
+                              Hours:
+                              <Input
+                                type="number"
+                                placeholder="Hours"
+                                value={task.hours}
+                                onChange={(e) =>
+                                  handleTaskChange(index, "hours", e.target.value)
+                                }
+                              />
+                            </label>
+                          </div>
+                          <div className="input-group">
+                            <label>
+                              Status:
+                              <Select
+                                value={task.status}
+                                onChange={(value) =>
+                                  handleTaskChange(index, "status", value)
+                                }
+                                style={{ width: "100%" }}
+                              >
+                                {statusOptions.map((status) => (
+                                  <Option key={status} value={status}>
+                                    {status}
+                                  </Option>
+                                ))}
+                              </Select>
+                            </label>
+                          </div>
                           <Button
                             type="primary"
                             danger
@@ -530,7 +596,7 @@ ${name || "Sagar Samanta"}`;
                         </div>
                       ))}
                     </div>
-                    <div className="input-group">
+                    <div className="input-group" style={{ marginTop: "20px" }}>
                       <label htmlFor="nextTask">Next Task:</label>
                       <Input
                         id="nextTask"

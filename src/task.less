@@ -192,6 +192,9 @@ header {
 }
 
 .input-group label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px; /* Consistent spacing between label and input */
   font-size: 14px;
   font-weight: bold;
   color: #333;
@@ -313,9 +316,42 @@ header {
 
 .task-details-header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.time-info {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  font-weight: bold;
+
+  p {
+    margin: 0;
+
+    span {
+      font-weight: normal; /* Ensure only the value changes color */
+    }
+
+    .time-in-limit {
+      color: green; /* Green when within limit */
+    }
+
+    .time-exceeded {
+      color: red; /* Red when out of limit */
+    }
+  }
+
+  .total-time span {
+    color: #007bff; /* Blue for total time value */
+  }
+}
+
+.task-details-header {
+  display: flex;
   justify-content: space-between; /* Align title to the left and button to the right */
   align-items: center;
-  margin-bottom: 15px;
 }
 
 .task-row {
@@ -561,13 +597,6 @@ label .input-field {
     width: 100%; /* Full width for smaller screens */
   }
 }
-
-/* New sections styles */
-.personal-details-section,
-.task-details-section {
-  margin-bottom: 20px;
-}
-
 .personal-details-section h4,
 .task-details-section h4 {
   margin-bottom: 15px;
@@ -579,7 +608,6 @@ label .input-field {
 .task-info-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
 }
 
 .task-row {
@@ -871,5 +899,5 @@ nav a:hover {
 /* Button group styles */
 .button-group {
   display: flex;
-  gap: 10px; /* Add a small gap between buttons */
+  gap: 10px; /* Add spacing between buttons */
 }
