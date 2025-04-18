@@ -4,8 +4,9 @@ import { AddIcon, deleteIcon } from "./assets/fontAwesomeIcons";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom"; // Import react-router-dom
 import { Button, DatePicker, Input, Select, Switch } from "antd"; // Import Ant Design components
 import { CheckOutlined, CopyOutlined, DeleteOutlined, SaveOutlined } from "@ant-design/icons"; // Import Ant Design icons
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { InputRef } from "antd"; // Import InputRef from Ant Design
 import moment from "moment"; // Import moment.js for date formatting
 
 const { Option } = Select;
@@ -250,6 +251,7 @@ const Task = () => {
     showNextTask: JSON.parse(localStorage.getItem("showNextTask") || "true"),
     showProject: JSON.parse(localStorage.getItem("showProject") || "true"),
   });
+  const taskIdInputRef = useRef<InputRef[]>([]); // Use an array of refs for multiple tasks
 
   const calculateRemainingTime = () => {
     const totalTaskTime = tasks.reduce(
@@ -301,7 +303,14 @@ const Task = () => {
       hours: "",
       status: "Completed", // Default status set to "Completed"
     };
-    setTasks([...tasks, newTask]); // Allow adding tasks without restriction
+    setTasks((prevTasks) => {
+      const updatedTasks = [...prevTasks, newTask];
+      setTimeout(() => {
+        const lastTaskIndex = updatedTasks.length - 1;
+        taskIdInputRef.current[lastTaskIndex]?.focus(); // Focus on the Task ID input of the new task
+      }, 0);
+      return updatedTasks;
+    });
   };
 
   const resetForm = () => {
@@ -544,6 +553,9 @@ ${name}`;
                             <label>
                               Task ID:
                               <Input
+                                ref={(el) => {
+                                  taskIdInputRef.current[index] = el as InputRef;
+                                }} // Assign ref to each task's input
                                 placeholder="Task ID"
                                 value={task.taskId}
                                 onChange={(e) =>
