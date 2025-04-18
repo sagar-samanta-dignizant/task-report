@@ -3,7 +3,7 @@ import "./task.less";
 import { AddIcon, deleteIcon } from "./assets/fontAwesomeIcons";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom"; // Import react-router-dom
 import { Button, DatePicker, Input, Select, Switch } from "antd"; // Import Ant Design components
-import { CheckOutlined, CopyOutlined, SaveOutlined } from "@ant-design/icons"; // Import Ant Design icons
+import { CheckOutlined, CopyOutlined, DeleteOutlined, SaveOutlined } from "@ant-design/icons"; // Import Ant Design icons
 import { useEffect, useState } from "react";
 
 import moment from "moment"; // Import moment.js for date formatting
@@ -126,12 +126,15 @@ const ReportsPage = () => {
     setTimeout(() => setCopiedIndex(null), 2000); // Revert back after 2 seconds
   };
 
+  const handleDelete = (date: string) => {
+    const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
+    delete savedReports[date]; // Remove the report by date
+    localStorage.setItem("reports", JSON.stringify(savedReports)); // Update storage
+    setReportData(reportData.filter((report) => report.date !== date)); // Update state
+  };
+
   const formatPreview = (data: any) => {
     const { tasks, selectedProjects, date, name, nextTask } = data;
-    const completedTasks = tasks.filter(
-      (task: any) => task.status === "Completed"
-    );
-    const otherTasks = tasks.filter((task: any) => task.status !== "Completed");
 
     const formatLine = (task: any) => {
       let line = "";
@@ -143,24 +146,30 @@ const ReportsPage = () => {
       return line;
     };
 
-    const formatTasks = (tasks: any[]) =>
-      tasks.map((task, _) => `- ${formatLine(task)}`).join("\n");
+    const getBullet = (index: number) => {
+      return `${index + 1}. `;
+    };
 
-    return `Date: ${moment(date, "YYYY-MM-DD").format("YYYY-MM-DD")} 
+    const formatTasks = (tasks: any[]) =>
+      tasks
+        .map((task, index) => `${getBullet(index)}${formatLine(task)}`)
+        .join("\n");
+
+    return `Today's work update - ${moment(date, "YYYY-MM-DD").format(
+      "YYYY-MM-DD"
+    )}
 
 ${selectedProjects.length > 0 ? `Project: ${selectedProjects.join(" & ")}` : ""}
+---------------------
+${formatTasks(tasks)}
 ${
-  completedTasks.length > 0
-    ? `---------------------\nCompleted Tasks:\n${formatTasks(completedTasks)}`
+  nextTask
+    ? `\nNext's Tasks\n---------------------\n=> ${nextTask}`
     : ""
 }
-${
-  otherTasks.length > 0
-    ? `---------------------\nOther Tasks:\n${formatTasks(otherTasks)}`
-    : ""
-}
-${nextTask ? `---------------------\nNext Day's Task:\n=> ${nextTask}` : ""}
-${name ? `\nThanks & regards\n${name}` : ""}`;
+
+Thanks & regards
+${name}`;
   };
 
   return (
@@ -190,6 +199,13 @@ ${name ? `\nThanks & regards\n${name}` : ""}`;
                     } // Change icon on copy
                     onClick={() => handleCopy(report.data, index)}
                     title="Copy"
+                  />
+                  <Button
+                    type="primary"
+                    danger
+                    icon={<DeleteOutlined />} // Use Delete icon
+                    onClick={() => handleDelete(report.date)}
+                    title="Delete"
                   />
                 </div>
               </div>
@@ -291,8 +307,6 @@ const Task = () => {
   const resetForm = () => {
     setTasks([{ id: 1, taskId: "", title: "", hours: "", status: "Completed" }]);
     setSelectedProjects([]);
-    setName("");
-    setDate(new Date().toISOString().split("T")[0]);
     setNextTaskValue("");
   };
 
@@ -398,11 +412,8 @@ ${name}`;
     savedReports[date] = previewData; // Save only the filtered data
     localStorage.setItem("reports", JSON.stringify(savedReports));
 
-    // Reset form data
+    // Reset form data (excluding user details and selected projects)
     setTasks([{ id: 1, taskId: "", title: "", hours: "", status: "Completed" }]);
-    setSelectedProjects([]);
-    setName("");
-    setDate(new Date().toISOString().split("T")[0]);
     setNextTaskValue("");
   };
 
