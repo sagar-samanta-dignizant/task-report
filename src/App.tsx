@@ -1,8 +1,8 @@
 import "./task.less";
 
 import { AddIcon, deleteIcon } from "./assets/fontAwesomeIcons";
+import { Alert, Button, DatePicker, Input, Select, Switch } from "antd"; // Import Ant Design components
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom"; // Import react-router-dom
-import { Button, DatePicker, Input, Select, Switch } from "antd"; // Import Ant Design components
 import { CheckOutlined, CopyOutlined, DeleteOutlined, SaveOutlined } from "@ant-design/icons"; // Import Ant Design icons
 import { useEffect, useRef, useState } from "react";
 
@@ -17,11 +17,12 @@ interface Task {
   taskId: string | number;
   title: string;
   hours: string | number;
+  minutes: string | number; // Add minutes field
   status: string;
 }
 
 const allProjects = ["Rukkor", "Geometra","Deviaq"];
-const statusOptions = ["In Progress", "Hold", "Completed"];
+const statusOptions = ["In Progress", "Hold", "Completed","Fixed" ,"Not Fixed"];
 
 const SettingsPage = ({ settings, toggleSetting }: any) => (
   <div className="settings-page">
@@ -134,6 +135,15 @@ const ReportsPage = () => {
     setReportData(reportData.filter((report) => report.date !== date)); // Update state
   };
 
+  const formatTaskTime = (hours: string | number, minutes: string | number) => {
+    const h = parseInt(hours as string) || 0;
+    const m = parseInt(minutes as string) || 0;
+    let timeString = "";
+    if (h > 0) timeString += `${h} h`; // Only include hours if greater than 0
+    if (m > 0) timeString += ` ${m} min`; // Only include minutes if greater than 0
+    return timeString.trim(); // Remove any leading/trailing spaces
+  };
+
   const formatPreview = (data: any) => {
     const { tasks, selectedProjects, date, name, nextTask } = data;
 
@@ -142,8 +152,10 @@ const ReportsPage = () => {
       if (task.taskId) line += `ID: ${task.taskId} - `;
       line += task.title;
       if (task.status) line += ` (${task.status})`;
-      if (task.hours)
-        line += ` (${task.hours} hour${+task.hours > 1 ? "s" : ""})`;
+      if (task.hours || task.minutes) {
+        const taskTime = formatTaskTime(task.hours, task.minutes);
+        if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
+      }
       return line;
     };
 
@@ -225,7 +237,7 @@ const Task = () => {
   const theme = "light";
   const workingTimeLimit = 8.5; // Total working time in hours
   const [tasks, setTasks] = useState<Task[]>([
-    { id: 1, taskId: "", title: "", hours: "", status: "Completed" }, // Default status set to "Completed"
+    { id: 1, taskId: "", title: "", hours: "", minutes: "", status: "Completed" }, // Default status set to "Completed"
   ]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>(() => {
     try {
@@ -251,14 +263,38 @@ const Task = () => {
     showNextTask: JSON.parse(localStorage.getItem("showNextTask") || "true"),
     showProject: JSON.parse(localStorage.getItem("showProject") || "true"),
   });
+  const [alertMessage, setAlertMessage] = useState<string | null>(null); // State for alert message
   const taskIdInputRef = useRef<InputRef[]>([]); // Use an array of refs for multiple tasks
 
+  useEffect(() => {
+    if (alertMessage) {
+      const timer = setTimeout(() => setAlertMessage(null), 2000); // Clear alert after 2 seconds
+      return () => clearTimeout(timer); // Cleanup timer on component unmount or alert change
+    }
+  }, [alertMessage]);
+
   const calculateRemainingTime = () => {
-    const totalTaskTime = tasks.reduce(
-      (sum, task) => sum + (parseFloat(task.hours as string) || 0),
-      0
-    );
+    const totalTaskTime = tasks.reduce((sum, task) => {
+      const taskHours = parseFloat(task.hours as string) || 0;
+      const taskMinutes = (parseFloat(task.minutes as string) || 0) / 60; // Convert minutes to hours
+      return sum + taskHours + taskMinutes;
+    }, 0);
     return workingTimeLimit - totalTaskTime;
+  };
+
+  const formatRemainingTime = (remainingTime: number) => {
+    const hours = Math.floor(remainingTime);
+    const minutes = Math.round((remainingTime - hours) * 60);
+    return `${hours}h and ${minutes}m`;
+  };
+
+  const formatTaskTime = (hours: string | number, minutes: string | number) => {
+    const h = parseInt(hours as string) || 0;
+    const m = parseInt(minutes as string) || 0;
+    let timeString = "";
+    if (h > 0) timeString += `${h}h`; // Only include hours if greater than 0
+    if (m > 0) timeString += ` ${m}min`; // Only include minutes if greater than 0
+    return timeString.trim(); // Remove any leading/trailing spaces
   };
 
   const remainingTime = calculateRemainingTime();
@@ -301,20 +337,25 @@ const Task = () => {
       taskId: "",
       title: "",
       hours: "",
+      minutes: "",
       status: "Completed", // Default status set to "Completed"
     };
     setTasks((prevTasks) => {
       const updatedTasks = [...prevTasks, newTask];
       setTimeout(() => {
         const lastTaskIndex = updatedTasks.length - 1;
-        taskIdInputRef.current[lastTaskIndex]?.focus(); // Focus on the Task ID input of the new task
+        if (settings.showID) {
+          taskIdInputRef.current[lastTaskIndex]?.focus(); // Focus on Task ID if visible
+        } else {
+          document.querySelectorAll<HTMLInputElement>(".task-title-input")[lastTaskIndex]?.focus(); // Focus on Title if Task ID is hidden
+        }
       }, 0);
       return updatedTasks;
     });
   };
 
   const resetForm = () => {
-    setTasks([{ id: 1, taskId: "", title: "", hours: "", status: "Completed" }]);
+    setTasks([{ id: 1, taskId: "", title: "", hours: "", minutes: "", status: "Completed" }]);
     setSelectedProjects([]);
     setNextTaskValue("");
   };
@@ -346,20 +387,15 @@ const Task = () => {
       line += task.title;
 
       if (settings.showStatus && task.status) line += ` (${task.status})`;
-      if (settings.showHours && task.hours) {
-        line += ` (${task.hours} hour${+task.hours > 1 ? "s" : ""})`;
+      if (settings.showHours) {
+        const taskTime = formatTaskTime(task.hours, task.minutes);
+        if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
       }
       return line;
     };
 
     const getBullet = (index: number) => {
       switch (bulletType) {
-        case "number":
-          return `${index + 1}. `;
-        case "dot":
-          return "• ";
-        case ">":
-          return "> ";
         case ">>":
           return ">> ";
         case "=>":
@@ -401,6 +437,18 @@ ${name}`;
   };
 
   const savePreview = () => {
+    if (!name.trim() || !selectedProjects.length || !date.trim()) {
+      setAlertMessage("Name, Project, and Date are required fields."); // Show alert for missing fields
+      return;
+    }
+
+    const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
+
+    if (savedReports[date]) {
+      setAlertMessage(`A record already exists for the date: ${date}`); // Show alert if record exists
+      return;
+    }
+
     const filteredTasks = tasks.filter((task) => task.title.trim()); // Only include tasks with a title
     const previewData = {
       date, // Save the date in `YYYY-MM-DD` format
@@ -408,6 +456,7 @@ ${name}`;
         taskId: settings.showID ? task.taskId : undefined,
         title: task.title,
         hours: settings.showHours ? task.hours : undefined,
+        minutes: settings.showHours ? task.minutes : undefined, // Include minutes
         status: settings.showStatus ? task.status : undefined,
       })),
       selectedProjects: settings.showProject ? selectedProjects : [],
@@ -417,12 +466,14 @@ ${name}`;
           ? nextTaskValue
           : undefined, // Save next task only if it exists
     };
-    const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
+
     savedReports[date] = previewData; // Save only the filtered data
     localStorage.setItem("reports", JSON.stringify(savedReports));
 
+    setAlertMessage("Record saved successfully!"); // Show success alert
+
     // Reset form data (excluding user details and selected projects)
-    setTasks([{ id: 1, taskId: "", title: "", hours: "", status: "Completed" }]);
+    setTasks([{ id: 1, taskId: "", title: "", hours: "", minutes: "", status: "Completed" }]);
     setNextTaskValue("");
   };
 
@@ -448,6 +499,15 @@ ${name}`;
               <div className="content">
                 <div className="task-input-container">
                   <h3>Create New Task</h3>
+                  {alertMessage && (
+                    <Alert
+                      message={alertMessage}
+                      type={alertMessage.includes("successfully") ? "success" : "error"} // Success or error based on message
+                      closable
+                      onClose={() => setAlertMessage(null)} // Clear alert on close
+                      style={{ marginBottom: "15px" }}
+                    />
+                  )}
                   <div className="personal-details-section">
                     <h4>Personal Details</h4>
                     <div className="task-info-row">
@@ -457,6 +517,7 @@ ${name}`;
                           id="name"
                           placeholder="Your Name"
                           value={name}
+                          required
                           onChange={(e) => setName(e.target.value)}
                         />
                       </div>
@@ -465,6 +526,7 @@ ${name}`;
                         <Input
                           id="date"
                           type="date"
+                          required
                           value={date}
                           onChange={(e) => setDate(e.target.value)}
                         />
@@ -522,7 +584,7 @@ ${name}`;
                               isTimeExceeded ? "time-exceeded" : "time-in-limit"
                             }
                           >
-                            {remainingTime.toFixed(2)} hrs
+                            {formatRemainingTime(Math.abs(remainingTime))}
                           </span>
                         </p>
                       </div>
@@ -550,25 +612,28 @@ ${name}`;
                     >
                       {tasks.map((task, index) => (
                         <div className="task-row" key={task.id}>
-                          <div className="input-group">
+                          {settings.showID && (
+                            <div className="input-group" style={{ flex: 1 }}>
+                              <label>
+                                Task ID:
+                                <Input
+                                  ref={(el) => {
+                                    taskIdInputRef.current[index] = el as InputRef;
+                                  }}
+                                  placeholder="Task ID"
+                                  value={task.taskId}
+                                  onChange={(e) =>
+                                    handleTaskChange(index, "taskId", e.target.value)
+                                  }
+                                />
+                              </label>
+                            </div>
+                          )}
+                          <div className="input-group" style={{ flex: 1 }}>
                             <label>
-                              Task ID:
+                              Title:
                               <Input
-                                ref={(el) => {
-                                  taskIdInputRef.current[index] = el as InputRef;
-                                }} // Assign ref to each task's input
-                                placeholder="Task ID"
-                                value={task.taskId}
-                                onChange={(e) =>
-                                  handleTaskChange(index, "taskId", e.target.value)
-                                }
-                              />
-                            </label>
-                          </div>
-                          <div className="input-group">
-                            <label>
-                              Task Title:
-                              <Input
+                                className="task-title-input"
                                 placeholder="Task Title"
                                 value={task.title}
                                 onChange={(e) =>
@@ -577,37 +642,56 @@ ${name}`;
                               />
                             </label>
                           </div>
-                          <div className="input-group">
-                            <label>
-                              Hours:
-                              <Input
-                                type="number"
-                                placeholder="Hours"
-                                value={task.hours}
-                                onChange={(e) =>
-                                  handleTaskChange(index, "hours", e.target.value)
-                                }
-                              />
-                            </label>
-                          </div>
-                          <div className="input-group">
-                            <label>
-                              Status:
-                              <Select
-                                value={task.status}
-                                onChange={(value) =>
-                                  handleTaskChange(index, "status", value)
-                                }
-                                style={{ width: "100%" }}
-                              >
-                                {statusOptions.map((status) => (
-                                  <Option key={status} value={status}>
-                                    {status}
-                                  </Option>
-                                ))}
-                              </Select>
-                            </label>
-                          </div>
+                          {settings.showHours && (
+                            <div className="input-group" style={{ flex: 0.8 }}>
+                              <label>
+                                hour:
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  value={task.hours}
+                                  onChange={(e) =>
+                                    handleTaskChange(index, "hours", e.target.value)
+                                  }
+                                />
+                              </label>
+                            </div>
+                          )}
+                          {settings.showHours && (
+                            <div className="input-group" style={{ flex: 0.8 }}>
+                              <label>
+                                minutes:
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  value={task.minutes}
+                                  onChange={(e) =>
+                                    handleTaskChange(index, "minutes", e.target.value)
+                                  }
+                                />
+                              </label>
+                            </div>
+                          )}
+                          {settings.showStatus && (
+                            <div className="input-group" style={{ flex: 1 }}>
+                              <label>
+                                Status:
+                                <Select
+                                  value={task.status}
+                                  onChange={(value) =>
+                                    handleTaskChange(index, "status", value)
+                                  }
+                                  style={{ width: "100%" }}
+                                >
+                                  {statusOptions.map((status) => (
+                                    <Option key={status} value={status}>
+                                      {status}
+                                    </Option>
+                                  ))}
+                                </Select>
+                              </label>
+                            </div>
+                          )}
                           <Button
                             type="primary"
                             danger
@@ -640,7 +724,7 @@ ${name}`;
                         type="primary"
                         icon={
                           copySuccess ? <CheckOutlined /> : <CopyOutlined />
-                        } // Change icon on copy
+                        } 
                         onClick={handleCopy}
                         title="Copy"
                       />
