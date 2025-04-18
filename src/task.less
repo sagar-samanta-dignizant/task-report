@@ -74,18 +74,18 @@ label {
 }
 
 .ant-select-dropdown {
-  background-color: #fff; /* Light theme background */
-  color: #333; /* Light theme text color */
-  z-index: 9999 !important; /* Ensure dropdown is above all other elements */
+  z-index: 1050 !important; /* Ensure dropdown appears above other elements */
   position: absolute; /* Ensure proper positioning */
+  background-color: #fff; /* Match the theme background */
+  color: #333; /* Match the theme text color */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Add shadow for better visibility */
 }
+
 .task-input-container,
 .content {
   overflow: visible; /* Make sure dropdown can appear outside */
 }
-.ant-select-dropdown {
-  z-index: 1050 !important; /* Higher than other elements */
-}
+
 .ant-select-item {
   color: #333; /* Light theme text color */
 }
@@ -212,7 +212,6 @@ header {
 }
 
 .ant-select-dropdown {
-  background-color: inherit; /* Match the theme background */
   color: inherit; /* Match the theme text color */
 }
 

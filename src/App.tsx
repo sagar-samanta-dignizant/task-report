@@ -478,6 +478,7 @@ ${name}`;
                           value={selectedProjects}
                           onChange={(value) => setSelectedProjects(value)}
                           style={{ width: "100%" }} /* Ensure full width */
+                          getPopupContainer={(triggerNode) => triggerNode.parentNode} // Ensure dropdown appears above other elements
                         >
                           {allProjects.map((project) => (
                             <Option key={project} value={project}>
