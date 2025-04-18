@@ -16,9 +16,10 @@ import moment from "moment"; // Import moment.js for date formatting
 
 // Import Ant Design icons
 
-
 const { Option } = Select;
 const { RangePicker } = DatePicker;
+
+const ALERT_DISMISS_TIME = 4000; // Time in milliseconds after which the alert disappears
 
 interface Task {
   id: number;
@@ -98,7 +99,11 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
   </div>
 );
 
-const ReportsPage = () => {
+interface ReportsPageProps {
+  bulletType: "number" | "bullet" | "dot" | ">" | ">>" | "=>";
+}
+
+const ReportsPage: React.FC<ReportsPageProps> = ({ bulletType }) => {
   const [reportData, setReportData] = useState<any[]>([]);
   const [_, setSelectedDateRange] = useState<[string, string] | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null); // Track which report was copied
@@ -156,23 +161,38 @@ const ReportsPage = () => {
     return timeString.trim(); // Remove any leading/trailing spaces
   };
 
-  const formatPreview = (data: any) => {
-    const { tasks, selectedProjects, date, name, nextTask } = data;
+  const formatLine = (task: any) => {
+    let line = "";
+    if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `; // Trim Task ID
+    line += task.title.trim(); // Trim Title
+    if (task.status) line += ` (${task.status.trim()})`; // Trim Status
+    if (task.hours || task.minutes) {
+      const taskTime = formatTaskTime(task.hours, task.minutes);
+      if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
+    }
+    return line;
+  };
 
-    const formatLine = (task: any) => {
-      let line = "";
-      if (task.taskId) line += `ID: ${task.taskId} - `;
-      line += task.title;
-      if (task.status) line += ` (${task.status})`;
-      if (task.hours || task.minutes) {
-        const taskTime = formatTaskTime(task.hours, task.minutes);
-        if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
-      }
-      return line;
-    };
+  const formatPreview = (data: any) => {
+    const { tasks, selectedProjects, date, name, nextTask, bulletType } = data;
 
     const getBullet = (index: number) => {
-      return `${index + 1}. `;
+      switch (bulletType) {
+        case "dot":
+          return "• "; // Use a dot bullet
+        case "number":
+          return `${index + 1}. `; // Use numbers
+        case ">":
+          return "> "; // Use a single arrow
+        case ">>":
+          return ">> "; // Use a double arrow
+        case "=>":
+          return "=> "; // Use an arrow with equals
+        case "bullet":
+          return "● "; // Use a bold dot
+        default:
+          return "- "; // Default fallback
+      }
     };
 
     const formatTasks = (tasks: any[]) =>
@@ -184,13 +204,21 @@ const ReportsPage = () => {
       "YYYY-MM-DD"
     )}
 
-${selectedProjects.length > 0 ? `Project: ${selectedProjects.join(" & ")}` : ""}
+${
+  selectedProjects.length > 0
+    ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
+    : ""
+} 
 ---------------------
 ${formatTasks(tasks)}
-${nextTask ? `\nNext's Tasks\n---------------------\n=> ${nextTask}` : ""}
+${
+  nextTask && nextTask.trim()
+    ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}` // Trim Next Task
+    : ""
+}
 
 Thanks & regards
-${name}`;
+${name.trim()}`; // Trim Name
   };
 
   return (
@@ -230,7 +258,12 @@ ${name}`;
                   />
                 </div>
               </div>
-              <pre className="script-style">{formatPreview(report.data)}</pre>
+              <pre
+                className="script-style"
+                style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
+              >
+                {formatPreview(report.data)}
+              </pre>
             </div>
           ))
         ) : (
@@ -283,7 +316,7 @@ const Task = () => {
 
   useEffect(() => {
     if (alertMessage) {
-      const timer = setTimeout(() => setAlertMessage(null), 2000); // Clear alert after 2 seconds
+      const timer = setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME); // Use the constant here
       return () => clearTimeout(timer); // Cleanup timer on component unmount or alert change
     }
   }, [alertMessage]);
@@ -402,11 +435,12 @@ const Task = () => {
     const formatLine = (task: Task, _: number) => {
       let line = "";
       if (settings.showID && task.taskId) {
-        line += `ID: ${task.taskId} - `;
+        line += `ID: ${task.taskId.toString().trim()} - `; // Trim Task ID
       }
-      line += task.title;
+      line += task.title.trim(); // Trim Title
 
-      if (settings.showStatus && task.status) line += ` (${task.status})`;
+      if (settings.showStatus && task.status)
+        line += ` (${task.status.trim()})`; // Trim Status
       if (settings.showHours) {
         const taskTime = formatTaskTime(task.hours, task.minutes);
         if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
@@ -417,19 +451,19 @@ const Task = () => {
     const getBullet = (_: number) => {
       switch (bulletType) {
         case "dot":
-          return ". "; // Correctly return a dot followed by a space
+          return "• "; // Use a dot bullet
         case "number":
-          return `${_ + 1}. `;
+          return `${_ + 1}. `; // Use numbers
         case ">":
-          return "> ";
+          return "> "; // Use a single arrow
         case ">>":
-          return ">> ";
+          return ">> "; // Use a double arrow
         case "=>":
-          return "=> ";
+          return "=> "; // Use an arrow with equals
         case "bullet":
-          return "● "; // Use a bold dot for the "bullet" case
+          return "● "; // Use a bold dot
         default:
-          return "- ";
+          return "- "; // Default fallback
       }
     };
 
@@ -445,17 +479,17 @@ const Task = () => {
 ${
   settings.showProject
     ? `Project : ${
-        selectedProjects.join(" & ") || "Not Selected"
+        selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
       }\n---------------------\n`
     : ""
 }${formatTasks(allTasks)}${
       settings.showNextTask && nextTaskValue.trim()
-        ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue}`
+        ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
         : ""
     }
 
 Thanks & regards
-${name}`;
+${name.trim()}`;
   };
 
   const handleCopy = () => {
@@ -465,15 +499,25 @@ ${name}`;
   };
 
   const savePreview = () => {
-    if (!name.trim() || !selectedProjects.length || !date.trim()) {
-      setAlertMessage("Name, Project, and Date are required fields."); // Show alert for missing fields
+    const missingFields: string[] = [];
+
+    if (!name.trim()) missingFields.push("Name");
+    if (!selectedProjects.length) missingFields.push("Project");
+    if (!date.trim()) missingFields.push("Date");
+
+    if (missingFields.length > 0) {
+      setAlertMessage(
+        `The following fields are required : ${missingFields.join(", ")}`
+      );
+      setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME); // Use the constant here
       return;
     }
 
     const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
 
     if (savedReports[date]) {
-      setAlertMessage(`A record already exists for the date: ${date}`); // Show alert if record exists
+      setAlertMessage(`A record already exists for the date: ${date}`);
+      setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME); // Use the constant here
       return;
     }
 
@@ -481,18 +525,21 @@ ${name}`;
     const previewData = {
       date, // Save the date in `YYYY-MM-DD` format
       tasks: filteredTasks.map((task) => ({
-        taskId: settings.showID ? task.taskId : undefined,
-        title: task.title,
+        taskId: settings.showID ? task.taskId.toString().trim() : undefined, // Trim Task ID
+        title: task.title.trim(), // Trim Title
         hours: settings.showHours ? task.hours : undefined,
         minutes: settings.showHours ? task.minutes : undefined, // Include minutes
-        status: settings.showStatus ? task.status : undefined,
+        status: settings.showStatus ? task.status.trim() : undefined, // Trim Status
       })),
-      selectedProjects: settings.showProject ? selectedProjects : [],
-      name: settings.showDate ? name : undefined,
+      selectedProjects: settings.showProject
+        ? selectedProjects.map((p) => p.trim())
+        : [], // Trim Project Names
+      name: settings.showDate ? name.trim() : undefined, // Trim Name
       nextTask:
         settings.showNextTask && nextTaskValue.trim()
-          ? nextTaskValue
+          ? nextTaskValue.trim() // Trim Next Task
           : undefined, // Save next task only if it exists
+      bulletType, // Save the selected bullet type for this report
     };
 
     savedReports[date] = previewData; // Save only the filtered data
@@ -808,7 +855,12 @@ ${name}`;
                       />
                     </div>
                   </div>
-                  <pre className="script-style">{getFormattedPreview()}</pre>
+                  <pre
+                    className="script-style"
+                    style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
+                  >
+                    {getFormattedPreview()}
+                  </pre>
                 </div>
               </div>
             }
@@ -819,7 +871,10 @@ ${name}`;
               <SettingsPage settings={settings} toggleSetting={toggleSetting} />
             }
           />
-          <Route path="/reports" element={<ReportsPage />} />
+          <Route
+            path="/reports"
+            element={<ReportsPage bulletType={bulletType} />}
+          />
         </Routes>
       </div>
     </BrowserRouter>
