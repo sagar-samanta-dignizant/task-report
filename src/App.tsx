@@ -39,6 +39,21 @@ const statusOptions = [
   "Not Fixed",
 ];
 
+const Clock = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer); // Cleanup timer on component unmount
+  }, []);
+
+  return (
+    <div className="clock">
+      {currentTime.toLocaleTimeString()} {/* Show only the time */}
+    </div>
+  );
+};
+
 const SettingsPage = ({ settings, toggleSetting }: any) => (
   <div className="settings-page">
     <h2>Settings</h2>
@@ -570,6 +585,7 @@ ${name.trim()}`;
               Report Manager
             </Link>
           </h1>
+          <Clock /> {/* Simplified Clock component */}
           <nav>
             <Link to="/">Home</Link> | <Link to="/settings">Settings</Link> |{" "}
             <Link to="/reports">Reports</Link>
@@ -752,7 +768,7 @@ ${name.trim()}`;
                           {settings.showHours && (
                             <div className="input-group">
                               <label>
-                                hour:
+                                Hour:
                                 <Input
                                   type="number"
                                   placeholder="0"
@@ -771,7 +787,7 @@ ${name.trim()}`;
                           {settings.showHours && (
                             <div className="input-group">
                               <label>
-                                minutes:
+                                Minutes:
                                 <Input
                                   type="number"
                                   placeholder="0"
