@@ -368,7 +368,7 @@ ${formatTasks(otherTasks)}${
     }
 
 Thanks & regards
-${name || "Sagar Samanta"}`;
+${name}`;
   };
 
   const handleCopy = () => {
