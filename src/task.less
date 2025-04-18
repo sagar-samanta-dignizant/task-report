@@ -168,15 +168,14 @@ header {
 /* Content area */
 .content {
   display: flex;
-  justify-content: space-between;
-  gap: 40px; /* Increased gap for better separation */
+  gap: 10px; /* Adjusted gap for better separation */
   width: 100%;
   margin-top: 20px; /* Added margin for spacing below the header */
 }
 
 /* Task input container */
 .task-input-container {
-  width: 65%; /* Adjusted width for better balance */
+  width: 65%; /* Fixed width for the first section */
   padding: 25px; /* Increased padding for better spacing */
   background-color: #fff;
   border-radius: 10px;
@@ -540,8 +539,8 @@ label .input-field {
 
 /* Preview container */
 .task-preview-container {
-  width: 30%; /* Adjusted width for better balance */
-  padding: 25px; /* Increased padding for consistency */
+  flex-grow: 1; /* Allow the preview section to take the remaining width */
+  padding: 25px; /* Consistent padding */
   background-color: #f8f9fa;
   border-radius: 10px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15); /* Enhanced shadow for better visibility */

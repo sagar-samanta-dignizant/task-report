@@ -1,10 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import "./index.css";
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+import { BrowserRouter } from "react-router-dom"; // Import BrowserRouter
+import React from "react";
+import ReactDOM from "react-dom/client";
+import Task from "./App"; // Import the Task component
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <Task /> {/* Wrap Task with BrowserRouter */}
+    </BrowserRouter>
+  </React.StrictMode>
+);

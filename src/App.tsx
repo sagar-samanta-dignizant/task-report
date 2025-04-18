@@ -2,13 +2,14 @@ import "./task.less";
 
 import { AddIcon, deleteIcon } from "./assets/fontAwesomeIcons";
 import { Alert, Button, DatePicker, Input, Select, Switch } from "antd"; // Import Ant Design components
-import { BrowserRouter, Link, Route, Routes } from "react-router-dom"; // Import react-router-dom
 import {
   CheckOutlined,
   CopyOutlined,
   DeleteOutlined,
+  EditOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
+import { Link, Route, Routes, useLocation, useNavigate } from "react-router-dom"; // Import react-router-dom
 import { useEffect, useRef, useState } from "react";
 
 import { InputRef } from "antd"; // Import InputRef from Ant Design
@@ -115,13 +116,13 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
 );
 
 interface ReportsPageProps {
-  bulletType: "number" | "bullet" | "dot" | ">" | ">>" | "=>";
 }
 
 const ReportsPage: React.FC<ReportsPageProps> = () => {
   const [reportData, setReportData] = useState<any[]>([]);
   const [_, setSelectedDateRange] = useState<[string, string] | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null); // Track which report was copied
+  const navigate = useNavigate(); // Use navigate for redirection
 
   const handleDateRangeChange = (_: any, dateStrings: [string, string]) => {
     setSelectedDateRange(dateStrings);
@@ -165,6 +166,10 @@ const ReportsPage: React.FC<ReportsPageProps> = () => {
     delete savedReports[date]; // Remove the report by date
     localStorage.setItem("reports", JSON.stringify(savedReports)); // Update storage
     setReportData(reportData.filter((report) => report.date !== date)); // Update state
+  };
+
+  const handleEdit = (report: any) => {
+    navigate(`/edit-task`, { state: { report } }); // Redirect to the edit page with state
   };
 
   const formatTaskTime = (hours: string | number, minutes: string | number) => {
@@ -224,7 +229,7 @@ ${
     ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
     : ""
 } 
----------------------
+----------------------------------------
 ${formatTasks(tasks)}
 ${
   nextTask && nextTask.trim()
@@ -265,6 +270,12 @@ ${name.trim()}`; // Trim Name
                     title="Copy"
                   />
                   <Button
+                    type="default"
+                    icon={<EditOutlined />} // Use Edit icon
+                    onClick={() => handleEdit(report)} // Trigger edit
+                    title="Edit"
+                  />
+                  <Button
                     type="primary"
                     danger
                     icon={<DeleteOutlined />} // Use Delete icon
@@ -289,6 +300,331 @@ ${name.trim()}`; // Trim Name
   );
 };
 
+const EditTaskPage = () => {
+  const location = useLocation(); // Use useLocation to access the state
+  const navigate = useNavigate(); // For navigation
+  const report = location.state?.report; // Extract the report data from state
+
+  const [tasks, setTasks] = useState<Task[]>(report?.data.tasks || []);
+  const [selectedProjects, setSelectedProjects] = useState<string[]>(
+    report?.data.selectedProjects || []
+  );
+  const [name, setName] = useState(report?.data.name || "");
+  const [date, setDate] = useState(report?.date || "");
+  const [bulletType, setBulletType] = useState(report?.data.bulletType || "bullet");
+  const [nextTaskValue, setNextTaskValue] = useState(report?.data.nextTask || "");
+
+  const workingTimeLimit = 8.5; // Total working time in hours
+
+  const calculateRemainingTime = () => {
+    const totalTaskTime = tasks.reduce((sum, task) => {
+      const taskHours = parseFloat(task.hours as string) || 0;
+      const taskMinutes = (parseFloat(task.minutes as string) || 0) / 60; // Convert minutes to hours
+      return sum + taskHours + taskMinutes;
+    }, 0);
+    return workingTimeLimit - totalTaskTime;
+  };
+
+  const formatRemainingTime = (remainingTime: number) => {
+    const hours = Math.floor(remainingTime);
+    const minutes = Math.round((remainingTime - hours) * 60);
+    return `${hours}h and ${minutes}m`;
+  };
+
+  const remainingTime = calculateRemainingTime();
+  const isTimeExceeded = remainingTime < 0;
+
+  const handleTaskChange = (
+    index: number,
+    field: keyof Task,
+    value: string | number
+  ) => {
+    const updatedTasks = [...tasks];
+    updatedTasks[index][field] = value as never;
+    setTasks(updatedTasks);
+  };
+
+  const addTask = () => {
+    const newTask: Task = {
+      id: tasks.length + 1,
+      taskId: "",
+      title: "",
+      hours: "",
+      minutes: "",
+      status: "Completed",
+    };
+    setTasks((prevTasks) => [...prevTasks, newTask]);
+  };
+
+  const clearTask = (taskId: number) => {
+    const updatedTasks = tasks.filter((task) => task.id !== taskId);
+    setTasks(updatedTasks);
+  };
+
+  const handleSave = () => {
+    // Save the updated report data in the correct structure
+    const updatedReport = {
+      date,
+      tasks,
+      selectedProjects,
+      name,
+      bulletType,
+      nextTask: nextTaskValue,
+    };
+
+    const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
+    savedReports[date] = updatedReport; // Save the updated report directly under the date key
+    localStorage.setItem("reports", JSON.stringify(savedReports));
+
+    navigate("/reports"); // Navigate back to the reports page after saving
+  };
+
+  const getFormattedPreview = () => {
+    const formatLine = (task: Task) => {
+      let line = "";
+      if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `;
+      line += task.title.trim();
+      if (task.status) line += ` (${task.status.trim()})`;
+      if (task.hours || task.minutes) {
+        const taskTime = `${task.hours || 0}h ${task.minutes || 0}m`.trim();
+        if (taskTime) line += ` (${taskTime})`;
+      }
+      return line;
+    };
+
+    const formatTasks = tasks
+      .map((task, index) => `${index + 1}. ${formatLine(task)}`)
+      .join("\n");
+
+    return `Today's work update - ${moment(date).format("YYYY-MM-DD")}
+
+Project: ${selectedProjects.join(" & ") || "Not Selected"}
+----------------------------------------
+${formatTasks}
+${
+  nextTaskValue.trim()
+    ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
+    : ""
+}
+
+Thanks & regards
+${name.trim()}`;
+  };
+
+  if (!report) {
+    return <p>Report not found!</p>;
+  }
+
+  return (
+    <div className="edit-task-page">
+      <h2>Edit Report</h2>
+      <div className="content" style={{ display: "flex", gap: "20px" }}>
+        <div className="task-input-container" style={{ flex: "65%" }}>
+          <div className="personal-details-section">
+            <h4>Personal Details</h4>
+            <div className="task-info-row">
+              <div className="input-group">
+                <label htmlFor="name">Your Name:</label>
+                <Input
+                  id="name"
+                  placeholder="Your Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="date">Date:</label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="project">Project:</label>
+                <Select
+                  id="project"
+                  mode="multiple"
+                  placeholder="Select Project"
+                  value={selectedProjects}
+                  onChange={(value) => setSelectedProjects(value)}
+                  style={{ width: "100%" }}
+                >
+                  {allProjects.map((project) => (
+                    <Option key={project} value={project}>
+                      {project}
+                    </Option>
+                  ))}
+                </Select>
+              </div>
+              <div className="input-group">
+                <label htmlFor="bulletType">Bullet Type:</label>
+                <Select
+                  id="bulletType"
+                  value={bulletType}
+                  onChange={(value) => setBulletType(value as any)}
+                  style={{ width: "100%" }}
+                >
+                  <Option value="bullet">•</Option>
+                  <Option value="number">1</Option>
+                  <Option value={">"}>{">"}</Option>
+                  <Option value={"=>"}>{"=>"}</Option>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <div className="task-details-section">
+            <div className="task-details-header">
+              <h4>Task Details</h4>
+              <div className="time-info">
+                <p className="total-time">
+                  Total: <span>{workingTimeLimit} hrs</span>
+                </p>
+                <p className="remaining-time">
+                  Remaining:{" "}
+                  <span
+                    className={isTimeExceeded ? "time-exceeded" : "time-in-limit"}
+                  >
+                    {formatRemainingTime(Math.abs(remainingTime))}
+                  </span>
+                </p>
+              </div>
+              <div className="button-group">
+                <Button
+                  type="primary"
+                  shape="circle"
+                  icon={AddIcon}
+                  onClick={addTask}
+                  title="Add Task"
+                />
+              </div>
+            </div>
+            <div className="task-details-inputs" style={{ marginTop: "10px" }}>
+              {tasks.map((task, index) => (
+                <div
+                  className="task-row"
+                  style={{
+                    gridTemplateColumns: "1fr 3fr 1fr 1fr 1fr auto",
+                  }}
+                  key={task.id}
+                >
+                  <div className="input-group id-field">
+                    <label>
+                      Task ID:
+                      <Input
+                        placeholder="Task ID"
+                        value={task.taskId}
+                        onChange={(e) =>
+                          handleTaskChange(index, "taskId", e.target.value)
+                        }
+                      />
+                    </label>
+                  </div>
+                  <div className="input-group title-field">
+                    <label>
+                      Title:
+                      <Input
+                        placeholder="Task Title"
+                        value={task.title}
+                        onChange={(e) =>
+                          handleTaskChange(index, "title", e.target.value)
+                        }
+                      />
+                    </label>
+                  </div>
+                  <div className="input-group">
+                    <label>
+                      Hour:
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        value={task.hours}
+                        onChange={(e) =>
+                          handleTaskChange(index, "hours", e.target.value)
+                        }
+                      />
+                    </label>
+                  </div>
+                  <div className="input-group">
+                    <label>
+                      Minutes:
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        value={task.minutes}
+                        onChange={(e) =>
+                          handleTaskChange(index, "minutes", e.target.value)
+                        }
+                      />
+                    </label>
+                  </div>
+                  <div className="input-group">
+                    <label>
+                      Status:
+                      <Select
+                        value={task.status}
+                        onChange={(value) =>
+                          handleTaskChange(index, "status", value)
+                        }
+                        style={{ width: "100%" }}
+                      >
+                        {statusOptions.map((status) => (
+                          <Option key={status} value={status}>
+                            {status}
+                          </Option>
+                        ))}
+                      </Select>
+                    </label>
+                  </div>
+                  <Button
+                    type="primary"
+                    danger
+                    shape="circle"
+                    icon={deleteIcon}
+                    onClick={() => clearTask(task.id)}
+                    title="Delete Task"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="input-group" style={{ marginTop: "20px" }}>
+              <label htmlFor="nextTask">Next Task:</label>
+              <Input
+                id="nextTask"
+                placeholder="Enter next task"
+                value={nextTaskValue}
+                onChange={(e) => setNextTaskValue(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="task-preview-container" style={{ flex: "35%" }}>
+          <div className="task-preview-header">
+            <h3>Preview</h3>
+          </div>
+          <pre
+            className="script-style"
+            style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
+          >
+            {getFormattedPreview()}
+          </pre>
+        </div>
+      </div>
+      <div className="button-group" style={{ marginTop: "20px" }}>
+        <Button type="primary" onClick={handleSave}>
+          Save
+        </Button>
+        <Button type="default" onClick={() => navigate("/reports")}>
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const Task = () => {
   const theme = "light";
   const workingTimeLimit = 8.5; // Total working time in hours
@@ -299,8 +635,8 @@ const Task = () => {
       title: "",
       hours: "",
       minutes: "",
-      status: "Completed",
-    }, // Default status set to "Completed"
+      status: "Completed", // Default status set to "Completed"
+    },
   ]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>(() => {
     try {
@@ -328,6 +664,9 @@ const Task = () => {
   });
   const [alertMessage, setAlertMessage] = useState<string | null>(null); // State for alert message
   const taskIdInputRef = useRef<InputRef[]>([]); // Use an array of refs for multiple tasks
+  const [editingReport, setEditingReport] = useState<any | null>(null); // State for editing a report
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (alertMessage) {
@@ -432,6 +771,7 @@ const Task = () => {
     ]);
     setSelectedProjects([]);
     setNextTaskValue("");
+    setEditingReport(null); // Clear editing state
   };
 
   const clearTask = (taskId: number) => {
@@ -453,7 +793,6 @@ const Task = () => {
         line += `ID: ${task.taskId.toString().trim()} - `; // Trim Task ID
       }
       line += task.title.trim(); // Trim Title
-
       if (settings.showStatus && task.status)
         line += ` (${task.status.trim()})`; // Trim Status
       if (settings.showHours) {
@@ -513,6 +852,26 @@ ${name.trim()}`;
     setTimeout(() => setCopySuccess(false), 2000); // Revert back after 2 seconds
   };
 
+  const handleEditReport = (report: any) => {
+    // Populate the form with the report data
+    setTasks(
+      report.data.tasks.map((task: any, index: number) => ({
+        id: index + 1, // Ensure unique IDs for tasks
+        taskId: task.taskId || "",
+        title: task.title || "",
+        hours: task.hours || "",
+        minutes: task.minutes || "",
+        status: task.status || "Completed",
+      }))
+    );
+    setSelectedProjects(report.data.selectedProjects || []);
+    setName(report.data.name || "");
+    setDate(report.date || "");
+    setBulletType(report.data.bulletType || "bullet");
+    setNextTaskValue(report.data.nextTask || "");
+    setEditingReport(report); // Set the editing report
+  };
+
   const savePreview = () => {
     const missingFields: string[] = [];
 
@@ -530,7 +889,7 @@ ${name.trim()}`;
 
     const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
 
-    if (savedReports[date]) {
+    if (!editingReport && savedReports[date]) {
       setAlertMessage(`A record already exists for the date: ${date}`);
       setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME); // Use the constant here
       return;
@@ -559,8 +918,9 @@ ${name.trim()}`;
 
     savedReports[date] = previewData; // Save only the filtered data
     localStorage.setItem("reports", JSON.stringify(savedReports));
-
-    setAlertMessage("Record saved successfully!"); // Show success alert
+    setAlertMessage(
+      editingReport ? "Record updated successfully!" : "Record saved successfully!"
+    ); // Show success alert
 
     // Reset form data (excluding user details and selected projects)
     setTasks([
@@ -574,326 +934,334 @@ ${name.trim()}`;
       },
     ]);
     setNextTaskValue("");
+    setEditingReport(null); // Clear editing state
   };
 
   return (
-    <BrowserRouter>
-      <div className={`app-container ${theme}`}>
-        <header className="header">
-          <h1>
-            <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
-              Report Manager
-            </Link>
-          </h1>
-          <Clock /> {/* Simplified Clock component */}
-          <nav>
-            <Link to="/">Home</Link> | <Link to="/settings">Settings</Link> |{" "}
-            <Link to="/reports">Reports</Link>
-          </nav>
-        </header>
-
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <div className="content">
-                <div className="task-input-container">
-                  <h3>Create New Task</h3>
-                  {alertMessage && (
-                    <Alert
-                      message={alertMessage}
-                      type={
-                        alertMessage.includes("successfully")
-                          ? "success"
-                          : "error"
-                      } // Success or error based on message
-                      closable
-                      onClose={() => setAlertMessage(null)} // Clear alert on close
-                      style={{ marginBottom: "15px" }}
-                    />
-                  )}
-                  <div className="personal-details-section">
-                    <h4>Personal Details</h4>
-                    <div className="task-info-row">
-                      <div className="input-group">
-                        <label htmlFor="name">Your Name:</label>
-                        <Input
-                          id="name"
-                          placeholder="Your Name"
-                          value={name}
-                          required
-                          onChange={(e) => setName(e.target.value)}
-                        />
-                      </div>
-                      <div className="input-group">
-                        <label htmlFor="date">Date:</label>
-                        <Input
-                          id="date"
-                          type="date"
-                          required
-                          value={date}
-                          onChange={(e) => setDate(e.target.value)}
-                        />
-                      </div>
-                      <div className="input-group">
-                        <label htmlFor="project">Project:</label>
-                        <Select
-                          id="project"
-                          mode="multiple" /* Enable multiple selection */
-                          placeholder="Select Project"
-                          value={selectedProjects}
-                          onChange={(value) => setSelectedProjects(value)}
-                          style={{ width: "100%" }} /* Ensure full width */
-                          getPopupContainer={(triggerNode) =>
-                            triggerNode.parentNode
-                          } // Ensure dropdown appears above other elements
-                        >
-                          {allProjects.map((project) => (
-                            <Option key={project} value={project}>
-                              {project}
-                            </Option>
-                          ))}
-                        </Select>
-                      </div>
-                      <div
-                        className="input-group"
-                        style={{ position: "relative" }}
-                      >
-                        <label htmlFor="bulletType">Bullet Type:</label>
-                        <Select
-                          id="bulletType"
-                          value={bulletType}
-                          onChange={(value) => setBulletType(value as any)}
-                          style={{ width: "100%" }}
-                          dropdownStyle={{ zIndex: 99999 }} // Ensure dropdown appears above other elements
-                        >
-                          <Option value="bullet">•</Option>
-                          <Option value="number">1</Option>
-                          <Option value={">"}>{">"}</Option>
-                          <Option value={"=>"}>{"=>"}</Option>
-                        </Select>
-                      </div>
+    <div className={`app-container ${theme}`}>
+      <header className="header">
+        <h1>
+          <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
+            Report Manager
+          </Link>
+        </h1>
+        <Clock /> {/* Simplified Clock component */}
+        <nav>
+          <Link to="/">Home</Link> | <Link to="/settings">Settings</Link> |{" "}
+          <Link to="/reports">Reports</Link>
+        </nav>
+      </header>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <div className="content">
+              <div className="task-input-container">
+                <h3>Create New Task</h3>
+                {alertMessage && (
+                  <Alert
+                    message={alertMessage}
+                    type={
+                      alertMessage.includes("successfully")
+                        ? "success"
+                        : "error"
+                    } // Success or error based on message
+                    closable
+                    onClose={() => setAlertMessage(null)} // Clear alert on close
+                    style={{ marginBottom: "15px" }}
+                  />
+                )}
+                <div className="personal-details-section">
+                  <h4>Personal Details</h4>
+                  <div className="task-info-row">
+                    <div className="input-group">
+                      <label htmlFor="name">Your Name:</label>
+                      <Input
+                        id="name"
+                        placeholder="Your Name"
+                        value={name}
+                        required
+                        onChange={(e) => setName(e.target.value)}
+                      />
                     </div>
-                  </div>
-
-                  <div className="task-details-section">
-                    <div className="task-details-header">
-                      <h4>Task Details</h4>
-                      <div className="time-info">
-                        <p className="total-time">
-                          Total: <span>{workingTimeLimit} hrs</span>
-                        </p>
-                        <p className="remaining-time">
-                          Remaining:{" "}
-                          <span
-                            className={
-                              isTimeExceeded ? "time-exceeded" : "time-in-limit"
-                            }
-                          >
-                            {formatRemainingTime(Math.abs(remainingTime))}
-                          </span>
-                        </p>
-                      </div>
-                      <div className="button-group">
-                        <Button
-                          type="primary"
-                          shape="circle"
-                          icon={AddIcon}
-                          onClick={addTask}
-                          title="Add Task"
-                        />
-                        <Button
-                          type="default"
-                          onClick={resetForm}
-                          title="Reset Form"
-                          style={{ marginLeft: "10px" }}
-                        >
-                          Reset
-                        </Button>
-                      </div>
+                    <div className="input-group">
+                      <label htmlFor="date">Date:</label>
+                      <Input
+                        id="date"
+                        type="date"
+                        required
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="project">Project:</label>
+                      <Select
+                        id="project"
+                        mode="multiple" /* Enable multiple selection */
+                        placeholder="Select Project"
+                        value={selectedProjects}
+                        onChange={(value) => setSelectedProjects(value)}
+                        style={{ width: "100%" }} /* Ensure full width */
+                        getPopupContainer={(triggerNode) =>
+                          triggerNode.parentNode
+                        } // Ensure dropdown appears above other elements
+                      >
+                        {allProjects.map((project) => (
+                          <Option key={project} value={project}>
+                            {project}
+                          </Option>
+                        ))}
+                      </Select>
                     </div>
                     <div
-                      className="task-details-inputs"
-                      style={{ marginTop: "10px" }}
+                      className="input-group"
+                      style={{ position: "relative" }}
                     >
-                      {tasks.map((task, index) => (
-                        <div
-                          className="task-row"
-                          style={{
-                            gridTemplateColumns: settings.showID
-                              ? "1fr 3fr 1fr 1fr 1fr auto" // Include space for ID field
-                              : "3fr 1fr 1fr 1fr auto", // Redistribute space when ID field is hidden
-                          }}
-                          key={task.id}
+                      <label htmlFor="bulletType">Bullet Type:</label>
+                      <Select
+                        id="bulletType"
+                        value={bulletType}
+                        onChange={(value) => setBulletType(value as any)}
+                        style={{ width: "100%" }}
+                        dropdownStyle={{ zIndex: 99999 }} // Ensure dropdown appears above other elements
+                      >
+                        <Option value="bullet">•</Option>
+                        <Option value="number">1</Option>
+                        <Option value={">"}>{">"}</Option>
+                        <Option value={"=>"}>{"=>"}</Option>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="task-details-section">
+                  <div className="task-details-header">
+                    <h4>Task Details</h4>
+                    <div className="time-info">
+                      <p className="total-time">
+                        Total: <span>{workingTimeLimit} hrs</span>
+                      </p>
+                      <p className="remaining-time">
+                        Remaining:{" "}
+                        <span
+                          className={
+                            isTimeExceeded ? "time-exceeded" : "time-in-limit"
+                          }
                         >
-                          {settings.showID && (
-                            <div className="input-group id-field">
-                              <label>
-                                Task ID:
-                                <Input
-                                  ref={(el) => {
-                                    taskIdInputRef.current[index] =
-                                      el as InputRef;
-                                  }}
-                                  placeholder="Task ID"
-                                  value={task.taskId}
-                                  onChange={(e) =>
-                                    handleTaskChange(
-                                      index,
-                                      "taskId",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </label>
-                            </div>
-                          )}
-                          <div className="input-group title-field">
+                          {formatRemainingTime(Math.abs(remainingTime))}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="button-group">
+                      <Button
+                        type="primary"
+                        shape="circle"
+                        icon={AddIcon}
+                        onClick={addTask}
+                        title="Add Task"
+                      />
+                      <Button
+                        type="default"
+                        onClick={resetForm}
+                        title="Reset Form"
+                        style={{ marginLeft: "10px" }}
+                      >
+                        Reset
+                      </Button>
+                    </div>
+                  </div>
+                  <div
+                    className="task-details-inputs"
+                    style={{ marginTop: "10px" }}
+                  >
+                    {tasks.map((task, index) => (
+                      <div
+                        className="task-row"
+                        style={{
+                          gridTemplateColumns: settings.showID
+                            ? "1fr 3fr 1fr 1fr 1fr auto" // Include space for ID field
+                            : "3fr 1fr 1fr 1fr auto", // Redistribute space when ID field is hidden
+                        }}
+                        key={task.id}
+                      >
+                        {settings.showID && (
+                          <div className="input-group id-field">
                             <label>
-                              Title:
+                              Task ID:
                               <Input
-                                className="task-title-input"
-                                placeholder="Task Title"
-                                value={task.title}
+                                ref={(el) => {
+                                  taskIdInputRef.current[index] =
+                                    el as InputRef;
+                                }}
+                                placeholder="Task ID"
+                                value={task.taskId}
                                 onChange={(e) =>
                                   handleTaskChange(
                                     index,
-                                    "title",
+                                    "taskId",
                                     e.target.value
                                   )
                                 }
                               />
                             </label>
                           </div>
-                          {settings.showHours && (
-                            <div className="input-group">
-                              <label>
-                                Hour:
-                                <Input
-                                  type="number"
-                                  placeholder="0"
-                                  value={task.hours}
-                                  onChange={(e) =>
-                                    handleTaskChange(
-                                      index,
-                                      "hours",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </label>
-                            </div>
-                          )}
-                          {settings.showHours && (
-                            <div className="input-group">
-                              <label>
-                                Minutes:
-                                <Input
-                                  type="number"
-                                  placeholder="0"
-                                  value={task.minutes}
-                                  onChange={(e) =>
-                                    handleTaskChange(
-                                      index,
-                                      "minutes",
-                                      e.target.value
-                                    )
-                                  }
-                                />
-                              </label>
-                            </div>
-                          )}
-                          {settings.showStatus && (
-                            <div className="input-group">
-                              <label>
-                                Status:
-                                <Select
-                                  value={task.status}
-                                  onChange={(value) =>
-                                    handleTaskChange(index, "status", value)
-                                  }
-                                  style={{ width: "100%" }}
-                                >
-                                  {statusOptions.map((status) => (
-                                    <Option key={status} value={status}>
-                                      {status}
-                                    </Option>
-                                  ))}
-                                </Select>
-                              </label>
-                            </div>
-                          )}
-                          <Button
-                            type="primary"
-                            danger
-                            shape="circle"
-                            icon={deleteIcon}
-                            onClick={() => clearTask(task.id)}
-                            title="Delete Task"
-                          />
+                        )}
+                        <div className="input-group title-field">
+                          <label>
+                            Title:
+                            <Input
+                              className="task-title-input"
+                              placeholder="Task Title"
+                              value={task.title}
+                              onChange={(e) =>
+                                handleTaskChange(
+                                  index,
+                                  "title",
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </label>
                         </div>
-                      ))}
-                    </div>
-                    {settings.showNextTask && ( // Conditionally render the Next Task input
-                      <div
-                        className="input-group"
-                        style={{ marginTop: "20px" }}
-                      >
-                        <label htmlFor="nextTask">Next Task:</label>
-                        <Input
-                          id="nextTask"
-                          placeholder="Enter next task"
-                          value={nextTaskValue}
-                          onChange={(e) => setNextTaskValue(e.target.value)}
+                        {settings.showHours && (
+                          <div className="input-group">
+                            <label>
+                              Hour:
+                              <Input
+                                type="number"
+                                placeholder="0"
+                                value={task.hours}
+                                onChange={(e) =>
+                                  handleTaskChange(
+                                    index,
+                                    "hours",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </label>
+                          </div>
+                        )}
+                        {settings.showHours && (
+                          <div className="input-group">
+                            <label>
+                              Minutes:
+                              <Input
+                                type="number"
+                                placeholder="0"
+                                value={task.minutes}
+                                onChange={(e) =>
+                                  handleTaskChange(
+                                    index,
+                                    "minutes",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </label>
+                          </div>
+                        )}
+                        {settings.showStatus && (
+                          <div className="input-group">
+                            <label>
+                              Status:
+                              <Select
+                                value={task.status}
+                                onChange={(value) =>
+                                  handleTaskChange(index, "status", value)
+                                }
+                                style={{ width: "100%" }}
+                              >
+                                {statusOptions.map((status) => (
+                                  <Option key={status} value={status}>
+                                    {status}
+                                  </Option>
+                                ))}
+                              </Select>
+                            </label>
+                          </div>
+                        )}
+                        <Button
+                          type="primary"
+                          danger
+                          shape="circle"
+                          icon={deleteIcon}
+                          onClick={() => clearTask(task.id)}
+                          title="Delete Task"
                         />
                       </div>
-                    )}
+                    ))}
                   </div>
-                </div>
-
-                <div className="task-preview-container">
-                  <div className="task-preview-header">
-                    <h3>Preview</h3>
-                    <div className="button-group">
-                      <Button
-                        type="primary"
-                        icon={
-                          copySuccess ? <CheckOutlined /> : <CopyOutlined />
-                        }
-                        onClick={handleCopy}
-                        title="Copy"
-                      />
-                      <Button
-                        type="primary"
-                        icon={<SaveOutlined />}
-                        onClick={savePreview}
-                        title="Save"
+                  {settings.showNextTask && ( // Conditionally render the Next Task input
+                    <div
+                      className="input-group"
+                      style={{ marginTop: "20px" }}
+                    >
+                      <label htmlFor="nextTask">Next Task:</label>
+                      <Input
+                        id="nextTask"
+                        placeholder="Enter next task"
+                        value={nextTaskValue}
+                        onChange={(e) => setNextTaskValue(e.target.value)}
                       />
                     </div>
-                  </div>
-                  <pre
-                    className="script-style"
-                    style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
-                  >
-                    {getFormattedPreview()}
-                  </pre>
+                  )}
                 </div>
               </div>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <SettingsPage settings={settings} toggleSetting={toggleSetting} />
-            }
-          />
-          <Route
-            path="/reports"
-            element={<ReportsPage bulletType={bulletType} />}
-          />
-        </Routes>
-      </div>
-    </BrowserRouter>
+              <div className="task-preview-container">
+                <div className="task-preview-header">
+                  <h3>Preview</h3>
+                  <div className="button-group">
+                    <Button
+                      type="primary"
+                      icon={
+                        copySuccess ? <CheckOutlined /> : <CopyOutlined />
+                      }
+                      onClick={handleCopy}
+                      title="Copy"
+                    />
+                    <Button
+                      type="primary"
+                      icon={<SaveOutlined />}
+                      onClick={savePreview}
+                      title="Save"
+                    />
+                  </div>
+                </div>
+                <pre
+                  className="script-style"
+                  style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
+                >
+                  {getFormattedPreview()}
+                </pre>
+              </div>
+              {/* <div className="task-details-section">
+                {tasks.map((task) => (
+                  <div key={task.id} className="task-row">
+                    <p>{task.title}</p>
+                  </div>
+                ))}
+              </div> */}
+            </div>
+          }
+        />
+        <Route
+          path="/edit-task"
+          element={<EditTaskPage />}
+        />
+        <Route
+          path="/settings"
+          element={
+            <SettingsPage settings={settings} toggleSetting={toggleSetting} />
+          }
+        />
+        <Route
+          path="/reports"
+          element={<ReportsPage />}
+        />
+      </Routes>
+    </div>
   );
 };
 
