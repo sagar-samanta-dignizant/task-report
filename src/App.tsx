@@ -2,13 +2,14 @@ import "./app.css";
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
 import { Alert, Button, DatePicker, Input, Select, Layout, Tooltip, InputRef } from "antd";
 import { CheckOutlined, CopyOutlined, SaveOutlined, HomeOutlined, SettingOutlined, FileTextOutlined, ReloadOutlined } from "@ant-design/icons";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import moment from "moment";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import EditTaskPage from "./pages/EditTaskPage";
 import { ALERT_DISMISS_TIME, ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "./constant/task.constant";
+import { CSSTransition, TransitionGroup } from "react-transition-group";
 
 const { Option } = Select;
 const { Header } = Layout;
@@ -87,6 +88,14 @@ const App = () => {
   const [copiedPreview, setCopiedPreview] = useState<string | null>(null);
   const taskRefs = useRef<(HTMLInputElement | null)[]>([]);
   const subtaskRefs = useRef<(InputRef | null)[][]>([]);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleNavigation = (to: string) => {
+    if (location.pathname !== to) {
+      navigate(to);
+    }
+  };
 
   useEffect(() => {
     if (alertMessage) {
@@ -501,18 +510,30 @@ ${name.trim()}`;
           <div className="nav-links">
             <NavLink
               to="/"
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation("/");
+              }}
               className={({ isActive }) => `nav-link ${isActive ? "active-link" : ""}`}
             >
               <HomeOutlined className="nav-icon" /> Home
             </NavLink>
             <NavLink
               to="/settings"
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation("/settings");
+              }}
               className={({ isActive }) => `nav-link ${isActive ? "active-link" : ""}`}
             >
               <SettingOutlined className="nav-icon" /> Settings
             </NavLink>
             <NavLink
               to="/reports"
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavigation("/reports");
+              }}
               className={({ isActive }) => `nav-link ${isActive ? "active-link" : ""}`}
             >
               <FileTextOutlined className="nav-icon" /> Reports
@@ -520,268 +541,165 @@ ${name.trim()}`;
           </div>
         </div>
       </Header>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <div className="content">
-              <div className="task-input-container">
-                {alertMessage && (
-                  <Alert
-                    message={alertMessage}
-                    type={
-                      alertMessage.includes("successfully")
-                        ? "success"
-                        : "error"
-                    }
-                    closable
-                    onClose={() => setAlertMessage(null)}
-                    style={{ marginBottom: "15px" }}
-                  />
-                )}
-                <div className="personal-details-section">
-                  <h4>Personal Details</h4>
-                  <div className="task-info-row">
-                    <div className="input-group">
-                      <label htmlFor="name">Name</label>
-                      <Input
-                        id="name"
-                        placeholder="Enter name"
-                        value={name}
-                        required
-                        onChange={(e) => setName(e.target.value)}
-                      />
-                    </div>
-                    <div className="input-group" style={{ width: "140px", display: settings.taskSettings.showDate ? "block" : "none" }} >
-                      <label htmlFor="date">Date</label>
-                      <DatePicker
-                        id="date"
-                        value={date ? moment(date, "YYYY-MM-DD") : null}
-                        format="YYYY-MM-DD"
-                        onChange={(_, dateString) =>
-                          setDate(dateString as string)
+      <TransitionGroup>
+        <CSSTransition
+          key={location.key}
+          classNames="page"
+          timeout={300}
+        >
+          <Routes location={location}>
+            <Route
+              path="/"
+              element={
+                <div className="content">
+                  <div className="task-input-container">
+                    {alertMessage && (
+                      <Alert
+                        message={alertMessage}
+                        type={
+                          alertMessage.includes("successfully")
+                            ? "success"
+                            : "error"
                         }
-                        style={{ width: "100%" }}
+                        closable
+                        onClose={() => setAlertMessage(null)}
+                        style={{ marginBottom: "15px" }}
                       />
-                    </div>
-
-                    <div className="input-group" style={{ width: "120px" }}>
-                      <label htmlFor="bulletType">Task Icon</label>
-                      <Select
-                        id="bulletType"
-                        value={bulletType}
-                        onChange={(value) => setBulletType(value as any)}
-                        style={{ width: "100%" }}
-                      >
-                        <Option value="bullet">•</Option>
-                        <Option value="number">1</Option>
-                        <Option value={">"}>{">"}</Option>
-                        <Option value={"=>"}>{"=>"}</Option>
-                      </Select>
-                    </div>
-                    <div className="input-group" style={{ width: "120px", display: settings.taskSettings.allowSubtask ? "block" : "none" }}>
-                      <label htmlFor="icon">Sub Icon</label>
-                      <Select
-                        id="icon"
-                        placeholder="Select icon"
-                        value={selectedSubIcon}
-                        onChange={(value) => setSelectedSubIcon(value)}
-                        style={{ width: "100%" }}
-                      >
-                        <Option value="bullet">•</Option>
-                        <Option value="number">1</Option>
-                        <Option value={">"}>{">"}</Option>
-                        <Option value={"=>"}>{"=>"}</Option>
-                      </Select>
-                    </div>
-                    <div className="input-group" style={{ width: "300px", display: settings.taskSettings.showProject ? "block" : "none" }}>
-                      <label htmlFor="project">Project</label>
-                      <Select
-                        id="project"
-                        mode="multiple"
-                        placeholder="Select project(s)"
-                        value={selectedProjects}
-                        onChange={(value) => setSelectedProjects(value)}
-                        style={{ width: "100%" }}
-                        getPopupContainer={(triggerNode) =>
-                          triggerNode.parentNode
-                        }
-                      >
-                        {ALL_AVAILABLE_PROJECTS.map((project) => (
-                          <Option key={project} value={project}>
-                            {project}
-                          </Option>
-                        ))}
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="task-details-section">
-                  <div className="task-details-header">
-                    <h4>Task Details</h4>
-                    <div className="time-info">
-                      <p className="total-time">
-                        Total : <span>8h 30min</span>
-                      </p>
-                      <p className="remaining-time">
-                        Remaining :{" "}
-                        <span
-                          className={
-                            remainingTime < 0
-                              ? "time-exceeded"
-                              : remainingTime === 0
-                                ? "time-matched"
-                                : "time-in-limit"
-                          }
-                        >
-                          {formatRemainingTime(remainingTime)}
-                        </span>
-                      </p>
-                    </div>
-                    <div className="button-group">
-                      <Tooltip title="Add a new task">
-                        <Button
-                          type="default"
-                          icon={AddIcon}
-                          onClick={addTask}
-                          title="Add Task"
-                          className="add-task-btn"
-                        >
-                          Add Task
-                        </Button>
-                      </Tooltip>
-                      <Tooltip title="Reset all tasks">
-                        <Button
-                          type="default"
-                          icon={<ReloadOutlined />}
-                          onClick={resetForm}
-                          title="Reset Form"
-                          className="reset-btn"
-                          style={{ marginLeft: "10px" }}
-                        >
-                          Reset
-                        </Button>
-                      </Tooltip>
-                    </div>
-                  </div>
-                  <div
-                    className="task-details-inputs"
-                    style={{ marginTop: "10px" }}
-                  >
-                    {tasks.map((task, index) => (
-                      <div key={`task-${index}`}>
-                        <div
-                          className="task-row"
-                          style={{
-                            gridTemplateColumns: settings.taskSettings.showID
-                              ? "1fr 3fr 1fr 1fr 1fr auto auto"
-                              : "3fr 1fr 1fr 1fr auto auto",
-                          }}
-                        >
-                          {settings.taskSettings.showID && (
-                            <div className="input-group id-field">
-                              <Input
-                                ref={(el) => {
-                                  taskRefs.current[index] = el?.input || null;
-                                }}
-                                className="task-id-input"
-                                placeholder="Task ID"
-                                value={task.id || ""}
-                                onChange={(e) =>
-                                  handleTaskChange(index, "id", e.target.value)
-                                }
-                              />
-                            </div>
-                          )}
-                          <div className="input-group title-field">
-                            <Input
-                              className="task-title-input"
-                              placeholder="Task Title"
-                              value={task.title}
-                              onChange={(e) =>
-                                handleTaskChange(index, "title", e.target.value)
-                              }
-                            />
-                          </div>
-                          {settings.taskSettings.showHours && (
-                            <div className="input-group">
-                              <Input
-                                type="number"
-                                placeholder="Hours"
-                                value={task.subtasks?.length ? task.hours : task.hours}
-                                onChange={(e) => {
-                                  const value = Math.min(23, Math.max(0, parseInt(e.target.value) || 0));
-                                  if (!task.subtasks?.length) {
-                                    handleTaskChange(index, "hours", value);
-                                  }
-                                }}
-                                disabled={!!task.subtasks?.length}
-                                min={0}
-                                max={23}
-                              />
-                            </div>
-                          )}
-                          {settings.taskSettings.showHours && (
-                            <div className="input-group">
-                              <Input
-                                type="number"
-                                placeholder="Minutes"
-                                value={task.subtasks?.length ? task.minutes : task.minutes}
-                                onChange={(e) => {
-                                  const value = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
-                                  if (!task.subtasks?.length) {
-                                    handleTaskChange(index, "minutes", value);
-                                  }
-                                }}
-                                disabled={!!task.subtasks?.length}
-                                min={0}
-                                max={59}
-                              />
-                            </div>
-                          )}
-                          {settings.taskSettings.showStatus && (
-                            <div className="input-group">
-                              <Select
-                                placeholder="Select status"
-                                value={task.status}
-                                onChange={(value) =>
-                                  handleTaskChange(index, "status", value)
-                                }
-                                style={{ width: "100%" }}
-                              >
-                                {ALL_STATUS_OPTIONS.map((status) => (
-                                  <Option key={status} value={status}>
-                                    {status}
-                                  </Option>
-                                ))}
-                              </Select>
-                            </div>
-                          )}
-                          <div
-                            className="clear-task-circle"
-                            onClick={() => clearTask(index)}
-                            title="Delete Task"
-                          >
-                            {minusIcon}
-                          </div>
-                          <div
-                            className="add-task-circle"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addSubtask(index);
-                            }}
-                            title="Add Subtask"
-                            style={{ display: settings.taskSettings.allowSubtask ? "flex" : "none" }}
-                          >
-                            {AddIcon}
-                          </div>
+                    )}
+                    <div className="personal-details-section">
+                      <h4>Personal Details</h4>
+                      <div className="task-info-row">
+                        <div className="input-group">
+                          <label htmlFor="name">Name</label>
+                          <Input
+                            id="name"
+                            placeholder="Enter name"
+                            value={name}
+                            required
+                            onChange={(e) => setName(e.target.value)}
+                          />
                         </div>
-                        {task.subtasks &&
-                          task.subtasks.map((subtask, subIndex) => (
+                        <div className="input-group" style={{ width: "140px", display: settings.taskSettings.showDate ? "block" : "none" }} >
+                          <label htmlFor="date">Date</label>
+                          <DatePicker
+                            id="date"
+                            value={date ? moment(date, "YYYY-MM-DD") : null}
+                            format="YYYY-MM-DD"
+                            onChange={(_, dateString) =>
+                              setDate(dateString as string)
+                            }
+                            style={{ width: "100%" }}
+                          />
+                        </div>
+
+                        <div className="input-group" style={{ width: "120px" }}>
+                          <label htmlFor="bulletType">Task Icon</label>
+                          <Select
+                            id="bulletType"
+                            value={bulletType}
+                            onChange={(value) => setBulletType(value as any)}
+                            style={{ width: "100%" }}
+                          >
+                            <Option value="bullet">•</Option>
+                            <Option value="number">1</Option>
+                            <Option value={">"}>{">"}</Option>
+                            <Option value={"=>"}>{"=>"}</Option>
+                          </Select>
+                        </div>
+                        <div className="input-group" style={{ width: "120px", display: settings.taskSettings.allowSubtask ? "block" : "none" }}>
+                          <label htmlFor="icon">Sub Icon</label>
+                          <Select
+                            id="icon"
+                            placeholder="Select icon"
+                            value={selectedSubIcon}
+                            onChange={(value) => setSelectedSubIcon(value)}
+                            style={{ width: "100%" }}
+                          >
+                            <Option value="bullet">•</Option>
+                            <Option value="number">1</Option>
+                            <Option value={">"}>{">"}</Option>
+                            <Option value={"=>"}>{"=>"}</Option>
+                          </Select>
+                        </div>
+                        <div className="input-group" style={{ width: "300px", display: settings.taskSettings.showProject ? "block" : "none" }}>
+                          <label htmlFor="project">Project</label>
+                          <Select
+                            id="project"
+                            mode="multiple"
+                            placeholder="Select project(s)"
+                            value={selectedProjects}
+                            onChange={(value) => setSelectedProjects(value)}
+                            style={{ width: "100%" }}
+                            getPopupContainer={(triggerNode) =>
+                              triggerNode.parentNode
+                            }
+                          >
+                            {ALL_AVAILABLE_PROJECTS.map((project) => (
+                              <Option key={project} value={project}>
+                                {project}
+                              </Option>
+                            ))}
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="task-details-section">
+                      <div className="task-details-header">
+                        <h4>Task Details</h4>
+                        <div className="time-info">
+                          <p className="total-time">
+                            Total : <span>8h 30min</span>
+                          </p>
+                          <p className="remaining-time">
+                            Remaining :{" "}
+                            <span
+                              className={
+                                remainingTime < 0
+                                  ? "time-exceeded"
+                                  : remainingTime === 0
+                                    ? "time-matched"
+                                    : "time-in-limit"
+                              }
+                            >
+                              {formatRemainingTime(remainingTime)}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="button-group">
+                          <Tooltip title="Add a new task">
+                            <Button
+                              type="default"
+                              icon={AddIcon}
+                              onClick={addTask}
+                              title="Add Task"
+                              className="add-task-btn"
+                            >
+                              Add Task
+                            </Button>
+                          </Tooltip>
+                          <Tooltip title="Reset all tasks">
+                            <Button
+                              type="default"
+                              icon={<ReloadOutlined />}
+                              onClick={resetForm}
+                              title="Reset Form"
+                              className="reset-btn"
+                              style={{ marginLeft: "10px" }}
+                            >
+                              Reset
+                            </Button>
+                          </Tooltip>
+                        </div>
+                      </div>
+                      <div
+                        className="task-details-inputs"
+                        style={{ marginTop: "10px" }}
+                      >
+                        {tasks.map((task, index) => (
+                          <div key={`task-${index}`}>
                             <div
-                              className="task-row subtask-row"
-                              key={`subtask-${index}-${subIndex}`}
+                              className="task-row"
                               style={{
                                 gridTemplateColumns: settings.taskSettings.showID
                                   ? "1fr 3fr 1fr 1fr 1fr auto auto"
@@ -792,46 +710,24 @@ ${name.trim()}`;
                                 <div className="input-group id-field">
                                   <Input
                                     ref={(el) => {
-                                      if (!subtaskRefs.current[index]) {
-                                        subtaskRefs.current[index] = [];
-                                      }
-                                      subtaskRefs.current[index][subIndex] = el || null;
-                                    }}
-                                    style={{
-                                      visibility: "hidden"
+                                      taskRefs.current[index] = el?.input || null;
                                     }}
                                     className="task-id-input"
-                                    placeholder="Subtask ID"
-                                    value={subtask.id || ""}
+                                    placeholder="Task ID"
+                                    value={task.id || ""}
                                     onChange={(e) =>
-                                      handleSubtaskChange(
-                                        index,
-                                        subIndex,
-                                        "id",
-                                        e.target.value
-                                      )
+                                      handleTaskChange(index, "id", e.target.value)
                                     }
                                   />
                                 </div>
                               )}
                               <div className="input-group title-field">
                                 <Input
-                                  ref={(el) => {
-                                    if (!subtaskRefs.current[index]) {
-                                      subtaskRefs.current[index] = [];
-                                    }
-                                    subtaskRefs.current[index][subIndex] = el;
-                                  }}
                                   className="task-title-input"
-                                  placeholder="Subtask Title"
-                                  value={subtask.title}
+                                  placeholder="Task Title"
+                                  value={task.title}
                                   onChange={(e) =>
-                                    handleSubtaskChange(
-                                      index,
-                                      subIndex,
-                                      "title",
-                                      e.target.value
-                                    )
+                                    handleTaskChange(index, "title", e.target.value)
                                   }
                                 />
                               </div>
@@ -840,11 +736,14 @@ ${name.trim()}`;
                                   <Input
                                     type="number"
                                     placeholder="Hours"
-                                    value={subtask.hours}
+                                    value={task.subtasks?.length ? task.hours : task.hours}
                                     onChange={(e) => {
                                       const value = Math.min(23, Math.max(0, parseInt(e.target.value) || 0));
-                                      handleSubtaskChange(index, subIndex, "hours", value);
+                                      if (!task.subtasks?.length) {
+                                        handleTaskChange(index, "hours", value);
+                                      }
                                     }}
+                                    disabled={!!task.subtasks?.length}
                                     min={0}
                                     max={23}
                                   />
@@ -855,11 +754,14 @@ ${name.trim()}`;
                                   <Input
                                     type="number"
                                     placeholder="Minutes"
-                                    value={subtask.minutes}
+                                    value={task.subtasks?.length ? task.minutes : task.minutes}
                                     onChange={(e) => {
                                       const value = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
-                                      handleSubtaskChange(index, subIndex, "minutes", value);
+                                      if (!task.subtasks?.length) {
+                                        handleTaskChange(index, "minutes", value);
+                                      }
                                     }}
+                                    disabled={!!task.subtasks?.length}
                                     min={0}
                                     max={59}
                                   />
@@ -869,14 +771,9 @@ ${name.trim()}`;
                                 <div className="input-group">
                                   <Select
                                     placeholder="Select status"
-                                    value={subtask.status}
+                                    value={task.status}
                                     onChange={(value) =>
-                                      handleSubtaskChange(
-                                        index,
-                                        subIndex,
-                                        "status",
-                                        value
-                                      )
+                                      handleTaskChange(index, "status", value)
                                     }
                                     style={{ width: "100%" }}
                                   >
@@ -890,10 +787,8 @@ ${name.trim()}`;
                               )}
                               <div
                                 className="clear-task-circle"
-                                onClick={() =>
-                                  clearSubtask(index, subIndex)
-                                }
-                                title="Delete Subtask"
+                                onClick={() => clearTask(index)}
+                                title="Delete Task"
                               >
                                 {minusIcon}
                               </div>
@@ -904,71 +799,205 @@ ${name.trim()}`;
                                   addSubtask(index);
                                 }}
                                 title="Add Subtask"
-                                style={{ visibility: "hidden" }}
+                                style={{ display: settings.taskSettings.allowSubtask ? "flex" : "none" }}
                               >
                                 {AddIcon}
                               </div>
                             </div>
-                          ))}
+                            {task.subtasks &&
+                              task.subtasks.map((subtask, subIndex) => (
+                                <div
+                                  className="task-row subtask-row"
+                                  key={`subtask-${index}-${subIndex}`}
+                                  style={{
+                                    gridTemplateColumns: settings.taskSettings.showID
+                                      ? "1fr 3fr 1fr 1fr 1fr auto auto"
+                                      : "3fr 1fr 1fr 1fr auto auto",
+                                  }}
+                                >
+                                  {settings.taskSettings.showID && (
+                                    <div className="input-group id-field">
+                                      <Input
+                                        ref={(el) => {
+                                          if (!subtaskRefs.current[index]) {
+                                            subtaskRefs.current[index] = [];
+                                          }
+                                          subtaskRefs.current[index][subIndex] = el || null;
+                                        }}
+                                        style={{
+                                          visibility: "hidden"
+                                        }}
+                                        className="task-id-input"
+                                        placeholder="Subtask ID"
+                                        value={subtask.id || ""}
+                                        onChange={(e) =>
+                                          handleSubtaskChange(
+                                            index,
+                                            subIndex,
+                                            "id",
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                  )}
+                                  <div className="input-group title-field">
+                                    <Input
+                                      ref={(el) => {
+                                        if (!subtaskRefs.current[index]) {
+                                          subtaskRefs.current[index] = [];
+                                        }
+                                        subtaskRefs.current[index][subIndex] = el;
+                                      }}
+                                      className="task-title-input"
+                                      placeholder="Subtask Title"
+                                      value={subtask.title}
+                                      onChange={(e) =>
+                                        handleSubtaskChange(
+                                          index,
+                                          subIndex,
+                                          "title",
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  {settings.taskSettings.showHours && (
+                                    <div className="input-group">
+                                      <Input
+                                        type="number"
+                                        placeholder="Hours"
+                                        value={subtask.hours}
+                                        onChange={(e) => {
+                                          const value = Math.min(23, Math.max(0, parseInt(e.target.value) || 0));
+                                          handleSubtaskChange(index, subIndex, "hours", value);
+                                        }}
+                                        min={0}
+                                        max={23}
+                                      />
+                                    </div>
+                                  )}
+                                  {settings.taskSettings.showHours && (
+                                    <div className="input-group">
+                                      <Input
+                                        type="number"
+                                        placeholder="Minutes"
+                                        value={subtask.minutes}
+                                        onChange={(e) => {
+                                          const value = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
+                                          handleSubtaskChange(index, subIndex, "minutes", value);
+                                        }}
+                                        min={0}
+                                        max={59}
+                                      />
+                                    </div>
+                                  )}
+                                  {settings.taskSettings.showStatus && (
+                                    <div className="input-group">
+                                      <Select
+                                        placeholder="Select status"
+                                        value={subtask.status}
+                                        onChange={(value) =>
+                                          handleSubtaskChange(
+                                            index,
+                                            subIndex,
+                                            "status",
+                                            value
+                                          )
+                                        }
+                                        style={{ width: "100%" }}
+                                      >
+                                        {ALL_STATUS_OPTIONS.map((status) => (
+                                          <Option key={status} value={status}>
+                                            {status}
+                                          </Option>
+                                        ))}
+                                      </Select>
+                                    </div>
+                                  )}
+                                  <div
+                                    className="clear-task-circle"
+                                    onClick={() =>
+                                      clearSubtask(index, subIndex)
+                                    }
+                                    title="Delete Subtask"
+                                  >
+                                    {minusIcon}
+                                  </div>
+                                  <div
+                                    className="add-task-circle"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      addSubtask(index);
+                                    }}
+                                    title="Add Subtask"
+                                    style={{ visibility: "hidden" }}
+                                  >
+                                    {AddIcon}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  {settings.taskSettings.showNextTask && (
-                    <div className="input-group" style={{ marginTop: "20px" }}>
-                      <Input
-                        id="nextTask"
-                        placeholder="Enter next task"
-                        value={nextTaskValue}
-                        onChange={(e) => setNextTaskValue(e.target.value)}
-                      />
+                      {settings.taskSettings.showNextTask && (
+                        <div className="input-group" style={{ marginTop: "20px" }}>
+                          <Input
+                            id="nextTask"
+                            placeholder="Enter next task"
+                            value={nextTaskValue}
+                            onChange={(e) => setNextTaskValue(e.target.value)}
+                          />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-              <div className="task-preview-container">
-                <div className="task-preview-header">
-                  <h3>Preview</h3>
-                  <div className="button-group">
-                    <Tooltip title="Copy to Clipboard">
-                      <Button
-                        type="default"
-                        icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
-                        onClick={handleCopy}
-                        title="Copy"
-                        className="copy-btn"
-                      />
-                    </Tooltip>
-                    <Tooltip title="Save Preview">
-                      <Button
-                        type="default"
-                        icon={<SaveOutlined />}
-                        onClick={savePreview}
-                        title="Save"
-                        className="save-btn"
-                        style={{ marginLeft: "10px" }}
-                      />
-                    </Tooltip>
+                  </div>
+                  <div className="task-preview-container">
+                    <div className="task-preview-header">
+                      <h3>Preview</h3>
+                      <div className="button-group">
+                        <Tooltip title="Copy to Clipboard">
+                          <Button
+                            type="default"
+                            icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
+                            onClick={handleCopy}
+                            title="Copy"
+                            className="copy-btn"
+                          />
+                        </Tooltip>
+                        <Tooltip title="Save Preview">
+                          <Button
+                            type="default"
+                            icon={<SaveOutlined />}
+                            onClick={savePreview}
+                            title="Save"
+                            className="save-btn"
+                            style={{ marginLeft: "10px" }}
+                          />
+                        </Tooltip>
+                      </div>
+                    </div>
+                    <pre
+                      className="script-style"
+                      style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
+                    >
+                      {getFormattedPreview()}
+                    </pre>
                   </div>
                 </div>
-                <pre
-                  className="script-style"
-                  style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
-                >
-                  {getFormattedPreview()}
-                </pre>
-              </div>
-            </div>
-          }
-        />
-        <Route path="/edit-task" element={<EditTaskPage />} />
-        <Route
-          path="/settings"
-          element={
-            <SettingsPage settings={settings} toggleSetting={toggleSetting} />
-          }
-        />
-        <Route path="/reports" element={<ReportsPage />} />
-      </Routes>
+              }
+            />
+            <Route path="/edit-task" element={<EditTaskPage />} />
+            <Route
+              path="/settings"
+              element={
+                <SettingsPage settings={settings} toggleSetting={toggleSetting} />
+              }
+            />
+            <Route path="/reports" element={<ReportsPage />} />
+          </Routes>
+        </CSSTransition>
+      </TransitionGroup>
       {copiedPreview && (
         <div style={{
           position: "fixed",
