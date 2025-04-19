@@ -73,7 +73,7 @@ const ReportsPage: React.FC = () => {
     };
 
     const formatLine = (task: any, level = 0, bulletType: string, index: number) => {
-        const indent = "  ".repeat(level); // Add consistent indentation based on the level
+        const indent = level > 0 ? "      ".repeat(level) : "   "; // Add a single space for level 0
         const getBullet = (type: string, index: number) => {
             switch (type) {
                 case "dot":
