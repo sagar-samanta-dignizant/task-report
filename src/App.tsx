@@ -363,7 +363,7 @@ const App = () => {
         .map((task, index) => {
           const indent = "  ".repeat(level); // Indent subtasks
           let line = `${indent}${getTaskIcon(index, bulletType)}${formatLine(task, index)}`;
-          if (task.subtasks && task.subtasks.length > 0) {
+          if (settings.previewSettings.allowSubtask && task.subtasks && task.subtasks.length > 0) {
             line += `\n${task.subtasks
               .map((subtask, subIndex) =>
                 ` ${formatLine(subtask, subIndex, true)}`
@@ -551,7 +551,7 @@ ${name.trim()}`;
                         <Option value={"=>"}>{"=>"}</Option>
                       </Select>
                     </div>
-                    <div className="input-group" style={{ width: "120px" }}>
+                    <div className="input-group" style={{ width: "120px", display: settings.taskSettings.allowSubtask ? "block" : "none" }}>
                       <label htmlFor="icon">Sub Icon</label>
                       <Select
                         id="icon"
@@ -737,6 +737,7 @@ ${name.trim()}`;
                               addSubtask(index);
                             }}
                             title="Add Subtask"
+                            style={{ display: settings.taskSettings.allowSubtask ? "flex" : "none" }} // Hide button if allowSubtask is off
                           >
                             {AddIcon}
                           </div>
