@@ -46,17 +46,29 @@ const EditTaskPage = () => {
 
     const calculateRemainingTime = () => {
         const totalTaskTime = tasks.reduce((sum, task) => {
-            const taskHours = parseFloat(task.hours as string) || 0;
-            const taskMinutes = (parseFloat(task.minutes as string) || 0) / 60; // Convert minutes to hours
-            return sum + taskHours + taskMinutes;
+            const subtaskTime =
+                task.subtasks?.reduce((subSum, subtask) => {
+                    const subtaskHours = parseFloat(subtask.hours as string) || 0;
+                    const subtaskMinutes =
+                        (parseFloat(subtask.minutes as string) || 0) / 60;
+                    return subSum + subtaskHours + subtaskMinutes;
+                }, 0) || 0;
+
+            const taskHours = task.subtasks ? 0 : parseFloat(task.hours as string) || 0; // Ignore task hours if subtasks exist
+            const taskMinutes =
+                task.subtasks ? 0 : (parseFloat(task.minutes as string) || 0) / 60; // Ignore task minutes if subtasks exist
+
+            return sum + taskHours + taskMinutes + subtaskTime;
         }, 0);
         return workingTimeLimit - totalTaskTime;
     };
 
     const formatRemainingTime = (remainingTime: number) => {
-        const hours = Math.floor(remainingTime);
-        const minutes = Math.round((remainingTime - hours) * 60);
-        return `${hours}h and ${minutes}m`;
+        const hours = Math.floor(Math.abs(remainingTime));
+        const minutes = Math.round((Math.abs(remainingTime) - hours) * 60);
+        return remainingTime < 0
+            ? `${hours}h ${minutes}m (Extra hour)`
+            : `${hours}h ${minutes}m`;
     };
 
     const remainingTime = calculateRemainingTime();
@@ -338,7 +350,7 @@ ${name.trim()}`;
                                             isTimeExceeded ? "time-exceeded" : "time-in-limit"
                                         }
                                     >
-                                        {formatRemainingTime(Math.abs(remainingTime))}
+                                        {formatRemainingTime(remainingTime)}
                                     </span>
                                 </p>
                             </div>
