@@ -3,12 +3,15 @@
 import "./app.css";
 
 import { AddIcon, deleteIcon } from "./assets/fontAwesomeIcons";
-import { Alert, Button, DatePicker, Input, Select } from "antd"; // Import Ant Design components
+import { Alert, Button, DatePicker, Input, Select, Layout, Menu, Tooltip } from "antd"; // Import Ant Design components
 import {
   CheckOutlined,
   CopyOutlined,
-  DeleteOutlined,
   SaveOutlined,
+  HomeOutlined,
+  SettingOutlined,
+  FileTextOutlined,
+  ReloadOutlined, // Import the refresh icon
 } from "@ant-design/icons";
 import {
   Link,
@@ -18,12 +21,13 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { InputRef } from "antd";
 import moment from "moment";
-import Clock from "./components/Clock";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import EditTaskPage from "./pages/EditTaskPage";
 import { ALERT_DISMISS_TIME, ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "./constant/task.constant";
 const { Option } = Select;
+const { Header } = Layout;
+
 interface Task {
   id: number;
   taskId: string | number;
@@ -421,23 +425,29 @@ ${name.trim()}`;
               </p>
             </div>
             <div className="button-group">
-              <Button
-                type="primary"
-                icon={AddIcon} // Add icon for Add Task
-                onClick={addTask}
-                title="Add Task"
-              >
-                Add Task
-              </Button>
-              <Button
-                type="default"
-                icon={<DeleteOutlined />} // Add icon for Reset
-                onClick={resetForm}
-                title="Reset Form"
-                style={{ marginLeft: "10px" }}
-              >
-                Reset
-              </Button>
+              <Tooltip title="Add a new task">
+                <Button
+                  type="primary"
+                  icon={AddIcon} // Add icon for Add Task
+                  onClick={addTask}
+                  title="Add Task"
+                  className="add-task-btn" // Add class for styling
+                >
+                  Add Task
+                </Button>
+              </Tooltip>
+              <Tooltip title="Reset all tasks">
+                <Button
+                  type="default"
+                  icon={<ReloadOutlined />} // Use refresh icon for Reset
+                  onClick={resetForm}
+                  title="Reset Form"
+                  className="reset-btn" // Add class for styling
+                  style={{ marginLeft: "10px" }}
+                >
+                  Reset
+                </Button>
+              </Tooltip>
             </div>
           </div>
           <div
@@ -528,14 +538,16 @@ ${name.trim()}`;
                     </Select>
                   </div>
                 )}
-                <Button
-                  type="text" // Use "text" type to remove button styling
-                  danger
-                  icon={deleteIcon}
-                  onClick={() => clearTask(task.id)}
-                  title="Delete Task"
-                  style={{ marginBottom: "15px" }}
-                />
+                <Tooltip title="Delete this task">
+                  <Button
+                    type="text" // Use "text" type to remove button styling
+                    danger
+                    icon={deleteIcon}
+                    onClick={() => clearTask(task.id)}
+                    title="Delete Task"
+                    style={{ marginBottom: "15px" }}
+                  />
+                </Tooltip>
               </div>
             ))}
           </div>
@@ -555,18 +567,25 @@ ${name.trim()}`;
         <div className="task-preview-header">
           <h3>Preview</h3>
           <div className="button-group">
-            <Button
-              type="primary"
-              icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
-              onClick={handleCopy}
-              title="Copy"
-            />
-            <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              onClick={savePreview}
-              title="Save"
-            />
+            <Tooltip title="Copy to Clipboard">
+              <Button
+                type="primary"
+                icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
+                onClick={handleCopy}
+                title="Copy"
+                className="copy-btn" // Add class for styling
+              />
+            </Tooltip>
+            <Tooltip title="Save Preview">
+              <Button
+                type="primary"
+                icon={<SaveOutlined />}
+                onClick={savePreview}
+                title="Save"
+                className="save-btn" // Add class for styling
+                style={{ marginLeft: "10px" }} // Add spacing between buttons
+              />
+            </Tooltip>
           </div>
         </div>
         <pre
@@ -580,36 +599,33 @@ ${name.trim()}`;
   }
 
   return (
-    <div className={`app-container ${theme}`}>
-      <header className="header">
-        <h1>
-          <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
-            Report Manager
-          </Link>
-        </h1>
-        <Clock />
-        <nav>
-          <Link to="/">Home</Link> | <Link to="/settings">Settings</Link> |{" "}
-          <Link to="/reports">Reports</Link>
-        </nav>
-      </header>
+    <Layout className={`app-container ${theme}`}>
+      <Header className="header">
+        <div className="logo" style={{ color: "white", fontSize: "20px", fontWeight: "bold" }}>
+          Report Manager
+        </div>
+        <Menu theme="dark" mode="horizontal" defaultSelectedKeys={["1"]}>
+          <Menu.Item key="1" icon={<HomeOutlined />}>
+            <Link to="/">Home</Link>
+          </Menu.Item>
+          <Menu.Item key="2" icon={<SettingOutlined />}>
+            <Link to="/settings">Settings</Link>
+          </Menu.Item>
+          <Menu.Item key="3" icon={<FileTextOutlined />}>
+            <Link to="/reports">Reports</Link>
+          </Menu.Item>
+        </Menu>
+      </Header>
       <Routes>
-        <Route
-          path="/"
-          element={
-            <HomePage />
-          }
-        />
+        <Route path="/" element={<HomePage />} />
         <Route path="/edit-task" element={<EditTaskPage />} />
         <Route
           path="/settings"
-          element={
-            <SettingsPage settings={settings} toggleSetting={toggleSetting} />
-          }
+          element={<SettingsPage settings={settings} toggleSetting={toggleSetting} />}
         />
         <Route path="/reports" element={<ReportsPage />} />
       </Routes>
-    </div>
+    </Layout>
   );
 };
 

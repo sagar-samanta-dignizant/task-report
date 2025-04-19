@@ -29,16 +29,90 @@ body {
 }
 
 .copy-btn {
-  color: #4caf50; /* Green for visibility */
+  background-color: #43a047; /* Green for Copy button */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Smooth transition */
 }
 
 .copy-btn:hover {
-  color: #388e3c; /* Darker green on hover */
+  background-color: #2e7d32; /* Slightly darker green on hover */
+}
+
+.save-btn {
+  background-color: #fb8c00; /* Orange for Save button */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.save-btn:hover {
+  background-color: #ef6c00; /* Slightly darker orange on hover */
+}
+
+.add-task-btn {
+  background-color: #1e88e5; /* Blue for Add Task button */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.add-task-btn:hover {
+  background-color: #1565c0; /* Slightly darker blue on hover */
+}
+
+.reset-btn {
+  background-color: #e53935; /* Red for Reset button */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.reset-btn:hover {
+  background-color: #b71c1c; /* Slightly darker red on hover */
+}
+
+.clear-task-btn {
+  background-color: #f44336; /* Red for Delete button */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.clear-task-btn:hover {
+  background-color: #d32f2f; /* Slightly darker red on hover */
 }
 
 .script-style {
+  white-space: pre-wrap;
   background-color: #1e1e1e; /* Dark background */
-  color: #e0e0e0; /* Light text color */
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  margin-bottom: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #e0e0e0; /* Ensure text remains visible */
   border: 1px solid #333; /* Subtle border for separation */
 }
 
@@ -538,16 +612,33 @@ label .input-field {
 }
 
 .copy-btn {
-  background: none;
+  background-color: #43a047; /* Green for Copy button */
+  color: white;
   border: none;
-  font-size: 20px;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 14px;
   cursor: pointer;
-  color: #4caf50;
-  transition: color 0.3s ease;
+  transition: background-color 0.3s ease; /* Smooth transition */
 }
 
 .copy-btn:hover {
-  color: #388e3c;
+  background-color: #2e7d32; /* Slightly darker green on hover */
+}
+
+.save-btn {
+  background-color: #fb8c00; /* Orange for Save button */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.save-btn:hover {
+  background-color: #ef6c00; /* Slightly darker orange on hover */
 }
 
 .copy-success {
@@ -559,13 +650,15 @@ label .input-field {
 
 .script-style {
   white-space: pre-wrap;
-  background-color: #1e1e1e;
+  background-color: #1e1e1e; /* Dark background */
   padding: 15px;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
   margin-bottom: 10px;
   font-size: 14px;
   line-height: 1.5;
+  color: #e0e0e0; /* Ensure text remains visible */
+  border: 1px solid #333; /* Subtle border for separation */
 }
 
 .task-preview-container pre.script-style {
