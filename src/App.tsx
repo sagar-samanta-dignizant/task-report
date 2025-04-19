@@ -1,37 +1,29 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import "./task.less";
+import "./app.css";
 
-import { AddIcon, deleteIcon, minusIcon } from "./assets/fontAwesomeIcons";
-import { Alert, Button, DatePicker, Input, Select, Switch } from "antd"; // Import Ant Design components
+import { AddIcon, deleteIcon } from "./assets/fontAwesomeIcons";
+import { Alert, Button, DatePicker, Input, Select } from "antd"; // Import Ant Design components
 import {
   CheckOutlined,
   CopyOutlined,
   DeleteOutlined,
-  EditOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
 import {
   Link,
   Route,
   Routes,
-  useLocation,
-  useNavigate,
 } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-
-import { InputRef } from "antd"; // Import InputRef from Ant Design
-import moment from "moment"; // Import moment.js for date formatting
-
-// Import react-router-dom
-
-// Import Ant Design icons
-
+import { InputRef } from "antd"; 
+import moment from "moment"; 
+import Clock from "./components/Clock";
+import ReportsPage from "./pages/ReportsPage";
+import SettingsPage from "./pages/SettingsPage";
+import EditTaskPage from "./pages/EditTaskPage";
+import { ALERT_DISMISS_TIME, ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "./constant/task.constant";
 const { Option } = Select;
-const { RangePicker } = DatePicker;
-
-const ALERT_DISMISS_TIME = 4000; // Time in milliseconds after which the alert disappears
-
 interface Task {
   id: number;
   taskId: string | number;
@@ -40,588 +32,6 @@ interface Task {
   minutes: string | number; // Add minutes field
   status: string;
 }
-
-const allProjects = ["Rukkor", "Geometra", "Deviaq"];
-const statusOptions = [
-  "In Progress",
-  "Hold",
-  "Completed",
-  "Fixed",
-  "Not Fixed",
-];
-
-const Clock = () => {
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer); // Cleanup timer on component unmount
-  }, []);
-
-  return (
-    <div className="clock">
-      {currentTime.toLocaleTimeString()} {/* Show only the time */}
-    </div>
-  );
-};
-
-const SettingsPage = ({ settings, toggleSetting }: any) => (
-  <div className="settings-page">
-    <h2>Settings</h2>
-    <div className="settings-option">
-      <label>
-        Show Date
-        <Switch
-          checked={settings.showDate}
-          onChange={(checked) => toggleSetting("showDate", checked)}
-        />
-      </label>
-    </div>
-    <div className="settings-option">
-      <label>
-        Show Hours
-        <Switch
-          checked={settings.showHours}
-          onChange={(checked) => toggleSetting("showHours", checked)}
-        />
-      </label>
-    </div>
-    <div className="settings-option">
-      <label>
-        Show ID
-        <Switch
-          checked={settings.showID}
-          onChange={(checked) => toggleSetting("showID", checked)}
-        />
-      </label>
-    </div>
-    <div className="settings-option">
-      <label>
-        Show Status
-        <Switch
-          checked={settings.showStatus}
-          onChange={(checked) => toggleSetting("showStatus", checked)}
-        />
-      </label>
-    </div>
-    <div className="settings-option">
-      <label>
-        Show Next Task
-        <Switch
-          checked={settings.showNextTask}
-          onChange={(checked) => toggleSetting("showNextTask", checked)}
-        />
-      </label>
-    </div>
-    <div className="settings-option">
-      <label>
-        Show Project
-        <Switch
-          checked={settings.showProject}
-          onChange={(checked) => toggleSetting("showProject", checked)}
-        />
-      </label>
-    </div>
-  </div>
-);
-
-
-const ReportsPage: React.FC = () => {
-  const [reportData, setReportData] = useState<any[]>([]);
-  const [_, setSelectedDateRange] = useState<[string, string] | null>(null);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null); // Track which report was copied
-  const navigate = useNavigate(); // Use navigate for redirection
-
-  const handleDateRangeChange = (_: any, dateStrings: [string, string]) => {
-    setSelectedDateRange(dateStrings as [string, string]); // Explicitly cast dateStrings
-    const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
-
-    const filteredReports = Object.entries(savedReports)
-      .filter(([date]) => {
-        const [start, end] = dateStrings;
-        if (!start || !end) return false; // Ensure both start and end dates are provided
-
-        // Normalize all dates to `YYYY-MM-DD` for consistent comparison
-        const normalizedDate = moment(date, "YYYY-MM-DD");
-        const normalizedStart = moment(start, "DD/MM/YYYY").format(
-          "YYYY-MM-DD"
-        );
-        const normalizedEnd = moment(end, "DD/MM/YYYY").format("YYYY-MM-DD");
-
-        return normalizedDate.isBetween(
-          moment(normalizedStart, "YYYY-MM-DD"),
-          moment(normalizedEnd, "YYYY-MM-DD"),
-          "days",
-          "[]"
-        );
-      })
-      .map(([date, data]) => ({
-        date, // Keep the date in `YYYY-MM-DD` format
-        data,
-      }));
-
-    setReportData(filteredReports); // Update state with filtered reports
-  };
-
-  const handleCopy = (data: any, index: number) => {
-    navigator.clipboard.writeText(formatPreview(data));
-    setCopiedIndex(index); // Set the copied index
-    setTimeout(() => setCopiedIndex(null), 2000); // Revert back after 2 seconds
-  };
-
-  const handleDelete = (date: string) => {
-    const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
-    delete savedReports[date]; // Remove the report by date
-    localStorage.setItem("reports", JSON.stringify(savedReports)); // Update storage
-    setReportData(reportData.filter((report) => report.date !== date)); // Update state
-  };
-
-  const handleEdit = (report: any) => {
-    navigate(`/edit-task`, { state: { report } }); // Redirect to the edit page with state
-  };
-
-  const formatTaskTime = (hours: string | number, minutes: string | number) => {
-    const h = parseInt(hours as string) || 0;
-    const m = parseInt(minutes as string) || 0;
-    let timeString = "";
-    if (h > 0) timeString += `${h} h`; // Only include hours if greater than 0
-    if (m > 0) timeString += ` ${m} min`; // Only include minutes if greater than 0
-    return timeString.trim(); // Remove any leading/trailing spaces
-  };
-
-  const formatLine = (task: any) => {
-    let line = "";
-    if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `; // Trim Task ID
-    line += task.title.trim(); // Trim Title
-    if (task.status) line += ` (${task.status.trim()})`; // Trim Status
-    if (task.hours || task.minutes) {
-      const taskTime = formatTaskTime(task.hours, task.minutes);
-      if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
-    }
-    return line;
-  };
-
-  const formatPreview = (data: any) => {
-    const { tasks, selectedProjects, date, name, nextTask, bulletType } = data;
-
-    const getBullet = (index: number) => {
-      switch (bulletType) {
-        case "dot":
-          return "• "; // Use a dot bullet
-        case "number":
-          return `${index + 1}. `; // Use numbers
-        case ">":
-          return "> "; // Use a single arrow
-        case ">>":
-          return ">> "; // Use a double arrow
-        case "=>":
-          return "=> "; // Use an arrow with equals
-        case "bullet":
-          return "● "; // Use a bold dot
-        default:
-          return "- "; // Default fallback
-      }
-    };
-
-    const formatTasks = (tasks: any[]) =>
-      tasks
-        .map((task, index) => `${getBullet(index)}${formatLine(task)}`)
-        .join("\n");
-
-    return `Today's work update - ${moment(date, "YYYY-MM-DD").format(
-      "YYYY-MM-DD"
-    )}
-
-${selectedProjects.length > 0
-        ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
-        : ""
-      } 
-----------------------------------------
-${formatTasks(tasks)}
-${nextTask && nextTask.trim()
-        ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}` // Trim Next Task
-        : ""
-      }
-
-Thanks & regards
-${name.trim()}`; // Trim Name
-  };
-
-  return (
-    <div className="reports-page">
-      <div className="reports-header">
-        <h2>Reports</h2>
-        <RangePicker
-          onChange={handleDateRangeChange}
-          format="DD/MM/YYYY" // Set date picker format
-        />
-      </div>
-      <div className="report-grid">
-        {reportData.length > 0 ? (
-          reportData.map((report, index) => (
-            <div key={index} className="report-card">
-              <div className="task-preview-header">
-                <h3>{`Date: ${report.date}`}</h3>
-                <div className="button-group">
-                  <Button
-                    type="primary"
-                    icon={
-                      copiedIndex === index ? (
-                        <CheckOutlined />
-                      ) : (
-                        <CopyOutlined />
-                      )
-                    } // Change icon on copy
-                    onClick={() => handleCopy(report.data, index)}
-                    title="Copy"
-                  />
-                  <Button
-                    type="default"
-                    icon={<EditOutlined />} // Use Edit icon
-                    onClick={() => handleEdit(report)} // Trigger edit
-                    title="Edit"
-                  />
-                  <Button
-                    type="primary"
-                    danger
-                    icon={<DeleteOutlined />} // Use Delete icon
-                    onClick={() => handleDelete(report.date)}
-                    title="Delete"
-                  />
-                </div>
-              </div>
-              <pre
-                className="script-style"
-                style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
-              >
-                {formatPreview(report.data)}
-              </pre>
-            </div>
-          ))
-        ) : (
-          <p>No records found for the selected date range.</p>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const EditTaskPage = () => {
-  const location = useLocation(); // Use useLocation to access the state
-  const navigate = useNavigate(); // For navigation
-  const report = location.state?.report; // Extract the report data from state
-
-  const [tasks, setTasks] = useState<Task[]>(report?.data.tasks || []);
-  const [selectedProjects, setSelectedProjects] = useState<string[]>(
-    report?.data.selectedProjects || []
-  );
-  const [name, setName] = useState(report?.data.name || "");
-  const [date, setDate] = useState(report?.date || "");
-  const [bulletType, setBulletType] = useState(
-    report?.data.bulletType || "bullet"
-  );
-  const [nextTaskValue, setNextTaskValue] = useState(
-    report?.data.nextTask || ""
-  );
-
-  const workingTimeLimit = 8.5; // Total working time in hours
-
-  const calculateRemainingTime = () => {
-    const totalTaskTime = tasks.reduce((sum, task) => {
-      const taskHours = parseFloat(task.hours as string) || 0;
-      const taskMinutes = (parseFloat(task.minutes as string) || 0) / 60; // Convert minutes to hours
-      return sum + taskHours + taskMinutes;
-    }, 0);
-    return workingTimeLimit - totalTaskTime;
-  };
-
-  const formatRemainingTime = (remainingTime: number) => {
-    const hours = Math.floor(remainingTime);
-    const minutes = Math.round((remainingTime - hours) * 60);
-    return `${hours}h and ${minutes}m`;
-  };
-
-  const remainingTime = calculateRemainingTime();
-  const isTimeExceeded = remainingTime < 0;
-
-  const handleTaskChange = (
-    index: number,
-    field: keyof Task,
-    value: string | number
-  ) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[index][field] = value as never;
-    setTasks(updatedTasks);
-  };
-
-  const addTask = () => {
-    const newTask: Task = {
-      id: tasks.length + 1,
-      taskId: "",
-      title: "",
-      hours: "",
-      minutes: "",
-      status: "Completed",
-    };
-    setTasks((prevTasks) => [...prevTasks, newTask]);
-  };
-
-  const clearTask = (taskId: number) => {
-    const updatedTasks = tasks.filter((task) => task.id !== taskId);
-    setTasks(updatedTasks);
-  };
-
-  const handleSave = () => {
-    // Save the updated report data in the correct structure
-    const updatedReport = {
-      date,
-      tasks,
-      selectedProjects,
-      name,
-      bulletType,
-      nextTask: nextTaskValue,
-    };
-
-    const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
-    savedReports[date] = updatedReport; // Save the updated report directly under the date key
-    localStorage.setItem("reports", JSON.stringify(savedReports));
-
-    navigate("/reports"); // Navigate back to the reports page after saving
-  };
-
-  const getFormattedPreview = () => {
-    const formatLine = (task: Task) => {
-      let line = "";
-      if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `;
-      line += task.title.trim();
-      if (task.status) line += ` (${task.status.trim()})`;
-      if (task.hours || task.minutes) {
-        const taskTime = `${task.hours || 0}h ${task.minutes || 0}m`.trim();
-        if (taskTime) line += ` (${taskTime})`;
-      }
-      return line;
-    };
-
-    const formatTasks = tasks
-      .map((task, index) => `${index + 1}. ${formatLine(task)}`)
-      .join("\n");
-
-    return `Today's work update - ${moment(date).format("YYYY-MM-DD")}
-
-Project: ${selectedProjects.join(" & ") || "Not Selected"}
-----------------------------------------
-${formatTasks}
-${nextTaskValue.trim()
-        ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
-        : ""
-      }
-
-Thanks & regards
-${name.trim()}`;
-  };
-
-  if (!report) {
-    return <p>Report not found!</p>;
-  }
-
-  return (
-    <div className="edit-task-page">
-      <h2>Edit Report</h2>
-      <div className="content" style={{ display: "flex", gap: "20px" }}>
-        <div className="task-input-container" style={{ flex: "65%" }}>
-          <div className="personal-details-section">
-            <h4>Personal Details</h4>
-            <div className="task-info-row">
-              <div className="input-group">
-                <label htmlFor="name">User Name</label>
-                <Input
-                  id="name"
-                  placeholder="Enter your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-              <div className="input-group">
-                <label htmlFor="date">Date</label>
-                <DatePicker
-                  id="date"
-                  value={date ? moment(date, "YYYY-MM-DD") : null} // Ensure only the default date is selected
-                  format="YYYY-MM-DD"
-                  onChange={(date, dateString) => setDate(dateString as string)}
-                  style={{ width: "100%" }}
-                />
-              </div>
-              <div className="input-group">
-                <label htmlFor="project">Project</label>
-                <Select
-                  id="project"
-                  mode="multiple"
-                  placeholder="Select project(s)"
-                  value={selectedProjects}
-                  onChange={(value) => setSelectedProjects(value)}
-                  style={{ width: "100%" }}
-                >
-                  {allProjects.map((project) => (
-                    <Option key={project} value={project}>
-                      {project}
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-              <div className="input-group">
-                <label htmlFor="bulletType">Options</label>
-                <Select
-                  id="bulletType"
-                  value={bulletType}
-                  onChange={(value) => setBulletType(value as any)}
-                  style={{ width: "100%" }}
-                >
-                  <Option value="bullet">•</Option>
-                  <Option value="number">1</Option>
-                  <Option value={">"}>{">"}</Option>
-                  <Option value={"=>"}>{"=>"}</Option>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          <div className="task-details-section">
-            <div className="task-details-header">
-              <h4>Task Details</h4>
-              <div className="time-info">
-                <p className="total-time">
-                  Total: <span>8h 30min</span>
-                </p>
-                <p className="remaining-time">
-                  Remaining:{" "}
-                  <span
-                    className={
-                      isTimeExceeded ? "time-exceeded" : "time-in-limit"
-                    }
-                  >
-                    {formatRemainingTime(Math.abs(remainingTime))}
-                  </span>
-                </p>
-              </div>
-              <div className="button-group">
-                <Button
-                  type="primary"
-                  icon={AddIcon} // Add icon for Add Task
-                  onClick={addTask}
-                  title="Add Task"
-                >
-                  Add Task
-                </Button>
-              </div>
-            </div>
-            <div className="task-details-inputs" style={{ marginTop: "10px" }}>
-              {tasks.map((task, index) => (
-                <div
-                  className="task-row"
-                  style={{
-                    gridTemplateColumns: "1fr 3fr 1fr 1fr 1fr auto",
-                  }}
-                  key={index}
-                >
-                  <div className="input-group id-field">
-                    <Input
-                      placeholder="Task ID"
-                      value={task.taskId}
-                      onChange={(e) =>
-                        handleTaskChange(index, "taskId", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="input-group title-field">
-                    <Input
-                      placeholder="Task Title"
-                      value={task.title}
-                      onChange={(e) =>
-                        handleTaskChange(index, "title", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="input-group">
-                    <Input
-                      type="number"
-                      placeholder="Hours"
-                      value={task.hours}
-                      onChange={(e) =>
-                        handleTaskChange(index, "hours", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="input-group">
-                    <Input
-                      type="number"
-                      placeholder="Minutes"
-                      value={task.minutes}
-                      onChange={(e) =>
-                        handleTaskChange(index, "minutes", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="input-group">
-                    <Select
-                      placeholder="Select status"
-                      value={task.status}
-                      onChange={(value) =>
-                        handleTaskChange(index, "status", value)
-                      }
-                      style={{ width: "100%" }}
-                    >
-                      {statusOptions.map((status) => (
-                        <Option key={status} value={status}>
-                          {status}
-                        </Option>
-                      ))}
-                    </Select>
-                  </div>
-                  <Button
-                    type="text" // Use "text" type to remove button styling
-                    danger
-                    icon={deleteIcon}
-                    onClick={() => clearTask(task.id)}
-                    title="Delete Task"
-                    style={{ marginBottom: "15px" }}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="input-group" style={{ marginTop: "20px" }}>
-              <Input
-                id="nextTask"
-                placeholder="Enter next task"
-                value={nextTaskValue}
-                onChange={(e) => setNextTaskValue(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="task-preview-container" style={{ flex: "35%" }}>
-          <div className="task-preview-header">
-            <h3>Preview</h3>
-          </div>
-          <pre
-            className="script-style"
-            style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
-          >
-            {getFormattedPreview()}
-          </pre>
-        </div>
-      </div>
-      <div className="button-group" style={{ marginTop: "20px" }}>
-        <Button type="primary" onClick={handleSave}>
-          Save
-        </Button>
-        <Button type="default" onClick={() => navigate("/reports")}>
-          Cancel
-        </Button>
-      </div>
-    </div>
-  );
-};
 
 const Task = () => {
   const theme = "light";
@@ -780,7 +190,6 @@ const Task = () => {
 
   const getFormattedPreview = () => {
     const allTasks = tasks; // Include all tasks without filtering
-    console.log(allTasks);
 
     const formatLine = (task: Task, _: number) => {
       let line = "";
@@ -918,7 +327,7 @@ ${name.trim()}`;
             Report Manager
           </Link>
         </h1>
-        <Clock /> {/* Simplified Clock component */}
+        <Clock />
         <nav>
           <Link to="/">Home</Link> | <Link to="/settings">Settings</Link> |{" "}
           <Link to="/reports">Reports</Link>
@@ -981,7 +390,7 @@ ${name.trim()}`;
                           triggerNode.parentNode
                         } // Ensure dropdown appears above other elements
                       >
-                        {allProjects.map((project) => (
+                        {ALL_AVAILABLE_PROJECTS.map((project) => (
                           <Option key={project} value={project}>
                             {project}
                           </Option>
@@ -1127,7 +536,7 @@ ${name.trim()}`;
                               }
                               style={{ width: "100%" }}
                             >
-                              {statusOptions.map((status) => (
+                              {ALL_STATUS_OPTIONS.map((status) => (
                                 <Option key={status} value={status}>
                                   {status}
                                 </Option>
@@ -1182,14 +591,7 @@ ${name.trim()}`;
                 >
                   {getFormattedPreview()}
                 </pre>
-              </div>
-              {/* <div className="task-details-section">
-                {tasks.map((task) => (
-                  <div key={task.id} className="task-row">
-                    <p>{task.title}</p>
-                  </div>
-                ))}
-              </div> */}
+              </div>             
             </div>
           }
         />
