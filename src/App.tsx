@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "./app.css";
 
-import { AddIcon, deleteIcon, minusIcon } from "./assets/fontAwesomeIcons";
+import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
 import {
   Alert,
   Button,
@@ -181,7 +181,6 @@ const App = () => {
   };
 
   const remainingTime = calculateRemainingTime();
-  const isTimeExceeded = remainingTime < 0;
 
   useEffect(() => {
     localStorage.setItem("name", name);
@@ -400,13 +399,13 @@ const App = () => {
       }
 
 ${settings.previewSettings.showProject
-      ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
-      }\n---------------------\n`
-      : ""
-    }${formatTasks(allTasks)}${settings.previewSettings.showNextTask && nextTaskValue.trim()
-      ? `\n\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}` // Add extra newline above "Next's Tasks"
-      : ""
-    }
+        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
+        }\n---------------------\n`
+        : ""
+      }${formatTasks(allTasks)}${settings.previewSettings.showNextTask && nextTaskValue.trim()
+        ? `\n\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}` // Add extra newline above "Next's Tasks"
+        : ""
+      }
 
 Thanks & regards
 ${name.trim()}`;
