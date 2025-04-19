@@ -1,4 +1,4 @@
-import "./App.css";
+import "./app.css";
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
 import { Alert, Button, DatePicker, Input, Select, Layout, Menu, Tooltip, InputRef } from "antd";
 import { CheckOutlined, CopyOutlined, SaveOutlined, HomeOutlined, SettingOutlined, FileTextOutlined, ReloadOutlined } from "@ant-design/icons";
