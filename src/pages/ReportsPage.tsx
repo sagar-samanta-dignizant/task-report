@@ -72,23 +72,10 @@ const ReportsPage: React.FC = () => {
         return timeString.trim(); // Remove any leading/trailing spaces
     };
 
-    const formatLine = (task: any) => {
-        let line = "";
-        if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `; // Trim Task ID
-        line += task.title.trim(); // Trim Title
-        if (task.status) line += ` (${task.status.trim()})`; // Trim Status
-        if (task.hours || task.minutes) {
-            const taskTime = formatTaskTime(task.hours, task.minutes);
-            if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
-        }
-        return line;
-    };
-
-    const formatPreview = (data: any) => {
-        const { tasks, selectedProjects, date, name, nextTask, bulletType } = data;
-
-        const getBullet = (index: number) => {
-            switch (bulletType) {
+    const formatLine = (task: any, level = 0, bulletType: string) => {
+        const indent = "  ".repeat(level); // Add indentation based on the level
+        const getBullet = (type: string, index: number) => {
+            switch (type) {
                 case "dot":
                     return "• "; // Use a dot bullet
                 case "number":
@@ -106,10 +93,30 @@ const ReportsPage: React.FC = () => {
             }
         };
 
-        const formatTasks = (tasks: any[]) =>
-            tasks
-                .map((task, index) => `${getBullet(index)}${formatLine(task)}`)
-                .join("\n");
+        let line = `${indent}${getBullet(bulletType, level)}`;
+        if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `; // Trim Task ID
+        line += task.title.trim(); // Trim Title
+        if (task.status) line += ` (${task.status.trim()})`; // Trim Status
+        if (task.hours || task.minutes) {
+            const taskTime = formatTaskTime(task.hours, task.minutes);
+            if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
+        }
+        return line;
+    };
+
+    const formatTasks = (tasks: any[], level = 0, bulletType: string, subIcon: string): string =>
+        tasks
+            .map((task) => {
+                const taskLine = `${formatLine(task, level, bulletType)}`;
+                const subtaskLines = task.subtasks
+                    ? formatTasks(task.subtasks, level + 1, subIcon, subIcon) // Use subIcon for subtasks
+                    : "";
+                return `${taskLine}${subtaskLines ? `\n${subtaskLines}` : ""}`;
+            })
+            .join("\n");
+
+    const formatPreview = (data: any) => {
+        const { tasks, selectedProjects, date, name, nextTask, bulletType, subIcon } = data;
 
         return `Today's work update - ${moment(date, "YYYY-MM-DD").format(
             "YYYY-MM-DD"
@@ -120,7 +127,7 @@ const ReportsPage: React.FC = () => {
                 : ""
             } 
   ----------------------------------------
-  ${formatTasks(tasks)}
+  ${formatTasks(tasks, 0, bulletType, subIcon)}
   ${nextTask && nextTask.trim()
                 ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}` // Trim Next Task
                 : ""

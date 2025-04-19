@@ -464,6 +464,7 @@ ${name.trim()}`;
           ? nextTaskValue.trim() // Trim Next Task
           : undefined, // Save next task only if it exists
       bulletType, // Save the selected bullet type for this report
+      subIcon: selectedSubIcon, // Save the selected subtask icon
     };
 
     savedReports[date] = previewData; // Save only the filtered data
