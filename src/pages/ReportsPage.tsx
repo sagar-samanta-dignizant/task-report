@@ -5,11 +5,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import { fileExportIcon } from "../assets/fontAwesomeIcons";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const { RangePicker } = DatePicker;
 
 const ReportsPage: React.FC = () => {
-    const [reportData, setReportData] = useState<any[]>([]);
+    const [reportData, setReportData] = useState<Record<string, any>>({});
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const [copiedPreview, setCopiedPreview] = useState<string | null>(null);
     const [selectedDateRange, setSelectedDateRange] = useState<[string, string] | null>(null);
@@ -54,7 +56,7 @@ const ReportsPage: React.FC = () => {
         const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
         delete savedReports[date];
         localStorage.setItem("reports", JSON.stringify(savedReports));
-        setReportData(reportData.filter((report) => report.date !== date));
+        setReportData(reportData.filter((report: any) => report.date !== date));
     };
 
     const handleEdit = (report: any) => {
@@ -135,25 +137,110 @@ Thanks & regards
 ${name?.trim()}`;
     };
 
-    const handleExport = (type: string) => {
-        switch (type) {
-            case "pdf":
-                console.log("Exporting as PDF...");
-                break;
-            case "excel":
-                console.log("Exporting as Excel...");
-                break;
-            case "sheet":
-                console.log("Exporting as Sheet...");
-                break;
-            default:
-                console.error("Unknown export type");
-        }
+    const handleExport = (key: string) => {
+        if (key !== "pdf") return;
+
+        const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+        // Format date to DD/MM/YYYY
+        const formatDate = (dateStr: string) => {
+            const [year, month, day] = dateStr.split("-");
+            return `${day}/${month}/${year}`;
+        };
+        const formatSelectedDate = (dateStr: string) => {
+            const [year, month, day] = dateStr.split("/");
+            return `${day}/${month}/${year}`;
+        };
+        // Log to check if selectedDateRange is set
+
+        const dates = Object.keys(reportData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+        // Ensure selectedDateRange has valid dates
+        const fromDate = selectedDateRange && selectedDateRange[0] ? selectedDateRange[0] : dates[0]; // Fallback to the first date
+        const toDate = selectedDateRange && selectedDateRange[1] ? selectedDateRange[1] : dates[dates.length - 1]; // Fallback to the last date
+
+        // Log to check if fromDate and toDate are being set correctly
+
+        const formattedFromDate = formatSelectedDate(fromDate);
+        const formattedToDate = formatSelectedDate(toDate);
+
+        // Title and Name
+        doc.setFontSize(12);
+        doc.text(`Work Report from: ${formattedFromDate} to ${formattedToDate}`, 14, 20);
+
+        const userName = reportData[dates[0]]?.data?.name || "User";
+        doc.text(`Name: ${userName}`, 14, 28);
+
+        const allRows: any[] = [];
+
+        let previousMonthYear = "";
+
+        // Loop through each day and collect rows
+        dates.forEach((date) => {
+            const dayData = reportData[date] || {};
+            const tasks = dayData.data?.tasks || [];
+
+            const currentMonthYear = formatDate(date).slice(3, 10);
+
+            if (currentMonthYear !== previousMonthYear) {
+                previousMonthYear = currentMonthYear;
+            }
+
+            let isFirstTask = true;
+
+            tasks.forEach((task: any) => {
+                console.log("task", dayData);
+
+                // Add main task row
+                allRows.push([
+                    isFirstTask ? formatDate(dayData.date) : "", // Date only once for this task
+                    task?.id || "",
+                    task.title,
+                    task.status,
+                    `${task.hours}h ${task.minutes}m`,
+                ]);
+                isFirstTask = false;
+
+                // Add subtasks
+                task.subtasks?.forEach((subtask: any) => {
+                    allRows.push([
+                        "", // No date
+                        "", // No ID
+                        `${subtask.title}`,
+                        subtask.status,
+                        `${subtask.hours}h ${subtask.minutes}m`,
+                    ]);
+                });
+            });
+        });
+
+        // Create table
+        autoTable(doc, {
+            startY: 35,
+            head: [["Date", "ID", "Task", "Status", "Time"]],
+            body: allRows,
+            styles: { fontSize: 8, cellPadding: 2, overflow: "linebreak" },
+            columnStyles: {
+                0: { cellWidth: 30 },
+                1: { cellWidth: 20 },
+                2: { cellWidth: 80 },
+                3: { cellWidth: 30, halign: "center" },
+                4: { cellWidth: 30, halign: "center" },
+            },
+            theme: "grid",
+        });
+
+        // Save the PDF
+        doc.save(`task-report-${formattedFromDate.replace(/\//g, "-")}-to-${formattedToDate.replace(/\//g, "-")}.pdf`);
     };
+
+
+
+
 
     const exportMenu = (
         <Menu
-            onClick={({ key }) => handleExport(key)}
+            onClick={({ key }) => handleExport(key as string)}
             items={[
                 {
                     key: "pdf",
@@ -164,11 +251,13 @@ ${name?.trim()}`;
                     key: "excel",
                     icon: <FileExcelOutlined style={{ color: "#27ae60" }} />,
                     label: "Export as Excel",
+                    disabled: true, // Placeholder for future implementation
                 },
                 {
                     key: "sheet",
                     icon: <FileTextOutlined style={{ color: "#3498db" }} />,
                     label: "Export as Sheet",
+                    disabled: true, // Placeholder for future implementation
                 },
             ]}
         />
@@ -229,7 +318,7 @@ ${name?.trim()}`;
                 )}
                 <div className="report-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
                     {reportData.length > 0 && (
-                        reportData.map((report, index) => (
+                        reportData.map((report: any, index: number) => (
                             <div key={index} className="report-card">
                                 <div className="task-preview-header">
                                     <h3>{`Date: ${report.date}`}</h3>
