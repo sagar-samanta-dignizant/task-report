@@ -1,5 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Switch } from "antd";
+import "./SettingsPage.css"; // Import custom CSS for the switch
+
+const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) => (
+    <div
+        className={`custom-switch ${checked ? "checked" : ""}`}
+        onClick={() => onChange(!checked)}
+    >
+        <div className="switch-handle" />
+    </div>
+);
 
 const SettingsPage = ({ settings, toggleSetting }: any) => (
     <div className="settings-page">
@@ -7,7 +16,7 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
         <div className="settings-option">
             <label>
                 Show Date
-                <Switch
+                <CustomSwitch
                     checked={settings.showDate}
                     onChange={(checked) => toggleSetting("showDate", checked)}
                 />
@@ -16,7 +25,7 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
         <div className="settings-option">
             <label>
                 Show Hours
-                <Switch
+                <CustomSwitch
                     checked={settings.showHours}
                     onChange={(checked) => toggleSetting("showHours", checked)}
                 />
@@ -25,7 +34,7 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
         <div className="settings-option">
             <label>
                 Show ID
-                <Switch
+                <CustomSwitch
                     checked={settings.showID}
                     onChange={(checked) => toggleSetting("showID", checked)}
                 />
@@ -34,7 +43,7 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
         <div className="settings-option">
             <label>
                 Show Status
-                <Switch
+                <CustomSwitch
                     checked={settings.showStatus}
                     onChange={(checked) => toggleSetting("showStatus", checked)}
                 />
@@ -43,7 +52,7 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
         <div className="settings-option">
             <label>
                 Show Next Task
-                <Switch
+                <CustomSwitch
                     checked={settings.showNextTask}
                     onChange={(checked) => toggleSetting("showNextTask", checked)}
                 />
@@ -52,7 +61,7 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
         <div className="settings-option">
             <label>
                 Show Project
-                <Switch
+                <CustomSwitch
                     checked={settings.showProject}
                     onChange={(checked) => toggleSetting("showProject", checked)}
                 />
