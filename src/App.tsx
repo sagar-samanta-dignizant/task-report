@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "./app.css";
 
-import { AddIcon, deleteIcon ,minusIcon} from "./assets/fontAwesomeIcons";
+import { AddIcon, deleteIcon, minusIcon } from "./assets/fontAwesomeIcons";
 import { Alert, Button, DatePicker, Input, Select, Layout, Menu, Tooltip } from "antd"; // Import Ant Design components
 import {
   CheckOutlined,
@@ -29,12 +29,12 @@ const { Option } = Select;
 const { Header } = Layout;
 
 interface Task {
-  id: number;
   taskId: string | number;
   title: string;
   hours: string | number;
   minutes: string | number; // Add minutes field
   status: string;
+  subtasks?: Omit<Task, "subtasks">[]; // Add subtasks property
 }
 
 const App = () => {
@@ -42,7 +42,6 @@ const App = () => {
   const workingTimeLimit = 8.5; // Total working time in hours
   const [tasks, setTasks] = useState<Task[]>([
     {
-      id: 1,
       taskId: "",
       title: "",
       hours: "",
@@ -78,7 +77,6 @@ const App = () => {
   const taskIdInputRef = useRef<InputRef[]>([]); // Use an array of refs for multiple tasks
   const [editingReport, setEditingReport] = useState<any | null>(null); // State for editing a report
 
-
   useEffect(() => {
     if (alertMessage) {
       const timer = setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME); // Use the constant here
@@ -90,7 +88,12 @@ const App = () => {
     const totalTaskTime = tasks.reduce((sum, task) => {
       const taskHours = parseFloat(task.hours as string) || 0;
       const taskMinutes = (parseFloat(task.minutes as string) || 0) / 60; // Convert minutes to hours
-      return sum + taskHours + taskMinutes;
+      const subtaskTime = task.subtasks?.reduce((subSum, subtask) => {
+        const subtaskHours = parseFloat(subtask.hours as string) || 0;
+        const subtaskMinutes = (parseFloat(subtask.minutes as string) || 0) / 60;
+        return subSum + subtaskHours + subtaskMinutes;
+      }, 0) || 0;
+      return sum + taskHours + taskMinutes + subtaskTime;
     }, 0);
     return workingTimeLimit - totalTaskTime;
   };
@@ -136,17 +139,40 @@ const App = () => {
 
   const handleTaskChange = (
     index: number,
-    field: keyof Task, // Explicitly define the field as a key of Task
+    field: keyof Task,
     value: string | number
   ) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[index][field] = value as never; // Cast value to 'never' to satisfy TypeScript
-    setTasks(updatedTasks);
+    setTasks((prevTasks) => {
+      const updatedTasks = [...prevTasks];
+      updatedTasks[index] = {
+        ...updatedTasks[index],
+        [field]: value, // Update the specific field
+      };
+      return updatedTasks; // Return the updated state
+    });
+  };
+
+  const handleSubtaskChange = (
+    parentIndex: number,
+    subtaskIndex: number,
+    field: keyof Task,
+    value: string | number
+  ) => {
+    setTasks((prevTasks) => {
+      const updatedTasks = [...prevTasks];
+      const parentTask = updatedTasks[parentIndex];
+      if (parentTask.subtasks) {
+        parentTask.subtasks[subtaskIndex] = {
+          ...parentTask.subtasks[subtaskIndex],
+          [field]: value, // Update the specific field
+        };
+      }
+      return updatedTasks; // Return the updated state
+    });
   };
 
   const addTask = () => {
     const newTask: Task = {
-      id: tasks.length + 1,
       taskId: "",
       title: "",
       hours: "",
@@ -168,10 +194,25 @@ const App = () => {
     });
   };
 
+  const addSubtask = (parentIndex: number) => {
+    const newSubtask: Omit<Task, "subtasks"> = {
+      taskId: "",
+      title: "",
+      hours: "",
+      minutes: "",
+      status: "Completed",
+    };
+    const updatedTasks = [...tasks];
+    if (!updatedTasks[parentIndex].subtasks) {
+      updatedTasks[parentIndex].subtasks = [];
+    }
+    updatedTasks[parentIndex].subtasks!.push(newSubtask);
+    setTasks(updatedTasks);
+  };
+
   const resetForm = () => {
     setTasks([
       {
-        id: 1,
         taskId: "",
         title: "",
         hours: "",
@@ -184,7 +225,15 @@ const App = () => {
   };
 
   const clearTask = (taskId: number) => {
-    const updatedTasks = tasks.filter((task) => task.id !== taskId);
+    const updatedTasks = tasks.filter((task) => task.taskId !== taskId);
+    setTasks(updatedTasks);
+  };
+
+  const clearSubtask = (parentIndex: number, subtaskIndex: number) => {
+    const updatedTasks = [...tasks];
+    updatedTasks[parentIndex].subtasks = updatedTasks[parentIndex].subtasks?.filter(
+      (_, index) => index !== subtaskIndex
+    );
     setTasks(updatedTasks);
   };
 
@@ -229,9 +278,16 @@ const App = () => {
       }
     };
 
-    const formatTasks = (tasks: Task[]) =>
+    const formatTasks = (tasks: Task[], level = 0) =>
       tasks
-        .map((task, index) => `${getBullet(index)}${formatLine(task, index)}`)
+        .map((task, index) => {
+          const indent = "  ".repeat(level); // Indent subtasks
+          let line = `${indent}${getBullet(index)}${formatLine(task, index)}`;
+          if (task.subtasks && task.subtasks.length > 0) {
+            line += `\n${formatTasks(task.subtasks, level + 1)}`; // Recursively format subtasks
+          }
+          return line;
+        })
         .join("\n");
 
     return `Today's work update - ${settings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""
@@ -288,6 +344,13 @@ ${name.trim()}`;
         hours: settings.showHours ? task.hours : undefined,
         minutes: settings.showHours ? task.minutes : undefined, // Include minutes
         status: settings.showStatus ? task.status.trim() : undefined, // Trim Status
+        subtasks: task.subtasks?.map((subtask) => ({
+          taskId: settings.showID ? subtask.taskId.toString().trim() : undefined,
+          title: subtask.title.trim(),
+          hours: settings.showHours ? subtask.hours : undefined,
+          minutes: settings.showHours ? subtask.minutes : undefined,
+          status: settings.showStatus ? subtask.status.trim() : undefined,
+        })),
       })),
       selectedProjects: settings.showProject
         ? selectedProjects.map((p) => p.trim())
@@ -311,7 +374,6 @@ ${name.trim()}`;
     // Reset form data (excluding user details and selected projects)
     setTasks([
       {
-        id: 1,
         taskId: "",
         title: "",
         hours: "",
@@ -350,7 +412,12 @@ ${name.trim()}`;
                 placeholder="Enter your name"
                 value={name}
                 required
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  console.log("Name input value:", e.target.value);
+                  setName(e.target.value);
+                }}
+                onFocus={() => console.log("Name input focused")}
+                onBlur={() => console.log("Name input blurred")}
               />
             </div>
             <div className="input-group">
@@ -411,10 +478,10 @@ ${name.trim()}`;
             <h4>Task Details</h4>
             <div className="time-info">
               <p className="total-time">
-                Total: <span>8h 30min</span>
+                Total : <span>8h 30min</span>
               </p>
               <p className="remaining-time">
-                Remaining:{" "}
+                Remaining :{" "}
                 <span
                   className={
                     isTimeExceeded ? "time-exceeded" : "time-in-limit"
@@ -455,96 +522,173 @@ ${name.trim()}`;
             style={{ marginTop: "10px" }}
           >
             {tasks.map((task, index) => (
-              <div
-                className="task-row"
-                style={{
-                  gridTemplateColumns: settings.showID
-                    ? "1fr 3fr 1fr 1fr 1fr auto" // Include space for ID field
-                    : "3fr 1fr 1fr 1fr auto", // Redistribute space when ID field is hidden
-                }}
-                key={task.id}
-              >
-                {settings.showID && (
-                  <div className="input-group id-field">
-                    <Input
-                      ref={(el) => {
-                        taskIdInputRef.current[index] = el as InputRef;
-                      }}
-                      placeholder="Task ID"
-                      value={task.taskId}
-                      onChange={(e) =>
-                        handleTaskChange(
-                          index,
-                          "taskId",
-                          e.target.value
-                        )
-                      }
-                    />
-                  </div>
-                )}
-                <div className="input-group title-field">
-                  <Input
-                    className="task-title-input"
-                    placeholder="Task Title"
-                    value={task.title}
-                    onChange={(e) =>
-                      handleTaskChange(index, "title", e.target.value)
-                    }
-                  />
-                </div>
-                {settings.showHours && (
-                  <div className="input-group">
-                    <Input
-                      type="number"
-                      placeholder="Hours"
-                      value={task.hours}
-                      onChange={(e) =>
-                        handleTaskChange(index, "hours", e.target.value)
-                      }
-                    />
-                  </div>
-                )}
-                {settings.showHours && (
-                  <div className="input-group">
-                    <Input
-                      type="number"
-                      placeholder="Minutes"
-                      value={task.minutes}
-                      onChange={(e) =>
-                        handleTaskChange(
-                          index,
-                          "minutes",
-                          e.target.value
-                        )
-                      }
-                    />
-                  </div>
-                )}
-                {settings.showStatus && (
-                  <div className="input-group">
-                    <Select
-                      placeholder="Select status"
-                      value={task.status}
-                      onChange={(value) =>
-                        handleTaskChange(index, "status", value)
-                      }
-                      style={{ width: "100%" }}
-                    >
-                      {ALL_STATUS_OPTIONS.map((status) => (
-                        <Option key={status} value={status}>
-                          {status}
-                        </Option>
-                      ))}
-                    </Select>
-                  </div>
-                )}
+              <div key={task.taskId || `task-${index}`}>
                 <div
-                  className="clear-task-circle"
-                  onClick={() => clearTask(task.id)}
-                  title="Delete Task"
+                  className="task-row"
+                  style={{
+                    gridTemplateColumns: settings.showID
+                      ? "1fr 3fr 1fr 1fr 1fr auto auto" // Include space for Add Subtask button
+                      : "3fr 1fr 1fr 1fr auto auto",
+                  }}
                 >
-                  {minusIcon}
+                  {settings.showID && (
+                    <div className="input-group id-field">
+                      <Input
+                        ref={(el) => {
+                          taskIdInputRef.current[index] = el as InputRef;
+                        }}
+                        placeholder="Task ID"
+                        value={task.taskId}
+                        onChange={(e) =>
+                          handleTaskChange(index, "taskId", e.target.value)
+                        }
+                      />
+                    </div>
+                  )}
+                  <div className="input-group title-field">
+                    <Input
+                      className="task-title-input"
+                      placeholder="Task Title"
+                      value={task.title}
+                      onChange={(e) =>
+                        handleTaskChange(index, "title", e.target.value)
+                      }
+                    />
+                  </div>
+                  {settings.showHours && (
+                    <div className="input-group">
+                      <Input
+                        type="text" // Use text input to allow multiple characters
+                        placeholder="Hours"
+                        value={task.hours}
+                        onChange={(e) =>
+                          handleTaskChange(index, "hours", e.target.value)
+                        } // Pass the raw string value
+                      />
+                    </div>
+                  )}
+                  {settings.showHours && (
+                    <div className="input-group">
+                      <Input
+                        type="text" // Use text input to allow multiple characters
+                        placeholder="Minutes"
+                        value={task.minutes}
+                        onChange={(e) =>
+                          handleTaskChange(index, "minutes", e.target.value)
+                        } // Pass the raw string value
+                      />
+                    </div>
+                  )}
+                  {settings.showStatus && (
+                    <div className="input-group">
+                      <Select
+                        placeholder="Select status"
+                        value={task.status}
+                        onChange={(value) =>
+                          handleTaskChange(index, "status", value)
+                        }
+                        style={{ width: "100%" }}
+                      >
+                        {ALL_STATUS_OPTIONS.map((status) => (
+                          <Option key={status} value={status}>
+                            {status}
+                          </Option>
+                        ))}
+                      </Select>
+                    </div>
+                  )}
+                  <div
+                    className="clear-task-circle"
+                    onClick={() => clearTask(task.taskId as number)}
+                    title="Delete Task"
+                  >
+                    {minusIcon}
+                  </div>
+                  <div
+                    className="add-task-circle"
+                    onClick={() => addSubtask(index)}
+                    title="Add Subtask"
+                  >
+                    {AddIcon}
+                  </div>
                 </div>
+                {task.subtasks &&
+                  task.subtasks.map((subtask, subIndex) => (
+                    <div
+                      className="task-row"
+                      style={{
+                        gridTemplateColumns: settings.showID
+                          ? "1fr 3fr 1fr 1fr 1fr auto"
+                          : "3fr 1fr 1fr 1fr auto", // Maintain column alignment
+                      }}
+                      key={subtask.taskId || `subtask-${index}-${subIndex}`}
+                    >
+                      {settings.showID && (
+                        <div className="input-group id-field">
+                          {/* Leave space for ID field but do not render input */}
+                        </div>
+                      )}
+                      <div className="input-group title-field">
+                        <Input
+                          className="task-title-input"
+                          placeholder="Subtask Title"
+                          value={subtask.title}
+                          onChange={(e) =>
+                            handleSubtaskChange(index, subIndex, "title", e.target.value)
+                          }
+                        />
+                      </div>
+                      {settings.showHours && (
+                        <div className="input-group">
+                          <Input
+                            type="text" // Use text input to allow multiple characters
+                            placeholder="Hours"
+                            value={subtask.hours}
+                            onChange={(e) =>
+                              handleSubtaskChange(index, subIndex, "hours", e.target.value)
+                            } // Pass the raw string value
+                          />
+                        </div>
+                      )}
+                      {settings.showHours && (
+                        <div className="input-group">
+                          <Input
+                            type="text" // Use text input to allow multiple characters
+                            placeholder="Minutes"
+                            value={subtask.minutes}
+                            onChange={(e) =>
+                              handleSubtaskChange(index, subIndex, "minutes", e.target.value)
+                            } // Pass the raw string value
+                          />
+                        </div>
+                      )}
+                      {settings.showStatus && (
+                        <div className="input-group">
+                          <Select
+                            placeholder="Select status"
+                            value={subtask.status}
+                            onChange={(value) =>
+                              handleSubtaskChange(index, subIndex, "status", value)
+                            }
+                            style={{ width: "100%" }}
+                          >
+                            {ALL_STATUS_OPTIONS.map((status) => (
+                              <Option key={status} value={status}>
+                                {status}
+                              </Option>
+                            ))}
+                          </Select>
+                        </div>
+                      )}
+                      <div
+                        className="clear-task-circle"
+                        onClick={() => clearSubtask(index, subIndex)}
+                        title="Delete Subtask"
+                      >
+                        {minusIcon}
+                      </div>
+                    </div>
+                  ))}
               </div>
             ))}
           </div>

@@ -131,6 +131,26 @@ body {
   font-size: 14px; /* Adjust icon size */
 }
 
+.add-task-circle {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #4caf50; /* Green border for Add Subtask button */
+  border-radius: 50%;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.3s ease, transform 0.2s ease;
+  color: #4caf50; /* Green icon color */
+}
+
+.add-task-circle:hover {
+  border-color: #388e3c; /* Darker green on hover */
+  transform: scale(1.1); /* Slight zoom effect */
+  color: #388e3c; /* Darker green icon color on hover */
+}
+
 .ant-picker-outlined {
   background-color: #1e1e1e; /* Dark background */
   color: #e0e0e0; /* Light text color */
