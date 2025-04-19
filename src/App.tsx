@@ -1,4 +1,4 @@
-import "./app.css";
+import "./App.css";
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
 import { Alert, Button, DatePicker, Input, Select, Layout, Menu, Tooltip, InputRef } from "antd";
 import { CheckOutlined, CopyOutlined, SaveOutlined, HomeOutlined, SettingOutlined, FileTextOutlined, ReloadOutlined } from "@ant-design/icons";
@@ -493,8 +493,9 @@ ${name.trim()}`;
       <Header className="header">
         <div
           className="logo"
-          style={{ color: "white", fontSize: "20px", fontWeight: "bold" }}
+          style={{ color: "white", fontSize: "20px", fontWeight: "bold", display: "flex", alignItems: "center" }}
         >
+          <img src={"/test-1.png"} alt="Logo" style={{ width: "30px", height: "30px", marginRight: "10px" }} />
           Report Manager
         </div>
         <Menu theme="dark" mode="horizontal" defaultSelectedKeys={["1"]}>
