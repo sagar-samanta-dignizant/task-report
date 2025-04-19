@@ -72,14 +72,14 @@ const ReportsPage: React.FC = () => {
         return timeString.trim(); // Remove any leading/trailing spaces
     };
 
-    const formatLine = (task: any, level = 0, bulletType: string) => {
-        const indent = "  ".repeat(level); // Add indentation based on the level
+    const formatLine = (task: any, level = 0, bulletType: string, index: number) => {
+        const indent = "  ".repeat(level); // Add consistent indentation based on the level
         const getBullet = (type: string, index: number) => {
             switch (type) {
                 case "dot":
                     return "• "; // Use a dot bullet
                 case "number":
-                    return `${index + 1}. `; // Use numbers
+                    return `${index + 1}. `; // Use numbers dynamically
                 case ">":
                     return "> "; // Use a single arrow
                 case ">>":
@@ -93,7 +93,7 @@ const ReportsPage: React.FC = () => {
             }
         };
 
-        let line = `${indent}${getBullet(bulletType, level)}`;
+        let line = `${indent}${getBullet(bulletType, index)}`; // Apply indentation and bullet
         if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `; // Trim Task ID
         line += task.title.trim(); // Trim Title
         if (task.status) line += ` (${task.status.trim()})`; // Trim Status
@@ -106,8 +106,8 @@ const ReportsPage: React.FC = () => {
 
     const formatTasks = (tasks: any[], level = 0, bulletType: string, subIcon: string): string =>
         tasks
-            .map((task) => {
-                const taskLine = `${formatLine(task, level, bulletType)}`;
+            .map((task, index) => {
+                const taskLine = `${formatLine(task, level, bulletType, index)}`;
                 const subtaskLines = task.subtasks
                     ? formatTasks(task.subtasks, level + 1, subIcon, subIcon) // Use subIcon for subtasks
                     : "";
