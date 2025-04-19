@@ -541,7 +541,7 @@ ${name.trim()}`;
                         onChange={(e) => setName(e.target.value)}
                       />
                     </div>
-                    <div className="input-group" style={{ width: "140px" }}>
+                    <div className="input-group" style={{ width: "140px" ,display:settings.taskSettings.showDate ? "block" :"none" }} >
                       <label htmlFor="date">Date</label>
                       <DatePicker
                         id="date"
