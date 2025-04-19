@@ -16,8 +16,8 @@ import {
   Routes,
 } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { InputRef } from "antd"; 
-import moment from "moment"; 
+import { InputRef } from "antd";
+import moment from "moment";
 import Clock from "./components/Clock";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -33,7 +33,7 @@ interface Task {
   status: string;
 }
 
-const Task = () => {
+const App = () => {
   const theme = "light";
   const workingTimeLimit = 8.5; // Total working time in hours
   const [tasks, setTasks] = useState<Task[]>([
@@ -319,6 +319,266 @@ ${name.trim()}`;
     setEditingReport(null); // Clear editing state
   };
 
+  const HomePage = () => {
+
+    return (<div className="content">
+      <div className="task-input-container">
+        {alertMessage && (
+          <Alert
+            message={alertMessage}
+            type={
+              alertMessage.includes("successfully")
+                ? "success"
+                : "error"
+            } // Success or error based on message
+            closable
+            onClose={() => setAlertMessage(null)} // Clear alert on close
+            style={{ marginBottom: "15px" }}
+          />
+        )}
+        <div className="personal-details-section">
+          <h4>Personal Details</h4>
+          <div className="task-info-row">
+            <div className="input-group">
+              <label htmlFor="name">User Name</label>
+              <Input
+                id="name"
+                placeholder="Enter your name"
+                value={name}
+                required
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div className="input-group">
+              <label htmlFor="date">Date</label>
+              <DatePicker
+                id="date"
+                value={date ? moment(date, "YYYY-MM-DD") : null} // Ensure only the default date is selected
+                format="YYYY-MM-DD"
+                onChange={(_, dateString) =>
+                  setDate(dateString as string)
+                } // Explicitly cast dateString to string
+                style={{ width: "100%" }}
+              />
+            </div>
+            <div className="input-group">
+              <label htmlFor="project">Project</label>
+              <Select
+                id="project"
+                mode="multiple" /* Enable multiple selection */
+                placeholder="Select project(s)"
+                value={selectedProjects}
+                onChange={(value) => setSelectedProjects(value)}
+                style={{ width: "100%" }} /* Ensure full width */
+                getPopupContainer={(triggerNode) =>
+                  triggerNode.parentNode
+                } // Ensure dropdown appears above other elements
+              >
+                {ALL_AVAILABLE_PROJECTS.map((project) => (
+                  <Option key={project} value={project}>
+                    {project}
+                  </Option>
+                ))}
+              </Select>
+            </div>
+            <div
+              className="input-group"
+              style={{ position: "relative" }}
+            >
+              <label htmlFor="bulletType">Options</label>
+              <Select
+                id="bulletType"
+                value={bulletType}
+                onChange={(value) => setBulletType(value as any)}
+                style={{ width: "100%" }}
+                dropdownStyle={{ zIndex: 99999 }} // Ensure dropdown appears above other elements
+              >
+                <Option value="bullet">•</Option>
+                <Option value="number">1</Option>
+                <Option value={">"}>{">"}</Option>
+                <Option value={"=>"}>{"=>"}</Option>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        <div className="task-details-section">
+          <div className="task-details-header">
+            <h4>Task Details</h4>
+            <div className="time-info">
+              <p className="total-time">
+                Total: <span>8h 30min</span>
+              </p>
+              <p className="remaining-time">
+                Remaining:{" "}
+                <span
+                  className={
+                    isTimeExceeded ? "time-exceeded" : "time-in-limit"
+                  }
+                >
+                  {formatRemainingTime(Math.abs(remainingTime))}
+                </span>
+              </p>
+            </div>
+            <div className="button-group">
+              <Button
+                type="primary"
+                icon={AddIcon} // Add icon for Add Task
+                onClick={addTask}
+                title="Add Task"
+              >
+                Add Task
+              </Button>
+              <Button
+                type="default"
+                icon={<DeleteOutlined />} // Add icon for Reset
+                onClick={resetForm}
+                title="Reset Form"
+                style={{ marginLeft: "10px" }}
+              >
+                Reset
+              </Button>
+            </div>
+          </div>
+          <div
+            className="task-details-inputs"
+            style={{ marginTop: "10px" }}
+          >
+            {tasks.map((task, index) => (
+              <div
+                className="task-row"
+                style={{
+                  gridTemplateColumns: settings.showID
+                    ? "1fr 3fr 1fr 1fr 1fr auto" // Include space for ID field
+                    : "3fr 1fr 1fr 1fr auto", // Redistribute space when ID field is hidden
+                }}
+                key={task.id}
+              >
+                {settings.showID && (
+                  <div className="input-group id-field">
+                    <Input
+                      ref={(el) => {
+                        taskIdInputRef.current[index] = el as InputRef;
+                      }}
+                      placeholder="Task ID"
+                      value={task.taskId}
+                      onChange={(e) =>
+                        handleTaskChange(
+                          index,
+                          "taskId",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                )}
+                <div className="input-group title-field">
+                  <Input
+                    className="task-title-input"
+                    placeholder="Task Title"
+                    value={task.title}
+                    onChange={(e) =>
+                      handleTaskChange(index, "title", e.target.value)
+                    }
+                  />
+                </div>
+                {settings.showHours && (
+                  <div className="input-group">
+                    <Input
+                      type="number"
+                      placeholder="Hours"
+                      value={task.hours}
+                      onChange={(e) =>
+                        handleTaskChange(index, "hours", e.target.value)
+                      }
+                    />
+                  </div>
+                )}
+                {settings.showHours && (
+                  <div className="input-group">
+                    <Input
+                      type="number"
+                      placeholder="Minutes"
+                      value={task.minutes}
+                      onChange={(e) =>
+                        handleTaskChange(
+                          index,
+                          "minutes",
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                )}
+                {settings.showStatus && (
+                  <div className="input-group">
+                    <Select
+                      placeholder="Select status"
+                      value={task.status}
+                      onChange={(value) =>
+                        handleTaskChange(index, "status", value)
+                      }
+                      style={{ width: "100%" }}
+                    >
+                      {ALL_STATUS_OPTIONS.map((status) => (
+                        <Option key={status} value={status}>
+                          {status}
+                        </Option>
+                      ))}
+                    </Select>
+                  </div>
+                )}
+                <Button
+                  type="text" // Use "text" type to remove button styling
+                  danger
+                  icon={deleteIcon}
+                  onClick={() => clearTask(task.id)}
+                  title="Delete Task"
+                  style={{ marginBottom: "15px" }}
+                />
+              </div>
+            ))}
+          </div>
+          {settings.showNextTask && ( // Conditionally render the Next Task input
+            <div className="input-group" style={{ marginTop: "20px" }}>
+              <Input
+                id="nextTask"
+                placeholder="Enter next task"
+                value={nextTaskValue}
+                onChange={(e) => setNextTaskValue(e.target.value)}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="task-preview-container">
+        <div className="task-preview-header">
+          <h3>Preview</h3>
+          <div className="button-group">
+            <Button
+              type="primary"
+              icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
+              onClick={handleCopy}
+              title="Copy"
+            />
+            <Button
+              type="primary"
+              icon={<SaveOutlined />}
+              onClick={savePreview}
+              title="Save"
+            />
+          </div>
+        </div>
+        <pre
+          className="script-style"
+          style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
+        >
+          {getFormattedPreview()}
+        </pre>
+      </div>
+    </div>)
+  }
+
   return (
     <div className={`app-container ${theme}`}>
       <header className="header">
@@ -337,262 +597,7 @@ ${name.trim()}`;
         <Route
           path="/"
           element={
-            <div className="content">
-              <div className="task-input-container">
-                {alertMessage && (
-                  <Alert
-                    message={alertMessage}
-                    type={
-                      alertMessage.includes("successfully")
-                        ? "success"
-                        : "error"
-                    } // Success or error based on message
-                    closable
-                    onClose={() => setAlertMessage(null)} // Clear alert on close
-                    style={{ marginBottom: "15px" }}
-                  />
-                )}
-                <div className="personal-details-section">
-                  <h4>Personal Details</h4>
-                  <div className="task-info-row">
-                    <div className="input-group">
-                      <label htmlFor="name">User Name</label>
-                      <Input
-                        id="name"
-                        placeholder="Enter your name"
-                        value={name}
-                        required
-                        onChange={(e) => setName(e.target.value)}
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label htmlFor="date">Date</label>
-                      <DatePicker
-                        id="date"
-                        value={date ? moment(date, "YYYY-MM-DD") : null} // Ensure only the default date is selected
-                        format="YYYY-MM-DD"
-                        onChange={(_, dateString) =>
-                          setDate(dateString as string)
-                        } // Explicitly cast dateString to string
-                        style={{ width: "100%" }}
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label htmlFor="project">Project</label>
-                      <Select
-                        id="project"
-                        mode="multiple" /* Enable multiple selection */
-                        placeholder="Select project(s)"
-                        value={selectedProjects}
-                        onChange={(value) => setSelectedProjects(value)}
-                        style={{ width: "100%" }} /* Ensure full width */
-                        getPopupContainer={(triggerNode) =>
-                          triggerNode.parentNode
-                        } // Ensure dropdown appears above other elements
-                      >
-                        {ALL_AVAILABLE_PROJECTS.map((project) => (
-                          <Option key={project} value={project}>
-                            {project}
-                          </Option>
-                        ))}
-                      </Select>
-                    </div>
-                    <div
-                      className="input-group"
-                      style={{ position: "relative" }}
-                    >
-                      <label htmlFor="bulletType">Options</label>
-                      <Select
-                        id="bulletType"
-                        value={bulletType}
-                        onChange={(value) => setBulletType(value as any)}
-                        style={{ width: "100%" }}
-                        dropdownStyle={{ zIndex: 99999 }} // Ensure dropdown appears above other elements
-                      >
-                        <Option value="bullet">•</Option>
-                        <Option value="number">1</Option>
-                        <Option value={">"}>{">"}</Option>
-                        <Option value={"=>"}>{"=>"}</Option>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="task-details-section">
-                  <div className="task-details-header">
-                    <h4>Task Details</h4>
-                    <div className="time-info">
-                      <p className="total-time">
-                        Total: <span>8h 30min</span>
-                      </p>
-                      <p className="remaining-time">
-                        Remaining:{" "}
-                        <span
-                          className={
-                            isTimeExceeded ? "time-exceeded" : "time-in-limit"
-                          }
-                        >
-                          {formatRemainingTime(Math.abs(remainingTime))}
-                        </span>
-                      </p>
-                    </div>
-                    <div className="button-group">
-                      <Button
-                        type="primary"
-                        icon={AddIcon} // Add icon for Add Task
-                        onClick={addTask}
-                        title="Add Task"
-                      >
-                        Add Task
-                      </Button>
-                      <Button
-                        type="default"
-                        icon={<DeleteOutlined />} // Add icon for Reset
-                        onClick={resetForm}
-                        title="Reset Form"
-                        style={{ marginLeft: "10px" }}
-                      >
-                        Reset
-                      </Button>
-                    </div>
-                  </div>
-                  <div
-                    className="task-details-inputs"
-                    style={{ marginTop: "10px" }}
-                  >
-                    {tasks.map((task, index) => (
-                      <div
-                        className="task-row"
-                        style={{
-                          gridTemplateColumns: settings.showID
-                            ? "1fr 3fr 1fr 1fr 1fr auto" // Include space for ID field
-                            : "3fr 1fr 1fr 1fr auto", // Redistribute space when ID field is hidden
-                        }}
-                        key={task.id}
-                      >
-                        {settings.showID && (
-                          <div className="input-group id-field">
-                            <Input
-                              ref={(el) => {
-                                taskIdInputRef.current[index] = el as InputRef;
-                              }}
-                              placeholder="Task ID"
-                              value={task.taskId}
-                              onChange={(e) =>
-                                handleTaskChange(
-                                  index,
-                                  "taskId",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </div>
-                        )}
-                        <div className="input-group title-field">
-                          <Input
-                            className="task-title-input"
-                            placeholder="Task Title"
-                            value={task.title}
-                            onChange={(e) =>
-                              handleTaskChange(index, "title", e.target.value)
-                            }
-                          />
-                        </div>
-                        {settings.showHours && (
-                          <div className="input-group">
-                            <Input
-                              type="number"
-                              placeholder="Hours"
-                              value={task.hours}
-                              onChange={(e) =>
-                                handleTaskChange(index, "hours", e.target.value)
-                              }
-                            />
-                          </div>
-                        )}
-                        {settings.showHours && (
-                          <div className="input-group">
-                            <Input
-                              type="number"
-                              placeholder="Minutes"
-                              value={task.minutes}
-                              onChange={(e) =>
-                                handleTaskChange(
-                                  index,
-                                  "minutes",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </div>
-                        )}
-                        {settings.showStatus && (
-                          <div className="input-group">
-                            <Select
-                              placeholder="Select status"
-                              value={task.status}
-                              onChange={(value) =>
-                                handleTaskChange(index, "status", value)
-                              }
-                              style={{ width: "100%" }}
-                            >
-                              {ALL_STATUS_OPTIONS.map((status) => (
-                                <Option key={status} value={status}>
-                                  {status}
-                                </Option>
-                              ))}
-                            </Select>
-                          </div>
-                        )}
-                        <Button
-                          type="text" // Use "text" type to remove button styling
-                          danger
-                          icon={deleteIcon}
-                          onClick={() => clearTask(task.id)}
-                          title="Delete Task"
-                          style={{ marginBottom: "15px" }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  {settings.showNextTask && ( // Conditionally render the Next Task input
-                    <div className="input-group" style={{ marginTop: "20px" }}>
-                      <Input
-                        id="nextTask"
-                        placeholder="Enter next task"
-                        value={nextTaskValue}
-                        onChange={(e) => setNextTaskValue(e.target.value)}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="task-preview-container">
-                <div className="task-preview-header">
-                  <h3>Preview</h3>
-                  <div className="button-group">
-                    <Button
-                      type="primary"
-                      icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
-                      onClick={handleCopy}
-                      title="Copy"
-                    />
-                    <Button
-                      type="primary"
-                      icon={<SaveOutlined />}
-                      onClick={savePreview}
-                      title="Save"
-                    />
-                  </div>
-                </div>
-                <pre
-                  className="script-style"
-                  style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
-                >
-                  {getFormattedPreview()}
-                </pre>
-              </div>             
-            </div>
+            <HomePage />
           }
         />
         <Route path="/edit-task" element={<EditTaskPage />} />
@@ -608,4 +613,7 @@ ${name.trim()}`;
   );
 };
 
-export default Task;
+export default App;
+
+
+

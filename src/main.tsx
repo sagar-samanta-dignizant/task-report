@@ -9,11 +9,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
       <ConfigProvider theme={{
-        // 1. Use dark algorithm
-        algorithm: theme.darkAlgorithm,
-
-        // 2. Combine dark algorithm and compact algorithm
-        // algorithm: [theme.darkAlgorithm, theme.compactAlgorithm],
+        // Combine default algorithm and dark algorithm for a hybrid theme
+        algorithm: [theme.defaultAlgorithm, theme.darkAlgorithm],
+        token: {
+          colorPrimary: "#131629", // Set custom primary color
+          colorText: "#d1d9e6", // Set a light blue-tinted text color
+        },
       }}>
         <Task /> {/* Wrap Task with BrowserRouter */}
       </ConfigProvider>
