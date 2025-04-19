@@ -143,81 +143,82 @@ console.log(reportData, "reportData");
 
     return (
         <div className="reports-page">
-            <div className="reports-header">
+            <div className="reports-header sticky-header">
                 <h2>Reports</h2>
                 <RangePicker
                     onChange={handleDateRangeChange}
                     format="DD/MM/YYYY"
                 />
             </div>
-            
-            {(reportData.length === 0 || !selectedDateRange) && (
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        height: "calc(100vh - 80px)", // Full height minus header height
-                        width: "100%", // Full width of the screen
-                        textAlign: "center", // Center text alignment
-                    }}
-                >
-                    {!selectedDateRange && (
-                        <p style={{ color: "#888", fontSize: "18px", fontWeight: "bold" }}>
-                            Select a date range to view reports.
-                        </p>
-                    )}
-                    {reportData.length === 0 && selectedDateRange && (
-                        <div className="report-summary">
+            <div className="reports-content">
+                {(reportData.length === 0 || !selectedDateRange) && (
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            height: "calc(100vh - 80px)", // Full height minus header height
+                            width: "100%", // Full width of the screen
+                            textAlign: "center", // Center text alignment
+                        }}
+                    >
+                        {!selectedDateRange && (
                             <p style={{ color: "#888", fontSize: "18px", fontWeight: "bold" }}>
-                                No reports found for the selected date range.
+                                Select a date range to view reports.
                             </p>
-                        </div>
+                        )}
+                        {reportData.length === 0 && selectedDateRange && (
+                            <div className="report-summary">
+                                <p style={{ color: "#888", fontSize: "18px", fontWeight: "bold" }}>
+                                    No reports found for the selected date range.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
+                <div className="report-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+                    {reportData.length > 0 && (
+                        reportData.map((report, index) => (
+                            <div key={index} className="report-card">
+                                <div className="task-preview-header">
+                                    <h3>{`Date: ${report.date}`}</h3>
+                                    <div className="button-group" style={{ display: "flex", gap: "10px" }}>
+                                        <Tooltip title="Copy to Clipboard">
+                                            <Button
+                                                type="default"
+                                                icon={
+                                                    copiedIndex === index
+                                                        ? <CheckOutlined style={{ color: "#4caf50" }} />
+                                                        : <CopyOutlined style={{ color: "#4caf50" }} />
+                                                }
+                                                onClick={() => handleCopy(report.data, index)}
+                                            />
+                                        </Tooltip>
+                                        <Tooltip title="Edit Report">
+                                            <Button
+                                                type="default"
+                                                icon={<EditOutlined style={{ color: "#1e88e5" }} />}
+                                                onClick={() => handleEdit(report)}
+                                            />
+                                        </Tooltip>
+                                        <Tooltip title="Delete Report">
+                                            <Button
+                                                type="default"
+                                                danger
+                                                icon={<DeleteOutlined style={{ color: "#f44336" }} />}
+                                                onClick={() => handleDelete(report.date)}
+                                            />
+                                        </Tooltip>
+                                    </div>
+                                </div>
+                                <pre className="script-style" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                                    {formatPreview(report.data)}
+                                </pre>
+                            </div>
+                        ))
                     )}
                 </div>
-            )}
-            <div className="report-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
-                {reportData.length > 0 && (
-                    reportData.map((report, index) => (
-                        <div key={index} className="report-card">
-                            <div className="task-preview-header">
-                                <h3>{`Date: ${report.date}`}</h3>
-                                <div className="button-group" style={{ display: "flex", gap: "10px" }}>
-                                    <Tooltip title="Copy to Clipboard">
-                                        <Button
-                                            type="default"
-                                            icon={
-                                                copiedIndex === index
-                                                    ? <CheckOutlined style={{ color: "#4caf50" }} />
-                                                    : <CopyOutlined style={{ color: "#4caf50" }} />
-                                            }
-                                            onClick={() => handleCopy(report.data, index)}
-                                        />
-                                    </Tooltip>
-                                    <Tooltip title="Edit Report">
-                                        <Button
-                                            type="default"
-                                            icon={<EditOutlined style={{ color: "#1e88e5" }} />}
-                                            onClick={() => handleEdit(report)}
-                                        />
-                                    </Tooltip>
-                                    <Tooltip title="Delete Report">
-                                        <Button
-                                            type="default"
-                                            danger
-                                            icon={<DeleteOutlined style={{ color: "#f44336" }} />}
-                                            onClick={() => handleDelete(report.date)}
-                                        />
-                                    </Tooltip>
-                                </div>
-                            </div>
-                            <pre className="script-style" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
-                                {formatPreview(report.data)}
-                            </pre>
-                        </div>
-                    ))
-                )}
             </div>
 
             {copiedPreview && (
