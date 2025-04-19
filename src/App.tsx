@@ -690,11 +690,11 @@ ${name.trim()}`;
                             const refKey = `${index}-${subIndex}`;
                             return (
                               <div
-                                className="task-row subtask-row" // Add subtask-row class for proper alignment
+                                className="task-row subtask-row" // Ensure subtask layout matches parent task layout
                                 style={{
                                   gridTemplateColumns: settings.showID
-                                    ? "1fr 3fr 1fr 1fr 1fr auto" // Subtask layout with ID field enabled
-                                    : "3fr 1fr 1fr 1fr auto",
+                                    ? "1fr 3fr 1fr 1fr 1fr auto auto" // Subtask layout with ID field enabled
+                                    : "3fr 1fr 1fr 1fr auto auto",
                                 }}
                                 key={subtask.taskId || `subtask-${index}-${subIndex}`}
                               >
@@ -798,6 +798,17 @@ ${name.trim()}`;
                                   title="Delete Subtask"
                                 >
                                   {minusIcon}
+                                </div>
+                                <div
+                                  className="add-task-circle"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addSubtask(index);
+                                  }}
+                                  title="Add Subtask"
+                                  style={{ visibility: "hidden" }} // Hide the button but keep its space
+                                >
+                                  {AddIcon}
                                 </div>
                               </div>
                             );
