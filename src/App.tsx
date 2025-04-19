@@ -267,8 +267,8 @@ const App = () => {
       return updatedTasks;
     });
     setTimeout(() => {
-      if (taskRefs.current[taskRefs.current.length - 1]?.focus) {
-        taskRefs.current[taskRefs.current.length - 1]?.focus(); // Focus on the ID input
+      if (settings.taskSettings.showID) {
+        taskRefs.current[taskRefs.current.length - 1]?.focus(); // Focus on the ID input if enabled
       } else {
         document.querySelector<HTMLInputElement>('.task-title-input:last-child')?.focus(); // Fallback to title input
       }
@@ -541,7 +541,7 @@ ${name.trim()}`;
                         onChange={(e) => setName(e.target.value)}
                       />
                     </div>
-                    <div className="input-group" style={{ width: "140px" ,display:settings.taskSettings.showDate ? "block" :"none" }} >
+                    <div className="input-group" style={{ width: "140px", display: settings.taskSettings.showDate ? "block" : "none" }} >
                       <label htmlFor="date">Date</label>
                       <DatePicker
                         id="date"
@@ -773,9 +773,9 @@ ${name.trim()}`;
                               key={`subtask-${index}-${subIndex}`}
                               style={{
                                 gridTemplateColumns: settings.taskSettings.showID
-                                ? "1fr 3fr 1fr 1fr 1fr auto auto"
-                                : "3fr 1fr 1fr 1fr auto auto", // Adjust layout when ID is hidden
-                            }}
+                                  ? "1fr 3fr 1fr 1fr 1fr auto auto"
+                                  : "3fr 1fr 1fr 1fr auto auto", // Adjust layout when ID is hidden
+                              }}
                             >
                               {settings.taskSettings.showID && (
                                 <div className="input-group id-field">
@@ -785,6 +785,9 @@ ${name.trim()}`;
                                         subtaskRefs.current[index] = [];
                                       }
                                       subtaskRefs.current[index][subIndex] = el || null; // Assign ref to the InputRef element
+                                    }}
+                                    style={{
+                                      visibility: "hidden"
                                     }}
                                     className="task-id-input"
                                     placeholder="Subtask ID"
