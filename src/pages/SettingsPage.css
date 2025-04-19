@@ -1,3 +1,60 @@
+.settings-page {
+    padding: 20px;
+    background-color: #1e1e1e; /* Dark background */
+    color: #e0e0e0; /* Light text color */
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.settings-title {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #4caf50; /* Green title */
+}
+
+.settings-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.settings-section {
+    flex: 1 1 calc(33.333% - 20px); /* Three columns */
+    background-color: #2a2a2a; /* Slightly lighter background */
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.settings-section-title {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #e0e0e0;
+    border-bottom: 1px solid #4caf50; /* Green underline */
+    padding-bottom: 5px;
+}
+
+.settings-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.settings-option label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
 .custom-switch {
     width: 40px;
     height: 20px;

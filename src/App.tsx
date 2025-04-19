@@ -75,13 +75,37 @@ const App = () => {
   >("bullet");
   const [copySuccess, setCopySuccess] = useState(false);
   const [nextTaskValue, setNextTaskValue] = useState(""); // New state for the next task value
-  const [settings, setSettings] = useState({
-    showDate: JSON.parse(localStorage.getItem("showDate") || "true"),
-    showHours: JSON.parse(localStorage.getItem("showHours") || "true"),
-    showID: JSON.parse(localStorage.getItem("showID") || "true"),
-    showStatus: JSON.parse(localStorage.getItem("showStatus") || "true"),
-    showNextTask: JSON.parse(localStorage.getItem("showNextTask") || "true"),
-    showProject: JSON.parse(localStorage.getItem("showProject") || "true"),
+  const [settings, setSettings] = useState(() => {
+    const defaultSettings = {
+      taskSettings: JSON.parse(localStorage.getItem("taskSettings") || "{}") || {
+        allowSubtask: false,
+        showHours: true,
+        showStatus: true,
+        showDate: true,
+        showID: true,
+        showNextTask: true,
+        showProject: true,
+      },
+      previewSettings: JSON.parse(localStorage.getItem("previewSettings") || "{}") || {
+        allowSubtask: false,
+        showHours: true,
+        showStatus: true,
+        showDate: true,
+        showID: true,
+        showNextTask: true,
+        showProject: true,
+      },
+      exportSettings: JSON.parse(localStorage.getItem("exportSettings") || "{}") || {
+        allowSubtask: false,
+        showHours: true,
+        showStatus: true,
+        showDate: true,
+        showID: true,
+        showNextTask: true,
+        showProject: true,
+      },
+    };
+    return defaultSettings;
   });
   const [alertMessage, setAlertMessage] = useState<string | null>(null); // State for alert message
   const [editingReport, setEditingReport] = useState<any | null>(null); // State for editing a report
@@ -169,11 +193,8 @@ const App = () => {
   }, [selectedProjects]);
 
   useEffect(() => {
-    Object.keys(settings).forEach((key) => {
-      localStorage.setItem(
-        key,
-        JSON.stringify(settings[key as keyof typeof settings])
-      );
+    Object.keys(settings).forEach((section) => {
+      localStorage.setItem(section, JSON.stringify(settings[section as keyof typeof settings]));
     });
   }, [settings]);
 
@@ -287,8 +308,12 @@ const App = () => {
     setTasks(updatedTasks);
   };
 
-  const toggleSetting = (key: keyof typeof settings, value: boolean) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+  const toggleSetting = (section: keyof typeof settings, key: string, value: boolean) => {
+    setSettings((prev) => {
+      const updatedSection = { ...prev[section], [key]: value };
+      localStorage.setItem(section, JSON.stringify(updatedSection));
+      return { ...prev, [section]: updatedSection };
+    });
   };
 
   const getFormattedPreview = () => {
@@ -296,7 +321,7 @@ const App = () => {
 
     const formatLine = (task: Task, index: number, isSubtask = false,) => {
       let line = "";
-      if (settings.showID && task.id) {
+      if (settings.taskSettings.showID && task.id) {
         line += `ID : ${task.id.trim()} `; // Include the ID if enabled
       }
       if (task.icon) {
@@ -304,9 +329,9 @@ const App = () => {
         line += `  ${icon}`; // Include the icon
       }
       line += task.title.trim(); // Trim Title
-      if (settings.showStatus && task.status)
+      if (settings.taskSettings.showStatus && task.status)
         line += ` (${task.status.trim()})`; // Trim Status
-      if (settings.showHours) {
+      if (settings.taskSettings.showHours) {
         const taskTime = formatTaskTime(task.hours, task.minutes, task.subtasks);
         if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
       }
@@ -349,14 +374,14 @@ const App = () => {
         })
         .join("\n");
 
-    return `Today's work update - ${settings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""
+    return `Today's work update - ${settings.taskSettings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""
       }
 
-${settings.showProject
+${settings.taskSettings.showProject
         ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
         }\n---------------------\n`
         : ""
-      }${formatTasks(allTasks)}${settings.showNextTask && nextTaskValue.trim()
+      }${formatTasks(allTasks)}${settings.taskSettings.showNextTask && nextTaskValue.trim()
         ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
         : ""
       }
@@ -398,27 +423,27 @@ ${name.trim()}`;
     const previewData = {
       date, // Save the date in `YYYY-MM-DD` format
       tasks: filteredTasks.map((task) => ({
-        id: settings.showID ? task.id?.trim() : undefined, // Include id
+        id: settings.taskSettings.showID ? task.id?.trim() : undefined, // Include id
         title: task.title.trim(), // Trim Title
-        hours: settings.showHours ? task.hours : undefined,
-        minutes: settings.showHours ? task.minutes : undefined, // Include minutes
-        status: settings.showStatus ? task.status.trim() : undefined, // Trim Status
+        hours: settings.taskSettings.showHours ? task.hours : undefined,
+        minutes: settings.taskSettings.showHours ? task.minutes : undefined, // Include minutes
+        status: settings.taskSettings.showStatus ? task.status.trim() : undefined, // Trim Status
         icon: task.icon?.trim(), // Include icon
         subtasks: task.subtasks?.map((subtask) => ({
-          id: settings.showID ? subtask.id?.trim() : undefined, // Include id for subtask
+          id: settings.taskSettings.showID ? subtask.id?.trim() : undefined, // Include id for subtask
           title: subtask.title.trim(),
-          hours: settings.showHours ? subtask.hours : undefined,
-          minutes: settings.showHours ? subtask.minutes : undefined,
-          status: settings.showStatus ? subtask.status.trim() : undefined,
+          hours: settings.taskSettings.showHours ? subtask.hours : undefined,
+          minutes: settings.taskSettings.showHours ? subtask.minutes : undefined,
+          status: settings.taskSettings.showStatus ? subtask.status.trim() : undefined,
           icon: subtask.icon?.trim(), // Include icon
         })),
       })),
-      selectedProjects: settings.showProject
+      selectedProjects: settings.taskSettings.showProject
         ? selectedProjects.map((p) => p.trim())
         : [], // Trim Project Names
-      name: settings.showDate ? name.trim() : undefined, // Trim Name
+      name: settings.taskSettings.showDate ? name.trim() : undefined, // Trim Name
       nextTask:
-        settings.showNextTask && nextTaskValue.trim()
+        settings.taskSettings.showNextTask && nextTaskValue.trim()
           ? nextTaskValue.trim() // Trim Next Task
           : undefined, // Save next task only if it exists
       bulletType, // Save the selected bullet type for this report
@@ -644,7 +669,7 @@ ${name.trim()}`;
                               }
                             />
                           </div>
-                          {settings.showHours && (
+                          {settings.taskSettings.showHours && (
                             <div className="input-group">
                               <Input
                                 type="number"
@@ -662,7 +687,7 @@ ${name.trim()}`;
                               />
                             </div>
                           )}
-                          {settings.showHours && (
+                          {settings.taskSettings.showHours && (
                             <div className="input-group">
                               <Input
                                 type="number"
@@ -680,7 +705,7 @@ ${name.trim()}`;
                               />
                             </div>
                           )}
-                          {settings.showStatus && (
+                          {settings.taskSettings.showStatus && (
                             <div className="input-group">
                               <Select
                                 placeholder="Select status"
@@ -748,7 +773,7 @@ ${name.trim()}`;
                                   }
                                 />
                               </div>
-                              {settings.showHours && (
+                              {settings.taskSettings.showHours && (
                                 <div className="input-group">
                                   <Input
                                     type="number"
@@ -763,7 +788,7 @@ ${name.trim()}`;
                                   />
                                 </div>
                               )}
-                              {settings.showHours && (
+                              {settings.taskSettings.showHours && (
                                 <div className="input-group">
                                   <Input
                                     type="number"
@@ -778,7 +803,7 @@ ${name.trim()}`;
                                   />
                                 </div>
                               )}
-                              {settings.showStatus && (
+                              {settings.taskSettings.showStatus && (
                                 <div className="input-group">
                                   <Select
                                     placeholder="Select status"
@@ -826,7 +851,7 @@ ${name.trim()}`;
                       </div>
                     ))}
                   </div>
-                  {settings.showNextTask && ( // Conditionally render the Next Task input
+                  {settings.taskSettings.showNextTask && ( // Conditionally render the Next Task input
                     <div className="input-group" style={{ marginTop: "20px" }}>
                       <Input
                         id="nextTask"
