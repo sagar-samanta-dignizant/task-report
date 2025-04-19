@@ -1,8 +1,8 @@
 import "./app.css";
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
-import { Alert, Button, DatePicker, Input, Select, Layout, Menu, Tooltip, InputRef } from "antd";
+import { Alert, Button, DatePicker, Input, Select, Layout, Tooltip, InputRef } from "antd";
 import { CheckOutlined, CopyOutlined, SaveOutlined, HomeOutlined, SettingOutlined, FileTextOutlined, ReloadOutlined } from "@ant-design/icons";
-import { Link, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import moment from "moment";
 import ReportsPage from "./pages/ReportsPage";
@@ -491,24 +491,34 @@ ${name.trim()}`;
   return (
     <Layout className={`app-container ${theme}`}>
       <Header className="header">
-        <div
-          className="logo"
-          style={{ color: "white", fontSize: "20px", fontWeight: "bold", display: "flex", alignItems: "center" }}
-        >
-          <img src={"/test-1.png"} alt="Logo" style={{ width: "30px", height: "30px", marginRight: "10px" }} />
-          Report Manager
+        <div className="header-content">
+          <div className="logo">
+            <img src={"/test-1.png"} alt="Logo" />
+          </div>
+          <div className="header-title">
+            <span>🎉 R3p0rt M@nag3r 🎨</span>
+          </div>
+          <div className="nav-links">
+            <NavLink
+              to="/"
+              className={({ isActive }) => `nav-link ${isActive ? "active-link" : ""}`}
+            >
+              <HomeOutlined className="nav-icon" /> Home
+            </NavLink>
+            <NavLink
+              to="/settings"
+              className={({ isActive }) => `nav-link ${isActive ? "active-link" : ""}`}
+            >
+              <SettingOutlined className="nav-icon" /> Settings
+            </NavLink>
+            <NavLink
+              to="/reports"
+              className={({ isActive }) => `nav-link ${isActive ? "active-link" : ""}`}
+            >
+              <FileTextOutlined className="nav-icon" /> Reports
+            </NavLink>
+          </div>
         </div>
-        <Menu theme="dark" mode="horizontal" defaultSelectedKeys={["1"]}>
-          <Menu.Item key="1" icon={<HomeOutlined />}>
-            <Link to="/">Home</Link>
-          </Menu.Item>
-          <Menu.Item key="2" icon={<SettingOutlined />}>
-            <Link to="/settings">Settings</Link>
-          </Menu.Item>
-          <Menu.Item key="3" icon={<FileTextOutlined />}>
-            <Link to="/reports">Reports</Link>
-          </Menu.Item>
-        </Menu>
       </Header>
       <Routes>
         <Route

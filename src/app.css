@@ -303,16 +303,91 @@ label {
 
 header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  width: 100%;
-  padding: 15px 20px;
-  background-color: #1e88e5; /* Blue for header */
-  color: white;
-  box-sizing: border-box;
-  margin: 0;
-  border-radius: 10px;
+  padding: 10px 20px;
+  background-color: #1e1e1e; /* Dark background for header */
+  color: #e0e0e0; /* Light text color */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid #333;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px; /* Limit the width for better alignment */
+}
+
+.header .logo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header .logo img {
+  width: 50px; /* Adjust size for better visibility */
+  height: 50px;
+}
+
+.header-title {
+  flex: 1;
+  text-align: center;
+  font-size: 28px; /* Larger font size */
+  font-weight: bold;
+  color: #ff9800; /* Fun orange color */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-family: "Comic Sans MS", cursive, sans-serif; /* Fun font */
+}
+
+.menu-container {
+  flex: 0 0 auto;
+}
+
+.custom-menu {
+  background-color: transparent; /* Transparent background */
+  border-bottom: none;
+}
+
+.custom-menu .ant-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent !important; /* Prevent background change */
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.custom-menu .ant-menu-item a.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e0e0e0; /* Default link color */
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.custom-menu .ant-menu-item .menu-icon {
+  color: #e0e0e0; /* Default icon color */
+  transition: color 0.3s ease;
+}
+
+.custom-menu .ant-menu-item-selected a.menu-link {
+  color: #4caf50; /* Active link text color */
+}
+
+.custom-menu .ant-menu-item-selected .menu-icon {
+  color: #4caf50; /* Active icon color */
+}
+
+.custom-menu .ant-menu-item:hover a.menu-link {
+  color: #1e88e5; /* Hover link text color */
+}
+
+.custom-menu .ant-menu-item:hover .menu-icon {
+  color: #1e88e5; /* Hover icon color */
 }
 
 .settings-menu {
@@ -713,6 +788,41 @@ label .input-field {
   border-radius: 10px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
   border: 1px solid #333;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px; /* Space between links */
+  align-items: center;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e0e0e0; /* Default link color */
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #1e88e5; /* Hover link color */
+}
+
+.nav-link.active-link {
+  color: #4caf50; /* Active link color */
+  font-weight: bold;
+  border-bottom: 2px solid #4caf50; /* Active link indicator */
+}
+
+.nav-icon {
+  font-size: 18px; /* Icon size */
+  transition: color 0.3s ease;
+}
+
+.nav-link.active-link .nav-icon {
+  color: #4caf50; /* Active icon color */
 }
 
 @media (max-width: 768px) {
