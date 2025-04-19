@@ -273,41 +273,22 @@ ${name.trim()}`;
                                     onChange={(e) => setName(e.target.value)}
                                 />
                             </div>
-                            <div className="input-group">
+                            <div className="input-group" style={{ width: "140px" }}>
                                 <label htmlFor="date">Date</label>
                                 <DatePicker
                                     id="date"
-                                    value={date ? moment(date, "YYYY-MM-DD") : null} // Ensure only the default date is selected
+                                    value={date ? moment(date, "YYYY-MM-DD") : null}
                                     format="YYYY-MM-DD"
                                     onChange={(_, dateString) => setDate(dateString as string)}
                                     style={{ width: "100%" }}
                                 />
-                            </div>
-                            <div className="input-group">
-                                <label htmlFor="project">Project</label>
-                                <Select
-                                    id="project"
-                                    mode="multiple"
-                                    placeholder="Select project(s)"
-                                    value={selectedProjects}
-                                    onChange={(value) => setSelectedProjects(value)}
-                                    style={{ width: "100%" }}
-                                >
-                                    {ALL_AVAILABLE_PROJECTS.map((project) => (
-                                        <Option key={project} value={project}>
-                                            {project}
-                                        </Option>
-                                    ))}
-                                </Select>
                             </div>
                             <div className="input-group" style={{ width: "120px" }}>
                                 <label htmlFor="bulletType">Task Icon</label>
                                 <Select
                                     id="bulletType"
                                     value={bulletType}
-                                    onChange={(value) => {
-                                        setBulletType(value as any);
-                                    }}
+                                    onChange={(value) => setBulletType(value as any)}
                                     style={{ width: "100%" }}
                                 >
                                     <Option value="bullet">•</Option>
@@ -322,15 +303,30 @@ ${name.trim()}`;
                                     id="icon"
                                     placeholder="Select icon"
                                     value={selectedSubIcon}
-                                    onChange={(value) => {
-                                        setSelectedSubIcon(value);
-                                    }}
+                                    onChange={(value) => setSelectedSubIcon(value)}
                                     style={{ width: "100%" }}
                                 >
                                     <Option value="bullet">•</Option>
                                     <Option value="number">1</Option>
                                     <Option value={">"}>{">"}</Option>
                                     <Option value={"=>"}>{"=>"}</Option>
+                                </Select>
+                            </div>
+                            <div className="input-group" style={{ flex: "1 1 25%" }}>
+                                <label htmlFor="project">Project</label>
+                                <Select
+                                    id="project"
+                                    mode="multiple"
+                                    placeholder="Select project(s)"
+                                    value={selectedProjects}
+                                    onChange={(value) => setSelectedProjects(value)}
+                                    style={{ width: "100%" }}
+                                >
+                                    {ALL_AVAILABLE_PROJECTS.map((project) => (
+                                        <Option key={project} value={project}>
+                                            {project}
+                                        </Option>
+                                    ))}
                                 </Select>
                             </div>
                         </div>
