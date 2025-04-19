@@ -5,7 +5,7 @@
     border-radius: 10px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
     max-width: 800px;
-    margin: 0 auto;
+    margin: 20px auto;
 }
 
 .settings-title {
@@ -83,4 +83,20 @@
 .custom-switch.checked .switch-handle {
     left: 21px; /* Move handle to the right when checked */
     background-color: #fff; /* White handle when checked */
+}
+
+.gap-input {
+    width: 60px;
+    padding: 5px;
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    text-align: center;
+    margin-left: 10px;
+}
+
+.gap-input:focus {
+    border-color: #4caf50;
+    outline: none;
 }

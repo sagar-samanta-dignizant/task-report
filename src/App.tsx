@@ -23,8 +23,7 @@ import {
   ReloadOutlined, // Import the refresh icon
 } from "@ant-design/icons";
 import { Link, Route, Routes } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
-import { InputRef } from "antd";
+import { useEffect, useState } from "react";
 import moment from "moment";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -79,7 +78,7 @@ const App = () => {
     const defaultSettings = {
       taskSettings: JSON.parse(localStorage.getItem("taskSettings") || "{}") || {
         allowSubtask: false,
-        showHours: true,
+        showHours: true, // Ensure showHours is true by default
         showStatus: true,
         showDate: true,
         showID: true,
@@ -308,7 +307,7 @@ const App = () => {
     setTasks(updatedTasks);
   };
 
-  const toggleSetting = (section: keyof typeof settings, key: string, value: boolean) => {
+  const toggleSetting = (section: keyof typeof settings, key: string, value: any) => {
     setSettings((prev) => {
       const updatedSection = { ...prev[section], [key]: value };
       localStorage.setItem(section, JSON.stringify(updatedSection));
@@ -365,26 +364,25 @@ const App = () => {
           if (settings.previewSettings.allowSubtask && task.subtasks && task.subtasks.length > 0) {
             line += `\n${task.subtasks
               .map((subtask, subIndex) =>
-                ` ${formatLine(subtask, subIndex, true)}`
+                `${formatLine(subtask, subIndex, true)}`
               )
-              .join("\n")}`; // Use numeric values for subtasks if "1" is selected
+              .join("\n")}`;
           }
           return line;
         })
         .join("\n");
 
-    return `Today's work update - ${
-      settings.previewSettings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""
-    }
+    return `Today's work update - ${settings.previewSettings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""
+      }
 
 ${settings.previewSettings.showProject
-    ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
-    }\n---------------------\n`
-    : ""
-  }${formatTasks(allTasks)}${settings.previewSettings.showNextTask && nextTaskValue.trim()
-    ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
-    : ""
-  }
+        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
+        }\n---------------------\n`
+        : ""
+      }${formatTasks(allTasks)}${settings.previewSettings.showNextTask && nextTaskValue.trim()
+        ? `\n\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}` // Add extra newline above "Next's Tasks"
+        : ""
+      }
 
 Thanks & regards
 ${name.trim()}`;
@@ -400,7 +398,6 @@ ${name.trim()}`;
     const missingFields: string[] = [];
 
     if (!name.trim()) missingFields.push("Name");
-    if (!selectedProjects.length) missingFields.push("Project");
     if (!date.trim()) missingFields.push("Date");
 
     if (missingFields.length > 0) {
@@ -566,7 +563,7 @@ ${name.trim()}`;
                         <Option value={"=>"}>{"=>"}</Option>
                       </Select>
                     </div>
-                    <div className="input-group" style={{ width: "300px" }}>
+                    <div className="input-group" style={{ width: "300px", display: settings.taskSettings.showProject ? "block" : "none" }}>
                       <label htmlFor="project">Project</label>
                       <Select
                         id="project"
@@ -603,8 +600,8 @@ ${name.trim()}`;
                             remainingTime < 0
                               ? "time-exceeded" // Red for exceeded
                               : remainingTime === 0
-                              ? "time-matched" // Green for matched
-                              : "time-in-limit" // Yellow for within limit
+                                ? "time-matched" // Green for matched
+                                : "time-in-limit" // Yellow for within limit
                           }
                         >
                           {formatRemainingTime(remainingTime)}

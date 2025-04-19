@@ -28,7 +28,7 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
                 </div>
                 <div className="settings-option">
                     <label>
-                        Show Hours
+                        Show Hrs/min
                         <CustomSwitch
                             checked={settings.taskSettings.showHours}
                             onChange={(checked) => toggleSetting("taskSettings", "showHours", checked)}
