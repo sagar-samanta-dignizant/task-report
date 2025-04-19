@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "./app.css";
 
-import { AddIcon, deleteIcon } from "./assets/fontAwesomeIcons";
+import { AddIcon, deleteIcon ,minusIcon} from "./assets/fontAwesomeIcons";
 import { Alert, Button, DatePicker, Input, Select, Layout, Menu, Tooltip } from "antd"; // Import Ant Design components
 import {
   CheckOutlined,
@@ -427,7 +427,7 @@ ${name.trim()}`;
             <div className="button-group">
               <Tooltip title="Add a new task">
                 <Button
-                  type="primary"
+                  type="default" // Change to outlined button
                   icon={AddIcon} // Add icon for Add Task
                   onClick={addTask}
                   title="Add Task"
@@ -438,7 +438,7 @@ ${name.trim()}`;
               </Tooltip>
               <Tooltip title="Reset all tasks">
                 <Button
-                  type="default"
+                  type="default" // Change to outlined button
                   icon={<ReloadOutlined />} // Use refresh icon for Reset
                   onClick={resetForm}
                   title="Reset Form"
@@ -538,16 +538,13 @@ ${name.trim()}`;
                     </Select>
                   </div>
                 )}
-                <Tooltip title="Delete this task">
-                  <Button
-                    type="text" // Use "text" type to remove button styling
-                    danger
-                    icon={deleteIcon}
-                    onClick={() => clearTask(task.id)}
-                    title="Delete Task"
-                    style={{ marginBottom: "15px" }}
-                  />
-                </Tooltip>
+                <div
+                  className="clear-task-circle"
+                  onClick={() => clearTask(task.id)}
+                  title="Delete Task"
+                >
+                  {minusIcon}
+                </div>
               </div>
             ))}
           </div>
@@ -569,7 +566,7 @@ ${name.trim()}`;
           <div className="button-group">
             <Tooltip title="Copy to Clipboard">
               <Button
-                type="primary"
+                type="default" // Change to outlined button
                 icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
                 onClick={handleCopy}
                 title="Copy"
@@ -578,7 +575,7 @@ ${name.trim()}`;
             </Tooltip>
             <Tooltip title="Save Preview">
               <Button
-                type="primary"
+                type="default" // Change to outlined button
                 icon={<SaveOutlined />}
                 onClick={savePreview}
                 title="Save"

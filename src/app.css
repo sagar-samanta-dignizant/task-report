@@ -29,83 +29,124 @@ body {
 }
 
 .copy-btn {
-  background-color: #43a047; /* Green for Copy button */
-  color: white;
-  border: none;
+  border: 1px solid #43a047; /* Green border for Copy button */
+  color: #43a047;
+  background-color: transparent;
   padding: 8px 16px;
   border-radius: 5px;
   font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.3s ease; /* Smooth transition */
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
 }
 
 .copy-btn:hover {
-  background-color: #2e7d32; /* Slightly darker green on hover */
+  background-color: #43a047; /* Green background on hover */
+  color: white; /* White text on hover */
 }
 
 .save-btn {
-  background-color: #fb8c00; /* Orange for Save button */
-  color: white;
-  border: none;
+  border: 1px solid #fb8c00; /* Orange border for Save button */
+  color: #fb8c00;
+  background-color: transparent;
   padding: 8px 16px;
   border-radius: 5px;
   font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.3s ease; /* Smooth transition */
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
 }
 
 .save-btn:hover {
-  background-color: #ef6c00; /* Slightly darker orange on hover */
+  background-color: #fb8c00; /* Orange background on hover */
+  color: white; /* White text on hover */
 }
 
 .add-task-btn {
-  background-color: #1e88e5; /* Blue for Add Task button */
-  color: white;
-  border: none;
+  border: 1px solid #1e88e5; /* Blue border for Add Task button */
+  color: #1e88e5;
+  background-color: transparent;
   padding: 8px 16px;
   border-radius: 5px;
   font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.3s ease; /* Smooth transition */
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
 }
 
 .add-task-btn:hover {
-  background-color: #1565c0; /* Slightly darker blue on hover */
+  background-color: #1e88e5; /* Blue background on hover */
+  color: white; /* White text on hover */
 }
 
 .reset-btn {
-  background-color: #e53935; /* Red for Reset button */
-  color: white;
-  border: none;
+  border: 1px solid #e53935; /* Red border for Reset button */
+  color: #e53935;
+  background-color: transparent;
   padding: 8px 16px;
   border-radius: 5px;
   font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.3s ease; /* Smooth transition */
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
 }
 
 .reset-btn:hover {
-  background-color: #b71c1c; /* Slightly darker red on hover */
+  background-color: #e53935; /* Red background on hover */
+  color: white; /* White text on hover */
 }
 
 .clear-task-btn {
-  background-color: #f44336; /* Red for Delete button */
-  color: white;
-  border: none;
+  border: 1px solid #f44336; /* Red border for Delete button */
+  color: #f44336;
+  background-color: transparent;
   padding: 8px 16px;
   border-radius: 5px;
   font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.3s ease; /* Smooth transition */
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
 }
 
 .clear-task-btn:hover {
-  background-color: #d32f2f; /* Slightly darker red on hover */
+  background-color: #f44336; /* Red background on hover */
+  color: white; /* White text on hover */
+}
+
+.clear-task-circle {
+  width: 20px; /* Smaller size */
+  height: 20px;
+  border: 1px solid #f44336; /* Red border for outline */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: border-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+}
+
+.clear-task-circle:hover {
+  border-color: #e61414; /* Darker red on hover */
+  transform: scale(1.1); /* Slight zoom effect */
+}
+
+.clear-task-circle svg {
+  color: #f44336; /* Red icon color */
+  font-size: 14px; /* Adjust icon size */
+}
+
+.ant-picker-outlined {
+  background-color: #1e1e1e; /* Dark background */
+  color: #e0e0e0; /* Light text color */
+  border: 1px solid #333; /* Subtle border */
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+.ant-select-selector {
+  background: #1e1e1e !important; /* Dark background */
+  color: #e0e0e0; /* Light text color */
+  border: 1px solid #333; /* Subtle border */
+  transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .script-style {
   white-space: pre-wrap;
-  background-color: #1e1e1e; /* Dark background */
+  background-color: #141414; /* Dark background */
   padding: 15px;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
@@ -114,19 +155,6 @@ body {
   line-height: 1.5;
   color: #e0e0e0; /* Ensure text remains visible */
   border: 1px solid #333; /* Subtle border for separation */
-}
-
-.add-task-btn {
-  background-color: #4caf50; /* Green for buttons */
-  color: #ffffff;
-}
-
-.add-task-btn:hover {
-  background-color: #388e3c; /* Darker green on hover */
-}
-
-.clear-task-btn {
-  color: #f44336; /* Red for delete */
 }
 
 .input-field {
@@ -381,7 +409,9 @@ header {
   color: white;
 }
 
-.ant-select-multiple .ant-select-selection-overflow .ant-select-selection-item-content {
+.ant-select-multiple
+  .ant-select-selection-overflow
+  .ant-select-selection-item-content {
   color: #e0e0e0;
 }
 
@@ -499,26 +529,23 @@ header {
 
 .task-row {
   display: grid;
-  gap: 15px;
   align-items: center;
-  margin-bottom: 10px;
+  gap:10px;
   grid-template-columns: 1fr 3fr 1fr 1fr 1fr auto;
 }
 
 button.clear-task-btn {
   background: none;
   color: #f44336;
-  font-size: 20px;
+  font-size: 15px;
   border: none;
   cursor: pointer;
   transition: color 0.3s ease, transform 0.2s ease;
   margin: 0;
-  position: relative;
-  top: 5px;
 }
 
 button.clear-task-btn:hover {
-  color: #d32f2f;
+  color: #e61414;
   transform: scale(1.1);
 }
 
@@ -579,15 +606,6 @@ label .input-field {
   background-color: #388e3c;
 }
 
-.clear-task-btn {
-  background-color: #f44336;
-  color: white;
-}
-
-.clear-task-btn:hover {
-  background-color: #d32f2f;
-}
-
 .task-preview-container {
   flex-grow: 1;
   padding: 25px;
@@ -611,54 +629,11 @@ label .input-field {
   color: #e0e0e0;
 }
 
-.copy-btn {
-  background-color: #43a047; /* Green for Copy button */
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.3s ease; /* Smooth transition */
-}
-
-.copy-btn:hover {
-  background-color: #2e7d32; /* Slightly darker green on hover */
-}
-
-.save-btn {
-  background-color: #fb8c00; /* Orange for Save button */
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.3s ease; /* Smooth transition */
-}
-
-.save-btn:hover {
-  background-color: #ef6c00; /* Slightly darker orange on hover */
-}
-
 .copy-success {
   color: #4caf50;
   font-size: 16px;
   margin-top: 10px;
   text-align: center;
-}
-
-.script-style {
-  white-space: pre-wrap;
-  background-color: #1e1e1e; /* Dark background */
-  padding: 15px;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-  margin-bottom: 10px;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #e0e0e0; /* Ensure text remains visible */
-  border: 1px solid #333; /* Subtle border for separation */
 }
 
 .task-preview-container pre.script-style {
