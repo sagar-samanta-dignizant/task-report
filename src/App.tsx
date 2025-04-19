@@ -98,8 +98,6 @@ const App = () => {
 
   const calculateRemainingTime = () => {
     const totalTaskTime = tasks.reduce((sum, task) => {
-      const taskHours = parseFloat(task.hours as string) || 0;
-      const taskMinutes = (parseFloat(task.minutes as string) || 0) / 60; // Convert minutes to hours
       const subtaskTime =
         task.subtasks?.reduce((subSum, subtask) => {
           const subtaskHours = parseFloat(subtask.hours as string) || 0;
@@ -107,24 +105,52 @@ const App = () => {
             (parseFloat(subtask.minutes as string) || 0) / 60;
           return subSum + subtaskHours + subtaskMinutes;
         }, 0) || 0;
+
+      const taskHours = task.subtasks ? 0 : parseFloat(task.hours as string) || 0; // Ignore task hours if subtasks exist
+      const taskMinutes =
+        task.subtasks ? 0 : (parseFloat(task.minutes as string) || 0) / 60; // Ignore task minutes if subtasks exist
+
       return sum + taskHours + taskMinutes + subtaskTime;
     }, 0);
     return workingTimeLimit - totalTaskTime;
   };
 
   const formatRemainingTime = (remainingTime: number) => {
-    const hours = Math.floor(remainingTime);
-    const minutes = Math.round((remainingTime - hours) * 60);
-    return `${hours}h and ${minutes}m`;
+    const hours = Math.floor(Math.abs(remainingTime));
+    const minutes = Math.round((Math.abs(remainingTime) - hours) * 60);
+    const extra = remainingTime < 0 ? `${hours}h ${minutes}m (Extra hour)` : `${hours}h ${minutes}m`;
+    return remainingTime < 0 ? extra : `${hours}h ${minutes}m`;
   };
 
-  const formatTaskTime = (hours: string | number, minutes: string | number) => {
+  const formatTaskTime = (hours: string | number, minutes: string | number, subtasks?: Task[]) => {
+    if (subtasks && subtasks.length > 0) {
+      const totalSubtaskTime = subtasks.reduce(
+        (sum, subtask) => {
+          const subtaskHours = parseInt(subtask.hours as string) || 0;
+          const subtaskMinutes = parseInt(subtask.minutes as string) || 0;
+          return {
+            hours: sum.hours + subtaskHours,
+            minutes: sum.minutes + subtaskMinutes,
+          };
+        },
+        { hours: 0, minutes: 0 }
+      );
+
+      const totalMinutes = totalSubtaskTime.minutes % 60;
+      const totalHours = totalSubtaskTime.hours + Math.floor(totalSubtaskTime.minutes / 60);
+
+      const timeParts = [];
+      if (totalHours > 0) timeParts.push(`${totalHours}h`);
+      if (totalMinutes > 0) timeParts.push(`${totalMinutes}min`);
+      return timeParts.join(" ").trim();
+    }
+
     const h = parseInt(hours as string) || 0;
     const m = parseInt(minutes as string) || 0;
-    let timeString = "";
-    if (h > 0) timeString += `${h}h`; // Only include hours if greater than 0
-    if (m > 0) timeString += ` ${m}min`; // Only include minutes if greater than 0
-    return timeString.trim(); // Remove any leading/trailing spaces
+    const timeParts = [];
+    if (h > 0) timeParts.push(`${h}h`);
+    if (m > 0) timeParts.push(`${m}min`);
+    return timeParts.join(" ").trim();
   };
 
   const remainingTime = calculateRemainingTime();
@@ -180,6 +206,25 @@ const App = () => {
           ...parentTask.subtasks[subtaskIndex],
           [field]: value, // Update the specific field
         };
+
+        // Recalculate parent task's hours and minutes based on subtasks
+        const totalSubtaskTime = parentTask.subtasks.reduce(
+          (sum, subtask) => {
+            const subtaskHours = parseInt(subtask.hours as string) || 0;
+            const subtaskMinutes = parseInt(subtask.minutes as string) || 0;
+            return {
+              hours: sum.hours + subtaskHours,
+              minutes: sum.minutes + subtaskMinutes,
+            };
+          },
+          { hours: 0, minutes: 0 }
+        );
+
+        const totalMinutes = totalSubtaskTime.minutes % 60;
+        const totalHours = totalSubtaskTime.hours + Math.floor(totalSubtaskTime.minutes / 60);
+
+        parentTask.hours = totalHours.toString();
+        parentTask.minutes = totalMinutes.toString();
       }
       return updatedTasks; // Return the updated state
     });
@@ -262,7 +307,7 @@ const App = () => {
       if (settings.showStatus && task.status)
         line += ` (${task.status.trim()})`; // Trim Status
       if (settings.showHours) {
-        const taskTime = formatTaskTime(task.hours, task.minutes);
+        const taskTime = formatTaskTime(task.hours, task.minutes, task.subtasks);
         if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
       }
       return line;
@@ -530,10 +575,14 @@ ${name.trim()}`;
                         Remaining :{" "}
                         <span
                           className={
-                            isTimeExceeded ? "time-exceeded" : "time-in-limit"
+                            remainingTime < 0
+                              ? "time-exceeded" // Red for exceeded
+                              : remainingTime === 0
+                              ? "time-matched" // Green for matched
+                              : "time-in-limit" // Yellow for within limit
                           }
                         >
-                          {formatRemainingTime(Math.abs(remainingTime))}
+                          {formatRemainingTime(remainingTime)}
                         </span>
                       </p>
                     </div>
@@ -598,32 +647,36 @@ ${name.trim()}`;
                           {settings.showHours && (
                             <div className="input-group">
                               <Input
-                                type="text"
+                                type="number"
                                 placeholder="Hours"
-                                value={task.hours}
-                                onChange={(e) =>
-                                  handleTaskChange(
-                                    index,
-                                    "hours",
-                                    e.target.value
-                                  )
-                                }
+                                value={task.subtasks?.length ? task.hours : task.hours}
+                                onChange={(e) => {
+                                  const value = Math.min(23, Math.max(0, parseInt(e.target.value) || 0)); // Ensure value is between 0 and 23
+                                  if (!task.subtasks?.length) {
+                                    handleTaskChange(index, "hours", value);
+                                  }
+                                }}
+                                disabled={!!task.subtasks?.length} // Disable if subtasks exist
+                                min={0}
+                                max={23}
                               />
                             </div>
                           )}
                           {settings.showHours && (
                             <div className="input-group">
                               <Input
-                                type="text"
+                                type="number"
                                 placeholder="Minutes"
-                                value={task.minutes}
-                                onChange={(e) =>
-                                  handleTaskChange(
-                                    index,
-                                    "minutes",
-                                    e.target.value
-                                  )
-                                }
+                                value={task.subtasks?.length ? task.minutes : task.minutes}
+                                onChange={(e) => {
+                                  const value = Math.min(59, Math.max(0, parseInt(e.target.value) || 0)); // Ensure value is between 0 and 59
+                                  if (!task.subtasks?.length) {
+                                    handleTaskChange(index, "minutes", value);
+                                  }
+                                }}
+                                disabled={!!task.subtasks?.length} // Disable if subtasks exist
+                                min={0}
+                                max={59}
                               />
                             </div>
                           )}
@@ -698,34 +751,30 @@ ${name.trim()}`;
                               {settings.showHours && (
                                 <div className="input-group">
                                   <Input
-                                    type="text"
+                                    type="number"
                                     placeholder="Hours"
                                     value={subtask.hours}
-                                    onChange={(e) =>
-                                      handleSubtaskChange(
-                                        index,
-                                        subIndex,
-                                        "hours",
-                                        e.target.value
-                                      )
-                                    }
+                                    onChange={(e) => {
+                                      const value = Math.min(23, Math.max(0, parseInt(e.target.value) || 0)); // Ensure value is between 0 and 23
+                                      handleSubtaskChange(index, subIndex, "hours", value);
+                                    }}
+                                    min={0}
+                                    max={23}
                                   />
                                 </div>
                               )}
                               {settings.showHours && (
                                 <div className="input-group">
                                   <Input
-                                    type="text"
+                                    type="number"
                                     placeholder="Minutes"
                                     value={subtask.minutes}
-                                    onChange={(e) =>
-                                      handleSubtaskChange(
-                                        index,
-                                        subIndex,
-                                        "minutes",
-                                        e.target.value
-                                      )
-                                    }
+                                    onChange={(e) => {
+                                      const value = Math.min(59, Math.max(0, parseInt(e.target.value) || 0)); // Ensure value is between 0 and 59
+                                      handleSubtaskChange(index, subIndex, "minutes", value);
+                                    }}
+                                    min={0}
+                                    max={59}
                                   />
                                 </div>
                               )}

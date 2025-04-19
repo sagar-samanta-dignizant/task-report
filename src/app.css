@@ -552,11 +552,15 @@ header {
     }
 
     .time-in-limit {
-      color: #4caf50; /* Green when within limit */
+      color: yellow; /* Yellow when within limit */
+    }
+
+    .time-matched {
+      color: green; /* Green when matched */
     }
 
     .time-exceeded {
-      color: #f44336; /* Red when out of limit */
+      color: red; /* Red when exceeded */
     }
   }
 
