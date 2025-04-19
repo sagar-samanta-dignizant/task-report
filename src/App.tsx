@@ -12,6 +12,7 @@ import {
   Layout,
   Menu,
   Tooltip,
+  InputRef,
 } from "antd"; // Import Ant Design components
 import {
   CheckOutlined,
@@ -23,7 +24,7 @@ import {
   ReloadOutlined, // Import the refresh icon
 } from "@ant-design/icons";
 import { Link, Route, Routes } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import moment from "moment";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -111,6 +112,8 @@ const App = () => {
   const [selectedSubIcon, setSelectedSubIcon] = useState<
     "bullet" | "dot" | "number" | ">" | ">>" | "=>"
   >("bullet"); // Default to "bullet"
+  const taskRefs = useRef<(HTMLInputElement | null)[]>([]); // Ref for task inputs
+  const subtaskRefs = useRef<(InputRef | null)[][]>([]); // Ref for subtask inputs
 
   useEffect(() => {
     if (alertMessage) {
@@ -258,7 +261,18 @@ const App = () => {
       minutes: "",
       status: "Completed", // Default status set to "Completed"
     };
-    setTasks((prevTasks) => [...prevTasks, newTask]); // Append the new task
+    setTasks((prevTasks) => {
+      const updatedTasks = [...prevTasks, newTask];
+      taskRefs.current.push(null); // Add a new ref for the new task
+      return updatedTasks;
+    });
+    setTimeout(() => {
+      if (taskRefs.current[taskRefs.current.length - 1]?.focus) {
+        taskRefs.current[taskRefs.current.length - 1]?.focus(); // Focus on the ID input
+      } else {
+        document.querySelector<HTMLInputElement>('.task-title-input:last-child')?.focus(); // Fallback to title input
+      }
+    }, 0);
   };
 
   const addSubtask = (parentIndex: number) => {
@@ -275,10 +289,16 @@ const App = () => {
       const updatedTasks = [...prevTasks];
       if (!updatedTasks[parentIndex].subtasks) {
         updatedTasks[parentIndex].subtasks = [];
+        subtaskRefs.current[parentIndex] = []; // Initialize subtask refs for the parent
       }
       updatedTasks[parentIndex].subtasks.push(newSubtask);
+      subtaskRefs.current[parentIndex].push(null); // Add a new ref for the new subtask
       return updatedTasks;
     });
+    setTimeout(() => {
+      const subtaskRef = subtaskRefs.current[parentIndex]?.[subtaskRefs.current[parentIndex].length - 1];
+      subtaskRef?.focus(); // Focus on the title input of the new subtask
+    }, 0);
   };
 
   const resetForm = () => {
@@ -648,6 +668,9 @@ ${name.trim()}`;
                         >
                           <div className="input-group id-field">
                             <Input
+                              ref={(el) => {
+                                taskRefs.current[index] = el?.input || null; // Assign ref to the underlying input element
+                              }}
                               className="task-id-input"
                               placeholder="Task ID"
                               value={task.id || ""}
@@ -758,6 +781,12 @@ ${name.trim()}`;
                               </div>
                               <div className="input-group title-field">
                                 <Input
+                                  ref={(el) => {
+                                    if (!subtaskRefs.current[index]) {
+                                      subtaskRefs.current[index] = [];
+                                    }
+                                    subtaskRefs.current[index][subIndex] = el; // Assign ref to subtask title input
+                                  }}
                                   className="task-title-input"
                                   placeholder="Subtask Title"
                                   value={subtask.title}
