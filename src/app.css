@@ -376,6 +376,8 @@ header {
 }
 
 .input-group {
+  flex: 1; /* Allow inputs to grow equally */
+  min-width: 90px; /* Ensure a minimum width for smaller inputs */
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -385,9 +387,7 @@ header {
 
 .input-group label {
   display: block;
-  font-size: 14px;
-  font-weight: bold;
-  color: #e0e0e0;
+  font-size: 12px; /* Reduce label font size */
   margin-bottom: 5px;
 }
 
@@ -436,10 +436,27 @@ header {
 }
 
 .task-info-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-wrap: nowrap; /* Prevent wrapping to the next line */
+  gap: 10px; /* Reduce spacing between inputs */
+  align-items: center; /* Align inputs vertically */
   margin-bottom: 20px;
+}
+
+.task-info-row .input-group {
+  flex: 1 1 15%; /* Reduce width of smaller inputs */
+  min-width: 100px; /* Ensure a minimum width for smaller screens */
+}
+
+.task-info-row .input-group:last-child {
+  flex: 1 1 25%; /* Project select input takes more space */
+}
+
+#date,
+#bulletType,
+#icon,
+#project {
+  width: 100%; /* Ensure dropdowns and date picker fit within their containers */
 }
 
 .input-field {
