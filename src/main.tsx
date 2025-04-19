@@ -1,4 +1,3 @@
-import "./index.css";
 import { ConfigProvider, theme } from "antd";
 import { BrowserRouter } from "react-router-dom"; // Import BrowserRouter
 import ReactDOM from "react-dom/client";
