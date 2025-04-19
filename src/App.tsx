@@ -209,7 +209,6 @@ const App = () => {
   };
 
   const addSubtask = (parentIndex: number) => {
-    console.log("addSubtask called for parentIndex:", parentIndex); // Log to check if the function is called twice
 
     const newSubtask: Omit<Task, "subtasks"> = {
       taskId: "",
@@ -225,9 +224,14 @@ const App = () => {
       if (!updatedTasks[parentIndex].subtasks) {
         updatedTasks[parentIndex].subtasks = [];
       }
-      updatedTasks[parentIndex].subtasks.push(newSubtask); // Add only one subtask
+      updatedTasks[parentIndex].subtasks.push(newSubtask);
 
-      return updatedTasks; // Return the updated state
+      setTimeout(() => {
+        const refKey = `${parentIndex}-${updatedTasks[parentIndex].subtasks!.length - 1}`;
+        subtaskTitleInputRef.current[refKey]?.focus(); // Focus on the new subtask's title input
+      }, 0);
+
+      return updatedTasks;
     });
   };
 
