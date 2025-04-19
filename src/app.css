@@ -365,6 +365,7 @@ header {
   gap: 10px;
   width: 100%;
   margin-top: 20px;
+  height: 100%;
 }
 
 .task-input-container {
@@ -567,8 +568,22 @@ header {
 .task-row {
   display: grid;
   align-items: center;
-  gap:10px;
-  grid-template-columns: 1fr 3fr 1fr 1fr 1fr auto;
+  gap: 10px;
+  grid-template-columns: 1fr 3fr 1fr 1fr 1fr auto auto; /* Default layout for parent tasks */
+}
+
+.task-row.subtask-row {
+  grid-template-columns: 1fr 3fr 1fr 1fr 1fr auto auto; /* Subtasks layout matches parent tasks */
+}
+
+.task-row .id-field {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.task-row.subtask-row .id-field {
+  visibility: hidden; /* Hide the ID field for subtasks while keeping its space */
 }
 
 button.clear-task-btn {

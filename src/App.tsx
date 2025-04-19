@@ -209,6 +209,8 @@ const App = () => {
   };
 
   const addSubtask = (parentIndex: number) => {
+    console.log("addSubtask called for parentIndex:", parentIndex); // Log to check if the function is called twice
+
     const newSubtask: Omit<Task, "subtasks"> = {
       taskId: "",
       title: "",
@@ -217,6 +219,7 @@ const App = () => {
       status: "Completed",
       icon: selectedIcon, // Apply the selected icon to the new subtask
     };
+
     setTasks((prevTasks) => {
       const updatedTasks = [...prevTasks];
       if (!updatedTasks[parentIndex].subtasks) {
@@ -224,15 +227,7 @@ const App = () => {
       }
       updatedTasks[parentIndex].subtasks.push(newSubtask); // Add only one subtask
 
-      setTimeout(() => {
-        const subtaskIndex = updatedTasks[parentIndex].subtasks
-          ? updatedTasks[parentIndex].subtasks.length - 1
-          : 0;
-        const refKey = `${parentIndex}-${subtaskIndex}`;
-        subtaskTitleInputRef.current[refKey]?.focus(); // Focus on the new subtask's title field
-      }, 0);
-
-      return updatedTasks;
+      return updatedTasks; // Return the updated state
     });
   };
 
@@ -589,7 +584,7 @@ ${name.trim()}`;
                           className="task-row"
                           style={{
                             gridTemplateColumns: settings.showID
-                              ? "1fr 3fr 1fr 1fr 1fr auto auto" // Restore original title width
+                              ? "1fr 3fr 1fr 1fr 1fr auto auto" // Parent task layout
                               : "3fr 1fr 1fr 1fr auto auto",
                           }}
                         >
@@ -681,7 +676,10 @@ ${name.trim()}`;
                           </div>
                           <div
                             className="add-task-circle"
-                            onClick={() => addSubtask(index)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent event bubbling
+                              addSubtask(index); // Call the function only once
+                            }}
                             title="Add Subtask"
                           >
                             {AddIcon}
@@ -692,17 +690,28 @@ ${name.trim()}`;
                             const refKey = `${index}-${subIndex}`;
                             return (
                               <div
-                                className="task-row"
+                                className="task-row subtask-row" // Add subtask-row class for proper alignment
                                 style={{
                                   gridTemplateColumns: settings.showID
-                                    ? "1fr 2fr 1fr 1fr 1fr 1fr auto"
-                                    : "2fr 1fr 1fr 1fr 1fr auto", // Align with task columns
+                                    ? "1fr 3fr 1fr 1fr 1fr auto" // Subtask layout with ID field enabled
+                                    : "3fr 1fr 1fr 1fr auto",
                                 }}
                                 key={subtask.taskId || `subtask-${index}-${subIndex}`}
                               >
                                 {settings.showID && (
                                   <div className="input-group id-field">
-                                    {/* Leave space for ID field but do not render input */}
+                                    <Input
+                                      placeholder="Subtask ID"
+                                      value={subtask.taskId}
+                                      onChange={(e) =>
+                                        handleSubtaskChange(
+                                          index,
+                                          subIndex,
+                                          "taskId",
+                                          e.target.value
+                                        )
+                                      }
+                                    />
                                   </div>
                                 )}
                                 <div className="input-group title-field">
