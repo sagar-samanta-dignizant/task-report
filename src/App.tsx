@@ -1,85 +1,59 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import "./app.css";
-
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
-import {
-  Alert,
-  Button,
-  DatePicker,
-  Input,
-  Select,
-  Layout,
-  Menu,
-  Tooltip,
-  InputRef,
-} from "antd"; // Import Ant Design components
-import {
-  CheckOutlined,
-  CopyOutlined,
-  SaveOutlined,
-  HomeOutlined,
-  SettingOutlined,
-  FileTextOutlined,
-  ReloadOutlined, // Import the refresh icon
-} from "@ant-design/icons";
+import { Alert, Button, DatePicker, Input, Select, Layout, Menu, Tooltip, InputRef } from "antd";
+import { CheckOutlined, CopyOutlined, SaveOutlined, HomeOutlined, SettingOutlined, FileTextOutlined, ReloadOutlined } from "@ant-design/icons";
 import { Link, Route, Routes } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import moment from "moment";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import EditTaskPage from "./pages/EditTaskPage";
-import {
-  ALERT_DISMISS_TIME,
-  ALL_AVAILABLE_PROJECTS,
-  ALL_STATUS_OPTIONS,
-} from "./constant/task.constant";
+import { ALERT_DISMISS_TIME, ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "./constant/task.constant";
+
 const { Option } = Select;
 const { Header } = Layout;
 
 interface Task {
-  id?: string; // Add id field
+  id?: string;
   title: string;
   hours: string | number;
-  minutes: string | number; // Add minutes field
+  minutes: string | number;
   status: string;
-  icon?: string; // Add icon field
-  subtasks?: Omit<Task, "subtasks">[]; // Add subtasks property
+  icon?: string;
+  subtasks?: Omit<Task, "subtasks">[];
 }
 
 const App = () => {
   const theme = "light";
-  const workingTimeLimit = 8.5; // Total working time in hours
+  const workingTimeLimit = 8.5;
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: "",
       title: "",
       hours: "",
       minutes: "",
-      status: "Completed", // Default status set to "Completed"
+      status: "Completed",
     },
   ]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>(() => {
     try {
-      return JSON.parse(localStorage.getItem("selectedProjects") || "[]"); // Ensure valid JSON string
+      return JSON.parse(localStorage.getItem("selectedProjects") || "[]");
     } catch {
-      return []; // Fallback to an empty array if JSON parsing fails
+      return [];
     }
   });
   const [name, setName] = useState(localStorage.getItem("name") || "");
   const [date, setDate] = useState(
     localStorage.getItem("date") || new Date().toISOString().split("T")[0]
   );
-  const [bulletType, setBulletType] = useState<
-    "bullet" | "dot" | "number" | ">" | ">>" | "=>"
-  >("bullet");
+  const [bulletType, setBulletType] = useState<"bullet" | "dot" | "number" | ">" | ">>" | "=>">("bullet");
   const [copySuccess, setCopySuccess] = useState(false);
-  const [nextTaskValue, setNextTaskValue] = useState(""); // New state for the next task value
+  const [nextTaskValue, setNextTaskValue] = useState("");
   const [settings, setSettings] = useState(() => {
     const defaultSettings = {
       taskSettings: JSON.parse(localStorage.getItem("taskSettings") || "{}") || {
         allowSubtask: false,
-        showHours: true, // Ensure showHours is true by default
+        showHours: true,
         showStatus: true,
         showDate: true,
         showID: true,
@@ -107,19 +81,17 @@ const App = () => {
     };
     return defaultSettings;
   });
-  const [alertMessage, setAlertMessage] = useState<string | null>(null); // State for alert message
-  const [editingReport, setEditingReport] = useState<any | null>(null); // State for editing a report
-  const [selectedSubIcon, setSelectedSubIcon] = useState<
-    "bullet" | "dot" | "number" | ">" | ">>" | "=>"
-  >("bullet"); // Default to "bullet"
-  const [copiedPreview, setCopiedPreview] = useState<string | null>(null); // Add copiedPreview state
-  const taskRefs = useRef<(HTMLInputElement | null)[]>([]); // Ref for task inputs
-  const subtaskRefs = useRef<(InputRef | null)[][]>([]); // Ref for subtask inputs
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [editingReport, setEditingReport] = useState<any | null>(null);
+  const [selectedSubIcon, setSelectedSubIcon] = useState<"bullet" | "dot" | "number" | ">" | ">>" | "=>">("bullet");
+  const [copiedPreview, setCopiedPreview] = useState<string | null>(null);
+  const taskRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const subtaskRefs = useRef<(InputRef | null)[][]>([]);
 
   useEffect(() => {
     if (alertMessage) {
-      const timer = setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME); // Use the constant here
-      return () => clearTimeout(timer); // Cleanup timer on component unmount or alert change
+      const timer = setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME);
+      return () => clearTimeout(timer);
     }
   }, [alertMessage]);
 
@@ -128,14 +100,12 @@ const App = () => {
       const subtaskTime =
         task.subtasks?.reduce((subSum, subtask) => {
           const subtaskHours = parseFloat(subtask.hours as string) || 0;
-          const subtaskMinutes =
-            (parseFloat(subtask.minutes as string) || 0) / 60;
+          const subtaskMinutes = (parseFloat(subtask.minutes as string) || 0) / 60;
           return subSum + subtaskHours + subtaskMinutes;
         }, 0) || 0;
 
-      const taskHours = task.subtasks ? 0 : parseFloat(task.hours as string) || 0; // Ignore task hours if subtasks exist
-      const taskMinutes =
-        task.subtasks ? 0 : (parseFloat(task.minutes as string) || 0) / 60; // Ignore task minutes if subtasks exist
+      const taskHours = task.subtasks ? 0 : parseFloat(task.hours as string) || 0;
+      const taskMinutes = task.subtasks ? 0 : (parseFloat(task.minutes as string) || 0) / 60;
 
       return sum + taskHours + taskMinutes + subtaskTime;
     }, 0);
@@ -209,9 +179,9 @@ const App = () => {
       const updatedTasks = [...prevTasks];
       updatedTasks[index] = {
         ...updatedTasks[index],
-        [field]: value, // Update the specific field
+        [field]: value,
       };
-      return updatedTasks; // Return the updated state
+      return updatedTasks;
     });
   };
 
@@ -227,10 +197,9 @@ const App = () => {
       if (parentTask.subtasks) {
         parentTask.subtasks[subtaskIndex] = {
           ...parentTask.subtasks[subtaskIndex],
-          [field]: value, // Update the specific field
+          [field]: value,
         };
 
-        // Recalculate parent task's hours and minutes based on subtasks
         const totalSubtaskTime = parentTask.subtasks.reduce(
           (sum, subtask) => {
             const subtaskHours = parseInt(subtask.hours as string) || 0;
@@ -249,7 +218,7 @@ const App = () => {
         parentTask.hours = totalHours.toString();
         parentTask.minutes = totalMinutes.toString();
       }
-      return updatedTasks; // Return the updated state
+      return updatedTasks;
     });
   };
 
@@ -259,18 +228,18 @@ const App = () => {
       title: "",
       hours: "",
       minutes: "",
-      status: "Completed", // Default status set to "Completed"
+      status: "Completed",
     };
     setTasks((prevTasks) => {
       const updatedTasks = [...prevTasks, newTask];
-      taskRefs.current.push(null); // Add a new ref for the new task
+      taskRefs.current.push(null);
       return updatedTasks;
     });
     setTimeout(() => {
       if (settings.taskSettings.showID) {
-        taskRefs.current[taskRefs.current.length - 1]?.focus(); // Focus on the ID input if enabled
+        taskRefs.current[taskRefs.current.length - 1]?.focus();
       } else {
-        document.querySelector<HTMLInputElement>('.task-title-input:last-child')?.focus(); // Fallback to title input
+        document.querySelector<HTMLInputElement>('.task-title-input:last-child')?.focus();
       }
     }, 0);
   };
@@ -282,22 +251,22 @@ const App = () => {
       hours: "",
       minutes: "",
       status: "Completed",
-      icon: selectedSubIcon, // Use the current selected icon
+      icon: selectedSubIcon,
     };
 
     setTasks((prevTasks) => {
       const updatedTasks = [...prevTasks];
       if (!updatedTasks[parentIndex].subtasks) {
         updatedTasks[parentIndex].subtasks = [];
-        subtaskRefs.current[parentIndex] = []; // Initialize subtask refs for the parent
+        subtaskRefs.current[parentIndex] = [];
       }
       updatedTasks[parentIndex].subtasks.push(newSubtask);
-      subtaskRefs.current[parentIndex].push(null); // Add a new ref for the new subtask
+      subtaskRefs.current[parentIndex].push(null);
       return updatedTasks;
     });
     setTimeout(() => {
       const subtaskRef = subtaskRefs.current[parentIndex]?.[subtaskRefs.current[parentIndex].length - 1];
-      subtaskRef?.focus(); // Focus on the title input of the new subtask
+      subtaskRef?.focus();
     }, 0);
   };
 
@@ -312,11 +281,11 @@ const App = () => {
       },
     ]);
     setNextTaskValue("");
-    setDate(new Date().toISOString().split("T")[0]); // Reset to today's date
+    setDate(new Date().toISOString().split("T")[0]);
   };
 
   const clearTask = (taskIndex: number) => {
-    setTasks((prevTasks) => prevTasks.filter((_, index) => index !== taskIndex)); // Remove only the selected task
+    setTasks((prevTasks) => prevTasks.filter((_, index) => index !== taskIndex));
   };
 
   const clearSubtask = (parentIndex: number, subtaskIndex: number) => {
@@ -336,23 +305,23 @@ const App = () => {
   };
 
   const getFormattedPreview = () => {
-    const allTasks = tasks.filter((task) => task.title.trim()); // Filter tasks with a title
+    const allTasks = tasks.filter((task) => task.title.trim());
 
     const formatLine = (task: Task, index: number, isSubtask = false) => {
       let line = "";
       if (settings.previewSettings.showID && task.id) {
-        line += `ID : ${task.id.trim()} `; // Include the ID if enabled
+        line += `ID : ${task.id.trim()} `;
       }
       if (task.icon) {
-        const icon = isSubtask ? getTaskIcon(index, selectedSubIcon) : task.icon; // Use numeric values for subtasks if "1" is selected
-        line += `  ${icon}`; // Include the icon
+        const icon = isSubtask ? getTaskIcon(index, selectedSubIcon) : task.icon;
+        line += `  ${icon}`;
       }
-      line += task.title.trim(); // Trim Title
+      line += task.title.trim();
       if (settings.previewSettings.showStatus && task.status)
-        line += ` (${task.status.trim()})`; // Trim Status
+        line += ` (${task.status.trim()})`;
       if (settings.previewSettings.showHours) {
         const taskTime = formatTaskTime(task.hours, task.minutes, task.subtasks);
-        if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
+        if (taskTime) line += ` (${taskTime})`;
       }
       return line;
     };
@@ -360,29 +329,29 @@ const App = () => {
     const getTaskIcon = (_: number, type: any) => {
       switch (type) {
         case "dot":
-          return "• "; // Use a dot bullet
+          return "• ";
         case "number":
-          return `${_ + 1}. `; // Use numbers
+          return `${_ + 1}. `;
         case ">":
-          return "> "; // Use a single arrow
+          return "> ";
         case ">>":
-          return ">> "; // Use a double arrow
+          return ">> ";
         case "=>":
-          return "=> "; // Use an arrow with equals
+          return "=> ";
         case "bullet":
-          return "● "; // Use a bold dot
+          return "● ";
         default:
-          return "- "; // Default fallback
+          return "- ";
       }
     };
 
     const formatTasks = (tasks: Task[], level = 0) =>
       tasks
         .map((task, index) => {
-          const indent = "  ".repeat(level); // Indent subtasks
+          const indent = "  ".repeat(level);
           let line = `${indent}${getTaskIcon(index, bulletType)}${formatLine(task, index)}`;
           if (settings.previewSettings.allowSubtask && task.subtasks && task.subtasks.length > 0) {
-            const filteredSubtasks = task.subtasks.filter((subtask) => subtask.title.trim()); // Filter subtasks with a title
+            const filteredSubtasks = task.subtasks.filter((subtask) => subtask.title.trim());
             if (filteredSubtasks.length > 0) {
               line += `\n${filteredSubtasks
                 .map((subtask, subIndex) =>
@@ -403,7 +372,7 @@ ${settings.previewSettings.showProject
         }\n---------------------\n`
         : ""
       }${formatTasks(allTasks)}${settings.previewSettings.showNextTask && nextTaskValue.trim()
-        ? `\n\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}` // Add extra newline above "Next's Tasks"
+        ? `\n\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
         : ""
       }
 
@@ -414,11 +383,11 @@ ${name.trim()}`;
   const handleCopy = () => {
     const preview = getFormattedPreview();
     navigator.clipboard.writeText(preview);
-    setCopiedPreview(preview); // Set copiedPreview
+    setCopiedPreview(preview);
     setCopySuccess(true);
     setTimeout(() => {
       setCopySuccess(false);
-      setCopiedPreview(null); // Clear copiedPreview after timeout
+      setCopiedPreview(null);
     }, 2000);
   };
 
@@ -428,10 +397,10 @@ ${name.trim()}`;
     if (!name.trim()) missingFields.push("Name");
     if (!date.trim()) missingFields.push("Date");
 
-    const filteredTasks = tasks.filter((task) => task.title.trim()); // Filter tasks with a title
+    const filteredTasks = tasks.filter((task) => task.title.trim());
 
     if (filteredTasks.length === 0) {
-      setAlertMessage("No task added"); // Show error if no tasks are added
+      setAlertMessage("No task added");
       setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME);
       return;
     }
@@ -439,11 +408,11 @@ ${name.trim()}`;
     const hasEmptySubtask = filteredTasks.some(
       (task) =>
         task.subtasks &&
-        task.subtasks.some((subtask) => !subtask.title.trim()) // Check for empty subtask titles
+        task.subtasks.some((subtask) => !subtask.title.trim())
     );
 
     if (hasEmptySubtask) {
-      setAlertMessage("Subtasks cannot have empty titles"); // Show error for empty subtask titles
+      setAlertMessage("Subtasks cannot have empty titles");
       setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME);
       return;
     }
@@ -474,7 +443,7 @@ ${name.trim()}`;
         status: settings.taskSettings.showStatus ? task.status.trim() : undefined,
         icon: task.icon?.trim(),
         subtasks: task.subtasks
-          ?.filter((subtask) => subtask.title.trim()) // Filter subtasks with a title
+          ?.filter((subtask) => subtask.title.trim())
           .map((subtask) => ({
             id: settings.taskSettings.showID ? subtask.id?.trim() : undefined,
             title: subtask.title.trim(),
@@ -553,9 +522,9 @@ ${name.trim()}`;
                       alertMessage.includes("successfully")
                         ? "success"
                         : "error"
-                    } // Success or error based on message
+                    }
                     closable
-                    onClose={() => setAlertMessage(null)} // Clear alert on close
+                    onClose={() => setAlertMessage(null)}
                     style={{ marginBottom: "15px" }}
                   />
                 )}
@@ -649,10 +618,10 @@ ${name.trim()}`;
                         <span
                           className={
                             remainingTime < 0
-                              ? "time-exceeded" // Red for exceeded
+                              ? "time-exceeded"
                               : remainingTime === 0
-                                ? "time-matched" // Green for matched
-                                : "time-in-limit" // Yellow for within limit
+                                ? "time-matched"
+                                : "time-in-limit"
                           }
                         >
                           {formatRemainingTime(remainingTime)}
@@ -662,22 +631,22 @@ ${name.trim()}`;
                     <div className="button-group">
                       <Tooltip title="Add a new task">
                         <Button
-                          type="default" // Change to outlined button
-                          icon={AddIcon} // Add icon for Add Task
+                          type="default"
+                          icon={AddIcon}
                           onClick={addTask}
                           title="Add Task"
-                          className="add-task-btn" // Add class for styling
+                          className="add-task-btn"
                         >
                           Add Task
                         </Button>
                       </Tooltip>
                       <Tooltip title="Reset all tasks">
                         <Button
-                          type="default" // Change to outlined button
-                          icon={<ReloadOutlined />} // Use refresh icon for Reset
+                          type="default"
+                          icon={<ReloadOutlined />}
                           onClick={resetForm}
                           title="Reset Form"
-                          className="reset-btn" // Add class for styling
+                          className="reset-btn"
                           style={{ marginLeft: "10px" }}
                         >
                           Reset
@@ -696,14 +665,14 @@ ${name.trim()}`;
                           style={{
                             gridTemplateColumns: settings.taskSettings.showID
                               ? "1fr 3fr 1fr 1fr 1fr auto auto"
-                              : "3fr 1fr 1fr 1fr auto auto", // Adjust layout when ID is hidden
+                              : "3fr 1fr 1fr 1fr auto auto",
                           }}
                         >
-                          {settings.taskSettings.showID && ( // Conditionally render ID input
+                          {settings.taskSettings.showID && (
                             <div className="input-group id-field">
                               <Input
                                 ref={(el) => {
-                                  taskRefs.current[index] = el?.input || null; // Assign ref to the underlying input element
+                                  taskRefs.current[index] = el?.input || null;
                                 }}
                                 className="task-id-input"
                                 placeholder="Task ID"
@@ -731,12 +700,12 @@ ${name.trim()}`;
                                 placeholder="Hours"
                                 value={task.subtasks?.length ? task.hours : task.hours}
                                 onChange={(e) => {
-                                  const value = Math.min(23, Math.max(0, parseInt(e.target.value) || 0)); // Ensure value is between 0 and 23
+                                  const value = Math.min(23, Math.max(0, parseInt(e.target.value) || 0));
                                   if (!task.subtasks?.length) {
                                     handleTaskChange(index, "hours", value);
                                   }
                                 }}
-                                disabled={!!task.subtasks?.length} // Disable if subtasks exist
+                                disabled={!!task.subtasks?.length}
                                 min={0}
                                 max={23}
                               />
@@ -749,12 +718,12 @@ ${name.trim()}`;
                                 placeholder="Minutes"
                                 value={task.subtasks?.length ? task.minutes : task.minutes}
                                 onChange={(e) => {
-                                  const value = Math.min(59, Math.max(0, parseInt(e.target.value) || 0)); // Ensure value is between 0 and 59
+                                  const value = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
                                   if (!task.subtasks?.length) {
                                     handleTaskChange(index, "minutes", value);
                                   }
                                 }}
-                                disabled={!!task.subtasks?.length} // Disable if subtasks exist
+                                disabled={!!task.subtasks?.length}
                                 min={0}
                                 max={59}
                               />
@@ -792,7 +761,7 @@ ${name.trim()}`;
                               addSubtask(index);
                             }}
                             title="Add Subtask"
-                            style={{ display: settings.taskSettings.allowSubtask ? "flex" : "none" }} // Hide button if allowSubtask is off
+                            style={{ display: settings.taskSettings.allowSubtask ? "flex" : "none" }}
                           >
                             {AddIcon}
                           </div>
@@ -805,7 +774,7 @@ ${name.trim()}`;
                               style={{
                                 gridTemplateColumns: settings.taskSettings.showID
                                   ? "1fr 3fr 1fr 1fr 1fr auto auto"
-                                  : "3fr 1fr 1fr 1fr auto auto", // Adjust layout when ID is hidden
+                                  : "3fr 1fr 1fr 1fr auto auto",
                               }}
                             >
                               {settings.taskSettings.showID && (
@@ -815,7 +784,7 @@ ${name.trim()}`;
                                       if (!subtaskRefs.current[index]) {
                                         subtaskRefs.current[index] = [];
                                       }
-                                      subtaskRefs.current[index][subIndex] = el || null; // Assign ref to the InputRef element
+                                      subtaskRefs.current[index][subIndex] = el || null;
                                     }}
                                     style={{
                                       visibility: "hidden"
@@ -840,7 +809,7 @@ ${name.trim()}`;
                                     if (!subtaskRefs.current[index]) {
                                       subtaskRefs.current[index] = [];
                                     }
-                                    subtaskRefs.current[index][subIndex] = el; // Assign ref to subtask title input
+                                    subtaskRefs.current[index][subIndex] = el;
                                   }}
                                   className="task-title-input"
                                   placeholder="Subtask Title"
@@ -862,7 +831,7 @@ ${name.trim()}`;
                                     placeholder="Hours"
                                     value={subtask.hours}
                                     onChange={(e) => {
-                                      const value = Math.min(23, Math.max(0, parseInt(e.target.value) || 0)); // Ensure value is between 0 and 23
+                                      const value = Math.min(23, Math.max(0, parseInt(e.target.value) || 0));
                                       handleSubtaskChange(index, subIndex, "hours", value);
                                     }}
                                     min={0}
@@ -877,7 +846,7 @@ ${name.trim()}`;
                                     placeholder="Minutes"
                                     value={subtask.minutes}
                                     onChange={(e) => {
-                                      const value = Math.min(59, Math.max(0, parseInt(e.target.value) || 0)); // Ensure value is between 0 and 59
+                                      const value = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
                                       handleSubtaskChange(index, subIndex, "minutes", value);
                                     }}
                                     min={0}
@@ -933,7 +902,7 @@ ${name.trim()}`;
                       </div>
                     ))}
                   </div>
-                  {settings.taskSettings.showNextTask && ( // Conditionally render the Next Task input
+                  {settings.taskSettings.showNextTask && (
                     <div className="input-group" style={{ marginTop: "20px" }}>
                       <Input
                         id="nextTask"
@@ -951,21 +920,21 @@ ${name.trim()}`;
                   <div className="button-group">
                     <Tooltip title="Copy to Clipboard">
                       <Button
-                        type="default" // Change to outlined button
+                        type="default"
                         icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
                         onClick={handleCopy}
                         title="Copy"
-                        className="copy-btn" // Add class for styling
+                        className="copy-btn"
                       />
                     </Tooltip>
                     <Tooltip title="Save Preview">
                       <Button
-                        type="default" // Change to outlined button
+                        type="default"
                         icon={<SaveOutlined />}
                         onClick={savePreview}
                         title="Save"
-                        className="save-btn" // Add class for styling
-                        style={{ marginLeft: "10px" }} // Add spacing between buttons
+                        className="save-btn"
+                        style={{ marginLeft: "10px" }}
                       />
                     </Tooltip>
                   </div>
@@ -995,9 +964,9 @@ ${name.trim()}`;
           bottom: "20px",
           right: "20px",
           padding: "16px",
-          backgroundColor: "#333", /* Darker background for better contrast */
-          color: "#fff", /* White text for readability */
-          border: "1px solid #555", /* Subtle border */
+          backgroundColor: "#333",
+          color: "#fff",
+          border: "1px solid #555",
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
           borderRadius: "8px",
           zIndex: 9999,

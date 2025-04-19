@@ -1,11 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button, DatePicker, Tooltip } from "antd";
-import {
-    CheckOutlined,
-    CopyOutlined,
-    DeleteOutlined,
-    EditOutlined,
-} from "@ant-design/icons";
+import { CheckOutlined, CopyOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
@@ -107,7 +101,6 @@ const ReportsPage: React.FC = () => {
         }
         return line;
     };
-
 
     const formatTasks = (tasks: any[], level = 0, bulletType: string, subIcon: string): string =>
         tasks

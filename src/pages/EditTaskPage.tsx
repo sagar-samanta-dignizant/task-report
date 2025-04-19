@@ -1,14 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AddIcon, minusIcon } from "../assets/fontAwesomeIcons";
 import { Button, DatePicker, Input, Select, Tooltip } from "antd";
 const { Option } = Select;
 import moment from "moment";
 import { useState, useRef } from "react";
-import {
-    useLocation,
-    useNavigate,
-} from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "../constant/task.constant";
+import { AddIcon, minusIcon } from "../assets/fontAwesomeIcons";
 
 interface Task {
     id: number;
@@ -21,28 +18,22 @@ interface Task {
 }
 
 const EditTaskPage = () => {
-    const location = useLocation(); // Use useLocation to access the state
-    const navigate = useNavigate(); // For navigation
-    const report = location.state?.report; // Extract the report data from state
+    const location = useLocation();
+    const navigate = useNavigate();
+    const report = location.state?.report;
 
     const [tasks, setTasks] = useState<Task[]>(report?.data.tasks || []);
-    const [selectedProjects, setSelectedProjects] = useState<string[]>(
-        report?.data.selectedProjects || []
-    );
+    const [selectedProjects, setSelectedProjects] = useState<string[]>(report?.data.selectedProjects || []);
     const [name, setName] = useState(report?.data.name || "");
     const [date, setDate] = useState(report?.date || "");
-    const [bulletType, setBulletType] = useState(
-        report?.data.bulletType || "bullet"
-    );
-    const [nextTaskValue, setNextTaskValue] = useState(
-        report?.data.nextTask || ""
-    );
-    const [selectedSubIcon, setSelectedSubIcon] = useState<"bullet" | "number" | ">" | "=>">("bullet"); // Default subtask icon
+    const [bulletType, setBulletType] = useState(report?.data.bulletType || "bullet");
+    const [nextTaskValue, setNextTaskValue] = useState(report?.data.nextTask || "");
+    const [selectedSubIcon, setSelectedSubIcon] = useState<"bullet" | "number" | ">" | "=>">("bullet");
 
-    const taskRefs = useRef<(HTMLInputElement | null)[]>([]); // Ref for task inputs
-    const subtaskRefs = useRef<(HTMLInputElement | null)[][]>([]); // Ref for subtask inputs
+    const taskRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const subtaskRefs = useRef<(HTMLInputElement | null)[][]>([]);
 
-    const workingTimeLimit = 8.5; // Total working time in hours
+    const workingTimeLimit = 8.5;
 
     const calculateRemainingTime = () => {
         const totalTaskTime = tasks.reduce((sum, task) => {
