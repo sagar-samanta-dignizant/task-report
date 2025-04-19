@@ -11,7 +11,7 @@ import autoTable from "jspdf-autotable";
 const { RangePicker } = DatePicker;
 
 const ReportsPage: React.FC = () => {
-    const [reportData, setReportData] = useState<Record<string, any>>({});
+    const [reportData, setReportData] = useState<Record<string, any>>([]);
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const [copiedPreview, setCopiedPreview] = useState<string | null>(null);
     const [selectedDateRange, setSelectedDateRange] = useState<[string, string] | null>(null);
@@ -237,6 +237,7 @@ ${name?.trim()}`;
 
 
 
+console.log(reportData);
 
     const exportMenu = (
         <Menu
@@ -246,6 +247,7 @@ ${name?.trim()}`;
                     key: "pdf",
                     icon: <FilePdfOutlined style={{ color: "#e74c3c" }} />,
                     label: "Export as PDF",
+                    disabled: reportData.length === 0, // Disable if no data
                 },
                 {
                     key: "excel",
