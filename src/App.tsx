@@ -663,22 +663,26 @@ ${name.trim()}`;
                         <div
                           className="task-row"
                           style={{
-                            gridTemplateColumns: "1fr 3fr 1fr 1fr 1fr auto auto",
+                            gridTemplateColumns: settings.taskSettings.showID
+                              ? "1fr 3fr 1fr 1fr 1fr auto auto"
+                              : "3fr 1fr 1fr 1fr auto auto", // Adjust layout when ID is hidden
                           }}
                         >
-                          <div className="input-group id-field">
-                            <Input
-                              ref={(el) => {
-                                taskRefs.current[index] = el?.input || null; // Assign ref to the underlying input element
-                              }}
-                              className="task-id-input"
-                              placeholder="Task ID"
-                              value={task.id || ""}
-                              onChange={(e) =>
-                                handleTaskChange(index, "id", e.target.value)
-                              }
-                            />
-                          </div>
+                          {settings.taskSettings.showID && ( // Conditionally render ID input
+                            <div className="input-group id-field">
+                              <Input
+                                ref={(el) => {
+                                  taskRefs.current[index] = el?.input || null; // Assign ref to the underlying input element
+                                }}
+                                className="task-id-input"
+                                placeholder="Task ID"
+                                value={task.id || ""}
+                                onChange={(e) =>
+                                  handleTaskChange(index, "id", e.target.value)
+                                }
+                              />
+                            </div>
+                          )}
                           <div className="input-group title-field">
                             <Input
                               className="task-title-input"
@@ -768,17 +772,34 @@ ${name.trim()}`;
                               className="task-row subtask-row"
                               key={`subtask-${index}-${subIndex}`}
                               style={{
-                                gridTemplateColumns:
-                                  "1fr 3fr 1fr 1fr 1fr auto auto",
-                              }}
+                                gridTemplateColumns: settings.taskSettings.showID
+                                ? "1fr 3fr 1fr 1fr 1fr auto auto"
+                                : "3fr 1fr 1fr 1fr auto auto", // Adjust layout when ID is hidden
+                            }}
                             >
-                              <div className="input-group id-field">
-                                <Input
-                                  className="task-id-input"
-                                  placeholder="Subtask ID"
-                                  style={{ visibility: "hidden" }}
-                                />
-                              </div>
+                              {settings.taskSettings.showID && (
+                                <div className="input-group id-field">
+                                  <Input
+                                    ref={(el) => {
+                                      if (!subtaskRefs.current[index]) {
+                                        subtaskRefs.current[index] = [];
+                                      }
+                                      subtaskRefs.current[index][subIndex] = el || null; // Assign ref to the InputRef element
+                                    }}
+                                    className="task-id-input"
+                                    placeholder="Subtask ID"
+                                    value={subtask.id || ""}
+                                    onChange={(e) =>
+                                      handleSubtaskChange(
+                                        index,
+                                        subIndex,
+                                        "id",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+                                </div>
+                              )}
                               <div className="input-group title-field">
                                 <Input
                                   ref={(el) => {
