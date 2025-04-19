@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button, DatePicker, Tooltip } from "antd"; 
+import { Button, DatePicker, Tooltip } from "antd";
 import {
     CheckOutlined,
     CopyOutlined,
@@ -9,107 +9,110 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
+
 const { RangePicker } = DatePicker;
 
 const ReportsPage: React.FC = () => {
     const [reportData, setReportData] = useState<any[]>([]);
-    const [copiedIndex, setCopiedIndex] = useState<number | null>(null); // Track which report was copied
-    const navigate = useNavigate(); // Use navigate for redirection
+    const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+    const [copiedPreview, setCopiedPreview] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     const handleDateRangeChange = (_: any, dateStrings: [string, string]) => {
         const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
-
         const filteredReports = Object.entries(savedReports)
             .filter(([date]) => {
                 const [start, end] = dateStrings;
-                if (!start || !end) return false; // Ensure both start and end dates are provided
-
-                // Normalize all dates to `YYYY-MM-DD` for consistent comparison
+                if (!start || !end) return false;
                 const normalizedDate = moment(date, "YYYY-MM-DD");
-                const normalizedStart = moment(start, "DD/MM/YYYY").format(
-                    "YYYY-MM-DD"
-                );
+                const normalizedStart = moment(start, "DD/MM/YYYY").format("YYYY-MM-DD");
                 const normalizedEnd = moment(end, "DD/MM/YYYY").format("YYYY-MM-DD");
 
                 return normalizedDate.isBetween(
-                    moment(normalizedStart, "YYYY-MM-DD"),
-                    moment(normalizedEnd, "YYYY-MM-DD"),
+                    moment(normalizedStart),
+                    moment(normalizedEnd),
                     "days",
                     "[]"
                 );
             })
-            .map(([date, data]) => ({
-                date, // Keep the date in `YYYY-MM-DD` format
-                data,
-            }));
+            .map(([date, data]) => ({ date, data }));
 
-        setReportData(filteredReports); // Update state with filtered reports
+        setReportData(filteredReports);
     };
 
     const handleCopy = (data: any, index: number) => {
-        navigator.clipboard.writeText(formatPreview(data));
-        setCopiedIndex(index); // Set the copied index
-        setTimeout(() => setCopiedIndex(null), 2000); // Revert back after 2 seconds
+        const preview = formatPreview(data);
+        navigator.clipboard.writeText(preview);
+        setCopiedIndex(index);
+        setCopiedPreview(preview);
+
+        setTimeout(() => {
+            setCopiedIndex(null);
+            setCopiedPreview(null);
+        }, 2000);
     };
 
     const handleDelete = (date: string) => {
         const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
-        delete savedReports[date]; // Remove the report by date
-        localStorage.setItem("reports", JSON.stringify(savedReports)); // Update storage
-        setReportData(reportData.filter((report) => report.date !== date)); // Update state
+        delete savedReports[date];
+        localStorage.setItem("reports", JSON.stringify(savedReports));
+        setReportData(reportData.filter((report) => report.date !== date));
     };
 
     const handleEdit = (report: any) => {
-        navigate(`/edit-task`, { state: { report } }); // Redirect to the edit page with state
+        navigate(`/edit-task`, { state: { report } });
     };
 
     const formatTaskTime = (hours: string | number, minutes: string | number) => {
         const h = parseInt(hours as string) || 0;
         const m = parseInt(minutes as string) || 0;
         let timeString = "";
-        if (h > 0) timeString += `${h} h`; // Only include hours if greater than 0
-        if (m > 0) timeString += ` ${m} min`; // Only include minutes if greater than 0
-        return timeString.trim(); // Remove any leading/trailing spaces
+        if (h > 0) timeString += `${h} h`;
+        if (m > 0) timeString += ` ${m} min`;
+        return timeString.trim();
     };
 
     const formatLine = (task: any, level = 0, bulletType: string, index: number) => {
-        const indent = level > 0 ? "      ".repeat(level) : "   "; // Add a single space for level 0
         const getBullet = (type: string, index: number) => {
             switch (type) {
                 case "dot":
-                    return "• "; // Use a dot bullet
+                    return "•";
                 case "number":
-                    return `${index + 1}. `; // Use numbers dynamically
+                    return `${index + 1}.`;
                 case ">":
-                    return "> "; // Use a single arrow
+                    return ">";
                 case ">>":
-                    return ">> "; // Use a double arrow
+                    return ">>";
                 case "=>":
-                    return "=> "; // Use an arrow with equals
+                    return "=>";
                 case "bullet":
-                    return "● "; // Use a bold dot
+                    return "●";
                 default:
-                    return "- "; // Default fallback
+                    return "-";
             }
         };
-
-        let line = `${indent}${getBullet(bulletType, index)}`; // Apply indentation and bullet
-        if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `; // Trim Task ID
-        line += task.title.trim(); // Trim Title
-        if (task.status) line += ` (${task.status.trim()})`; // Trim Status
+    
+        const bullet = getBullet(bulletType, index);
+        const indent = "    ".repeat(level); // 4 spaces per level for better visual offset
+    
+        let line = `${indent}${bullet} `; // Indent comes before bullet
+        if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `;
+        line += task.title.trim();
+        if (task.status) line += ` (${task.status.trim()})`;
         if (task.hours || task.minutes) {
             const taskTime = formatTaskTime(task.hours, task.minutes);
-            if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
+            if (taskTime) line += ` (${taskTime})`;
         }
         return line;
     };
+    
 
     const formatTasks = (tasks: any[], level = 0, bulletType: string, subIcon: string): string =>
         tasks
             .map((task, index) => {
                 const taskLine = `${formatLine(task, level, bulletType, index)}`;
                 const subtaskLines = task.subtasks
-                    ? formatTasks(task.subtasks, level + 1, subIcon, subIcon) // Use subIcon for subtasks
+                    ? formatTasks(task.subtasks, level + 1, subIcon, subIcon)
                     : "";
                 return `${taskLine}${subtaskLines ? `\n${subtaskLines}` : ""}`;
             })
@@ -118,23 +121,21 @@ const ReportsPage: React.FC = () => {
     const formatPreview = (data: any) => {
         const { tasks, selectedProjects, date, name, nextTask, bulletType, subIcon } = data;
 
-        return `Today's work update - ${moment(date, "YYYY-MM-DD").format(
-            "YYYY-MM-DD"
-        )}
-  
-  ${selectedProjects.length > 0
+        return `Today's work update - ${moment(date, "YYYY-MM-DD").format("YYYY-MM-DD")}
+
+${selectedProjects.length > 0
                 ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
                 : ""
             } 
-  ----------------------------------------
-  ${formatTasks(tasks, 0, bulletType, subIcon)}
-  ${nextTask && nextTask.trim()
-                ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}` // Trim Next Task
+----------------------------------------
+${formatTasks(tasks, 0, bulletType, subIcon)}
+${nextTask && nextTask.trim()
+                ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}`
                 : ""
             }
-  
-  Thanks & regards
-  ${name.trim()}`; // Trim Name
+
+Thanks & regards
+${name.trim()}`;
     };
 
     return (
@@ -143,9 +144,10 @@ const ReportsPage: React.FC = () => {
                 <h2>Reports</h2>
                 <RangePicker
                     onChange={handleDateRangeChange}
-                    format="DD/MM/YYYY" // Set date picker format
+                    format="DD/MM/YYYY"
                 />
             </div>
+
             <div className="report-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
                 {reportData.length > 0 ? (
                     reportData.map((report, index) => (
@@ -157,39 +159,31 @@ const ReportsPage: React.FC = () => {
                                         <Button
                                             type="default"
                                             icon={
-                                                copiedIndex === index ? (
-                                                    <CheckOutlined style={{ color: "#4caf50" }} /> // Green color for success
-                                                ) : (
-                                                    <CopyOutlined style={{ color: "#4caf50" }} /> // Green color for default
-                                                )
+                                                copiedIndex === index
+                                                    ? <CheckOutlined style={{ color: "#4caf50" }} />
+                                                    : <CopyOutlined style={{ color: "#4caf50" }} />
                                             }
                                             onClick={() => handleCopy(report.data, index)}
-                                            title="Copy"
                                         />
                                     </Tooltip>
                                     <Tooltip title="Edit Report">
                                         <Button
                                             type="default"
-                                            icon={<EditOutlined style={{ color: "#1e88e5" }} />} // Blue color for edit
+                                            icon={<EditOutlined style={{ color: "#1e88e5" }} />}
                                             onClick={() => handleEdit(report)}
-                                            title="Edit"
                                         />
                                     </Tooltip>
                                     <Tooltip title="Delete Report">
                                         <Button
-                                            type="default" // Change from "primary" to "default" to remove background color
+                                            type="default"
                                             danger
-                                            icon={<DeleteOutlined style={{ color: "#f44336" }} />} // Red color for delete
+                                            icon={<DeleteOutlined style={{ color: "#f44336" }} />}
                                             onClick={() => handleDelete(report.date)}
-                                            title="Delete"
                                         />
                                     </Tooltip>
                                 </div>
                             </div>
-                            <pre
-                                className="script-style"
-                                style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
-                            >
+                            <pre className="script-style" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
                                 {formatPreview(report.data)}
                             </pre>
                         </div>
@@ -198,7 +192,28 @@ const ReportsPage: React.FC = () => {
                     <p>No records found for the selected date range.</p>
                 )}
             </div>
+
+            {copiedPreview && (
+                <div style={{
+                    position: "fixed",
+                    bottom: "20px",
+                    right: "20px",
+                    padding: "16px",
+                    backgroundColor: "#fff",
+                    border: "1px solid #ccc",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                    borderRadius: "8px",
+                    zIndex: 9999,
+                    maxWidth: "400px",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                }}>
+                    <strong style={{ color: "#4caf50" }}>Copied Preview:</strong>
+                    <div style={{ marginTop: "8px" }}>{copiedPreview}</div>
+                </div>
+            )}
         </div>
     );
 };
+
 export default ReportsPage;
