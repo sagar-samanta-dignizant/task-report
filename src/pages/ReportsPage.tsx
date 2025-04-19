@@ -1,8 +1,10 @@
-import { Button, DatePicker, Tooltip } from "antd";
-import { CheckOutlined, CopyOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import "./ReportsPage.css"
+import { Button, DatePicker, Tooltip, Dropdown, Menu } from "antd";
+import { CheckOutlined, CopyOutlined, DeleteOutlined, EditOutlined, FilePdfOutlined, FileExcelOutlined, FileTextOutlined, DownOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
+import { fileExportIcon } from "../assets/fontAwesomeIcons";
 
 const { RangePicker } = DatePicker;
 
@@ -133,14 +135,70 @@ Thanks & regards
 ${name?.trim()}`;
     };
 
+    const handleExport = (type: string) => {
+        switch (type) {
+            case "pdf":
+                console.log("Exporting as PDF...");
+                break;
+            case "excel":
+                console.log("Exporting as Excel...");
+                break;
+            case "sheet":
+                console.log("Exporting as Sheet...");
+                break;
+            default:
+                console.error("Unknown export type");
+        }
+    };
+
+    const exportMenu = (
+        <Menu
+            onClick={({ key }) => handleExport(key)}
+            items={[
+                {
+                    key: "pdf",
+                    icon: <FilePdfOutlined style={{ color: "#e74c3c" }} />,
+                    label: "Export as PDF",
+                },
+                {
+                    key: "excel",
+                    icon: <FileExcelOutlined style={{ color: "#27ae60" }} />,
+                    label: "Export as Excel",
+                },
+                {
+                    key: "sheet",
+                    icon: <FileTextOutlined style={{ color: "#3498db" }} />,
+                    label: "Export as Sheet",
+                },
+            ]}
+        />
+    );
+
     return (
         <div className="reports-page">
             <div className="reports-header sticky-header">
                 <h2>Reports</h2>
-                <RangePicker
-                    onChange={handleDateRangeChange}
-                    format="DD/MM/YYYY"
-                />
+                <div className="reports-header-controls">
+                    <RangePicker
+                        onChange={handleDateRangeChange}
+                        format="DD/MM/YYYY"
+                    />
+                    <Dropdown overlay={exportMenu} trigger={['click']}>
+                        <Button
+                            type="default"
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                border: "1px solid rgb(91 100 99)", // Custom border color
+                                color: "#f39c12", // Custom text color
+                            }}
+                        >
+                            <span style={{ color: "#f39c12", fontSize: "18px" }}>{fileExportIcon}</span>
+                            Export
+                        </Button>
+                    </Dropdown>
+                </div>
             </div>
             <div className="reports-content">
                 {(reportData.length === 0 || !selectedDateRange) && (

@@ -13,6 +13,22 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.reports-header {
+    display: flex;
+    justify-content: space-between; /* Space between title and controls */
+    align-items: center;
+}
+
+.reports-header h2 {
+    margin-right: auto; /* Push the title to the far left */
+}
+
+.reports-header-controls {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 10px; /* Allow the controls to take up remaining space */
+}
+
 .reports-content {
     flex: 1;
     overflow-y: auto; /* Enable scrolling for the report content */
@@ -39,4 +55,24 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
+}
+
+button.ant-btn-primary {
+    background-color: #3498db; /* Custom button background color */
+    border-color: #2980b9; /* Custom border color */
+}
+
+button.ant-btn-primary:hover {
+    background-color: #2980b9; /* Darker shade on hover */
+    border-color: #1c6ea4;
+}
+
+button.ant-btn-default {
+    transition: all 0.3s ease;
+}
+
+button.ant-btn-default:hover {
+    background-color: #f39c12; /* Highlight background on hover */
+    color: #fff; /* White text on hover */
+    border-color: #f39c12; /* Keep border consistent */
 }
