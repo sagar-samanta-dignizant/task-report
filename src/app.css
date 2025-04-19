@@ -504,7 +504,7 @@ header {
 
 .task-details-inputs {
   flex-grow: 1;
-  max-height: calc(100vh - 550px);
+  max-height: calc(100vh - 450px);
   overflow-y: auto;
   padding-right: 10px;
   box-sizing: border-box;
