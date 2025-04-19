@@ -185,8 +185,26 @@ const EditTaskPage = () => {
     };
 
     const getFormattedPreview = () => {
-        const formatLine = (task: Task) => {
-            let line = "";
+        const formatLine = (task: Task, level = 0, bulletType: string, index: number) => {
+            const getBullet = (type: string, index: number) => {
+                switch (type) {
+                    case "bullet":
+                        return "•";
+                    case "number":
+                        return `${index + 1}.`;
+                    case ">":
+                        return ">";
+                    case "=>":
+                        return "=>";
+                    default:
+                        return "-";
+                }
+            };
+
+            const bullet = getBullet(bulletType, index);
+            const indent = "    ".repeat(level); // 4 spaces per level for better visual offset
+
+            let line = `${indent}${bullet} `; // Indent comes before bullet
             if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `;
             line += task.title.trim();
             if (task.status) line += ` (${task.status.trim()})`;
@@ -197,31 +215,29 @@ const EditTaskPage = () => {
             return line;
         };
 
-        const formatTasks = tasks
-            .map((task, index) => {
-                let taskLine = `${index + 1}. ${formatLine(task)}`;
-                if (task.subtasks && task.subtasks.length > 0) {
-                    const subtasks = task.subtasks
-                        .map((subtask, subIndex) => `  ${index + 1}.${subIndex + 1}. ${formatLine(subtask)}`)
-                        .join("\n");
-                    taskLine += `\n${subtasks}`;
-                }
-                return taskLine;
-            })
-            .join("\n");
+        const formatTasks = (tasks: Task[], level = 0, bulletType: string, subIcon: string): string =>
+            tasks
+                .map((task, index) => {
+                    const taskLine = `${formatLine(task, level, bulletType, index)}`;
+                    const subtaskLines = task.subtasks
+                        ? formatTasks(task.subtasks, level + 1, subIcon, subIcon)
+                        : "";
+                    return `${taskLine}${subtaskLines ? `\n${subtaskLines}` : ""}`;
+                })
+                .join("\n");
 
         return `Today's work update - ${moment(date).format("YYYY-MM-DD")}
-  
-  Project: ${selectedProjects.join(" & ") || "Not Selected"}
-  ----------------------------------------
-  ${formatTasks}
-  ${nextTaskValue.trim()
-                ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
-                : ""
-            }
-  
-  Thanks & regards
-  ${name.trim()}`;
+
+Project: ${selectedProjects.join(" & ") || "Not Selected"}
+----------------------------------------
+${formatTasks(tasks, 0, bulletType, selectedSubIcon)}
+${nextTaskValue.trim()
+            ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
+            : ""
+        }
+
+Thanks & regards
+${name.trim()}`;
     };
 
     if (!report) {
@@ -277,7 +293,9 @@ const EditTaskPage = () => {
                                 <Select
                                     id="bulletType"
                                     value={bulletType}
-                                    onChange={(value) => setBulletType(value as any)}
+                                    onChange={(value) => {
+                                        setBulletType(value as any);
+                                    }}
                                     style={{ width: "100%" }}
                                 >
                                     <Option value="bullet">•</Option>
@@ -292,7 +310,9 @@ const EditTaskPage = () => {
                                     id="icon"
                                     placeholder="Select icon"
                                     value={selectedSubIcon}
-                                    onChange={(value) => setSelectedSubIcon(value)}
+                                    onChange={(value) => {
+                                        setSelectedSubIcon(value);
+                                    }}
                                     style={{ width: "100%" }}
                                 >
                                     <Option value="bullet">•</Option>
