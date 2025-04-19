@@ -16,9 +16,11 @@ const ReportsPage: React.FC = () => {
     const [reportData, setReportData] = useState<any[]>([]);
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const [copiedPreview, setCopiedPreview] = useState<string | null>(null);
+    const [selectedDateRange, setSelectedDateRange] = useState<[string, string] | null>(null);
     const navigate = useNavigate();
 
     const handleDateRangeChange = (_: any, dateStrings: [string, string]) => {
+        setSelectedDateRange(dateStrings);
         const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
         const filteredReports = Object.entries(savedReports)
             .filter(([date]) => {
@@ -91,10 +93,10 @@ const ReportsPage: React.FC = () => {
                     return "-";
             }
         };
-    
+
         const bullet = getBullet(bulletType, index);
         const indent = "    ".repeat(level); // 4 spaces per level for better visual offset
-    
+
         let line = `${indent}${bullet} `; // Indent comes before bullet
         if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `;
         line += task.title.trim();
@@ -105,7 +107,7 @@ const ReportsPage: React.FC = () => {
         }
         return line;
     };
-    
+
 
     const formatTasks = (tasks: any[], level = 0, bulletType: string, subIcon: string): string =>
         tasks
@@ -137,6 +139,7 @@ ${nextTask && nextTask.trim()
 Thanks & regards
 ${name.trim()}`;
     };
+console.log(reportData, "reportData");
 
     return (
         <div className="reports-page">
@@ -147,9 +150,35 @@ ${name.trim()}`;
                     format="DD/MM/YYYY"
                 />
             </div>
-
+            
+            {(reportData.length === 0 || !selectedDateRange) && (
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "calc(100vh - 80px)", // Full height minus header height
+                        width: "100%", // Full width of the screen
+                        textAlign: "center", // Center text alignment
+                    }}
+                >
+                    {!selectedDateRange && (
+                        <p style={{ color: "#888", fontSize: "18px", fontWeight: "bold" }}>
+                            Select a date range to view reports.
+                        </p>
+                    )}
+                    {reportData.length === 0 && selectedDateRange && (
+                        <div className="report-summary">
+                            <p style={{ color: "#888", fontSize: "18px", fontWeight: "bold" }}>
+                                No reports found for the selected date range.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            )}
             <div className="report-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
-                {reportData.length > 0 ? (
+                {reportData.length > 0 && (
                     reportData.map((report, index) => (
                         <div key={index} className="report-card">
                             <div className="task-preview-header">
@@ -188,8 +217,6 @@ ${name.trim()}`;
                             </pre>
                         </div>
                     ))
-                ) : (
-                    <p>No records found for the selected date range.</p>
                 )}
             </div>
 
