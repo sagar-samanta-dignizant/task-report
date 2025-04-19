@@ -337,7 +337,7 @@ const App = () => {
   };
 
   const getFormattedPreview = () => {
-    const allTasks = tasks; // Include all tasks without filtering
+    const allTasks = tasks.filter((task) => task.title.trim()); // Filter tasks with a title
 
     const formatLine = (task: Task, index: number, isSubtask = false) => {
       let line = "";
@@ -383,11 +383,14 @@ const App = () => {
           const indent = "  ".repeat(level); // Indent subtasks
           let line = `${indent}${getTaskIcon(index, bulletType)}${formatLine(task, index)}`;
           if (settings.previewSettings.allowSubtask && task.subtasks && task.subtasks.length > 0) {
-            line += `\n${task.subtasks
-              .map((subtask, subIndex) =>
-                `${formatLine(subtask, subIndex, true)}`
-              )
-              .join("\n")}`;
+            const filteredSubtasks = task.subtasks.filter((subtask) => subtask.title.trim()); // Filter subtasks with a title
+            if (filteredSubtasks.length > 0) {
+              line += `\n${filteredSubtasks
+                .map((subtask, subIndex) =>
+                  `${formatLine(subtask, subIndex, true)}`
+                )
+                .join("\n")}`;
+            }
           }
           return line;
         })
@@ -397,13 +400,13 @@ const App = () => {
       }
 
 ${settings.previewSettings.showProject
-        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
-        }\n---------------------\n`
-        : ""
-      }${formatTasks(allTasks)}${settings.previewSettings.showNextTask && nextTaskValue.trim()
-        ? `\n\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}` // Add extra newline above "Next's Tasks"
-        : ""
-      }
+      ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
+      }\n---------------------\n`
+      : ""
+    }${formatTasks(allTasks)}${settings.previewSettings.showNextTask && nextTaskValue.trim()
+      ? `\n\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}` // Add extra newline above "Next's Tasks"
+      : ""
+    }
 
 Thanks & regards
 ${name.trim()}`;
@@ -426,11 +429,31 @@ ${name.trim()}`;
     if (!name.trim()) missingFields.push("Name");
     if (!date.trim()) missingFields.push("Date");
 
+    const filteredTasks = tasks.filter((task) => task.title.trim()); // Filter tasks with a title
+
+    if (filteredTasks.length === 0) {
+      setAlertMessage("No task added"); // Show error if no tasks are added
+      setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME);
+      return;
+    }
+
+    const hasEmptySubtask = filteredTasks.some(
+      (task) =>
+        task.subtasks &&
+        task.subtasks.some((subtask) => !subtask.title.trim()) // Check for empty subtask titles
+    );
+
+    if (hasEmptySubtask) {
+      setAlertMessage("Subtasks cannot have empty titles"); // Show error for empty subtask titles
+      setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME);
+      return;
+    }
+
     if (missingFields.length > 0) {
       setAlertMessage(
         `The following fields are required : ${missingFields.join(", ")}`
       );
-      setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME); // Use the constant here
+      setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME);
       return;
     }
 
@@ -438,50 +461,52 @@ ${name.trim()}`;
 
     if (!editingReport && savedReports[date]) {
       setAlertMessage(`A record already exists for the date: ${date}`);
-      setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME); // Use the constant here
+      setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME);
       return;
     }
 
-    const filteredTasks = tasks.filter((task) => task.title.trim()); // Only include tasks with a title
     const previewData = {
-      date, // Save the date in `YYYY-MM-DD` format
+      date,
       tasks: filteredTasks.map((task) => ({
-        id: settings.taskSettings.showID ? task.id?.trim() : undefined, // Include id
-        title: task.title.trim(), // Trim Title
+        id: settings.taskSettings.showID ? task.id?.trim() : undefined,
+        title: task.title.trim(),
         hours: settings.taskSettings.showHours ? task.hours : undefined,
-        minutes: settings.taskSettings.showHours ? task.minutes : undefined, // Include minutes
-        status: settings.taskSettings.showStatus ? task.status.trim() : undefined, // Trim Status
-        icon: task.icon?.trim(), // Include icon
-        subtasks: task.subtasks?.map((subtask) => ({
-          id: settings.taskSettings.showID ? subtask.id?.trim() : undefined, // Include id for subtask
-          title: subtask.title.trim(),
-          hours: settings.taskSettings.showHours ? subtask.hours : undefined,
-          minutes: settings.taskSettings.showHours ? subtask.minutes : undefined,
-          status: settings.taskSettings.showStatus ? subtask.status.trim() : undefined,
-          icon: subtask.icon?.trim(), // Include icon
-        })),
+        minutes: settings.taskSettings.showHours ? task.minutes : undefined,
+        status: settings.taskSettings.showStatus ? task.status.trim() : undefined,
+        icon: task.icon?.trim(),
+        subtasks: task.subtasks
+          ?.filter((subtask) => subtask.title.trim()) // Filter subtasks with a title
+          .map((subtask) => ({
+            id: settings.taskSettings.showID ? subtask.id?.trim() : undefined,
+            title: subtask.title.trim(),
+            hours: settings.taskSettings.showHours ? subtask.hours : undefined,
+            minutes: settings.taskSettings.showHours ? subtask.minutes : undefined,
+            status: settings.taskSettings.showStatus
+              ? subtask.status.trim()
+              : undefined,
+            icon: subtask.icon?.trim(),
+          })),
       })),
       selectedProjects: settings.taskSettings.showProject
         ? selectedProjects.map((p) => p.trim())
-        : [], // Trim Project Names
-      name: settings.taskSettings.showDate ? name.trim() : undefined, // Trim Name
+        : [],
+      name: settings.taskSettings.showDate ? name.trim() : undefined,
       nextTask:
         settings.taskSettings.showNextTask && nextTaskValue.trim()
-          ? nextTaskValue.trim() // Trim Next Task
-          : undefined, // Save next task only if it exists
-      bulletType, // Save the selected bullet type for this report
-      subIcon: selectedSubIcon, // Save the selected subtask icon
+          ? nextTaskValue.trim()
+          : undefined,
+      bulletType,
+      subIcon: selectedSubIcon,
     };
 
-    savedReports[date] = previewData; // Save only the filtered data
+    savedReports[date] = previewData;
     localStorage.setItem("reports", JSON.stringify(savedReports));
     setAlertMessage(
       editingReport
         ? "Record updated successfully!"
         : "Record saved successfully!"
-    ); // Show success alert
+    );
 
-    // Reset form data (excluding user details and selected projects)
     setTasks([
       {
         id: "",
@@ -492,7 +517,7 @@ ${name.trim()}`;
       },
     ]);
     setNextTaskValue("");
-    setEditingReport(null); // Clear editing state
+    setEditingReport(null);
   };
 
   return (
