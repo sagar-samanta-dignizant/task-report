@@ -112,6 +112,7 @@ const App = () => {
   const [selectedSubIcon, setSelectedSubIcon] = useState<
     "bullet" | "dot" | "number" | ">" | ">>" | "=>"
   >("bullet"); // Default to "bullet"
+  const [copiedPreview, setCopiedPreview] = useState<string | null>(null); // Add copiedPreview state
   const taskRefs = useRef<(HTMLInputElement | null)[]>([]); // Ref for task inputs
   const subtaskRefs = useRef<(InputRef | null)[][]>([]); // Ref for subtask inputs
 
@@ -409,9 +410,14 @@ ${name.trim()}`;
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(getFormattedPreview());
+    const preview = getFormattedPreview();
+    navigator.clipboard.writeText(preview);
+    setCopiedPreview(preview); // Set copiedPreview
     setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000); // Revert back after 2 seconds
+    setTimeout(() => {
+      setCopySuccess(false);
+      setCopiedPreview(null); // Clear copiedPreview after timeout
+    }, 2000);
   };
 
   const savePreview = () => {
@@ -959,6 +965,26 @@ ${name.trim()}`;
         />
         <Route path="/reports" element={<ReportsPage />} />
       </Routes>
+      {copiedPreview && (
+        <div style={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          padding: "16px",
+          backgroundColor: "#333", /* Darker background for better contrast */
+          color: "#fff", /* White text for readability */
+          border: "1px solid #555", /* Subtle border */
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+          borderRadius: "8px",
+          zIndex: 9999,
+          maxWidth: "400px",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+        }}>
+          <strong style={{ color: "#4caf50" }}>Copied Preview:</strong>
+          <div style={{ marginTop: "8px" }}>{copiedPreview}</div>
+        </div>
+      )}
     </Layout>
   );
 };

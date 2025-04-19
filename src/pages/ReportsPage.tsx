@@ -227,8 +227,9 @@ console.log(reportData, "reportData");
                     bottom: "20px",
                     right: "20px",
                     padding: "16px",
-                    backgroundColor: "#fff",
-                    border: "1px solid #ccc",
+                    backgroundColor: "#333", /* Darker background for better contrast */
+                    color: "#fff", /* White text for readability */
+                    border: "1px solid #555", /* Subtle border */
                     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
                     borderRadius: "8px",
                     zIndex: 9999,
