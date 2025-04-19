@@ -83,7 +83,7 @@ const App = () => {
         showStatus: true,
         showDate: true,
         showID: true,
-        showNextTask: true,
+        showNextTask: false,
         showProject: true,
       },
       previewSettings: JSON.parse(localStorage.getItem("previewSettings") || "{}") || {
@@ -92,7 +92,7 @@ const App = () => {
         showStatus: true,
         showDate: true,
         showID: true,
-        showNextTask: true,
+        showNextTask: false,
         showProject: true,
       },
       exportSettings: JSON.parse(localStorage.getItem("exportSettings") || "{}") || {
@@ -319,9 +319,9 @@ const App = () => {
   const getFormattedPreview = () => {
     const allTasks = tasks; // Include all tasks without filtering
 
-    const formatLine = (task: Task, index: number, isSubtask = false,) => {
+    const formatLine = (task: Task, index: number, isSubtask = false) => {
       let line = "";
-      if (settings.taskSettings.showID && task.id) {
+      if (settings.previewSettings.showID && task.id) {
         line += `ID : ${task.id.trim()} `; // Include the ID if enabled
       }
       if (task.icon) {
@@ -329,9 +329,9 @@ const App = () => {
         line += `  ${icon}`; // Include the icon
       }
       line += task.title.trim(); // Trim Title
-      if (settings.taskSettings.showStatus && task.status)
+      if (settings.previewSettings.showStatus && task.status)
         line += ` (${task.status.trim()})`; // Trim Status
-      if (settings.taskSettings.showHours) {
+      if (settings.previewSettings.showHours) {
         const taskTime = formatTaskTime(task.hours, task.minutes, task.subtasks);
         if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty
       }
@@ -357,7 +357,6 @@ const App = () => {
       }
     };
 
-
     const formatTasks = (tasks: Task[], level = 0) =>
       tasks
         .map((task, index) => {
@@ -374,17 +373,18 @@ const App = () => {
         })
         .join("\n");
 
-    return `Today's work update - ${settings.taskSettings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""
-      }
+    return `Today's work update - ${
+      settings.previewSettings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""
+    }
 
-${settings.taskSettings.showProject
-        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
-        }\n---------------------\n`
-        : ""
-      }${formatTasks(allTasks)}${settings.taskSettings.showNextTask && nextTaskValue.trim()
-        ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
-        : ""
-      }
+${settings.previewSettings.showProject
+    ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
+    }\n---------------------\n`
+    : ""
+  }${formatTasks(allTasks)}${settings.previewSettings.showNextTask && nextTaskValue.trim()
+    ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
+    : ""
+  }
 
 Thanks & regards
 ${name.trim()}`;
