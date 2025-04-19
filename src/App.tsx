@@ -85,7 +85,9 @@ const App = () => {
   });
   const [alertMessage, setAlertMessage] = useState<string | null>(null); // State for alert message
   const [editingReport, setEditingReport] = useState<any | null>(null); // State for editing a report
-  const [selectedIcon, setSelectedIcon] = useState<string>(">"); // Default to "bullet"
+  const [selectedSubIcon, setSelectedSubIcon] = useState<
+    "bullet" | "dot" | "number" | ">" | ">>" | "=>"
+  >("bullet"); // Default to "bullet"
 
   useEffect(() => {
     if (alertMessage) {
@@ -201,7 +203,7 @@ const App = () => {
       hours: "",
       minutes: "",
       status: "Completed",
-      icon: selectedIcon, // Use the current selected icon
+      icon: selectedSubIcon, // Use the current selected icon
     };
 
     setTasks((prevTasks) => {
@@ -247,13 +249,14 @@ const App = () => {
   const getFormattedPreview = () => {
     const allTasks = tasks; // Include all tasks without filtering
 
-    const formatLine = (task: Task, _: number) => {
+    const formatLine = (task: Task, index: number, isSubtask = false,) => {
       let line = "";
       if (settings.showID && task.id) {
-        line += `ID : ${task.id.trim()}`; // Include the ID if enabled
+        line += `ID : ${task.id.trim()} `; // Include the ID if enabled
       }
       if (task.icon) {
-        line += `${task.icon} `; // Include the icon
+        const icon = isSubtask ? getTaskIcon(index, selectedSubIcon) : task.icon; // Use numeric values for subtasks if "1" is selected
+        line += `  ${icon}`; // Include the icon
       }
       line += task.title.trim(); // Trim Title
       if (settings.showStatus && task.status)
@@ -265,8 +268,8 @@ const App = () => {
       return line;
     };
 
-    const getBullet = (_: number) => {
-      switch (bulletType) {
+    const getTaskIcon = (_: number, type: any) => {
+      switch (type) {
         case "dot":
           return "• "; // Use a dot bullet
         case "number":
@@ -284,13 +287,18 @@ const App = () => {
       }
     };
 
+
     const formatTasks = (tasks: Task[], level = 0) =>
       tasks
         .map((task, index) => {
           const indent = "  ".repeat(level); // Indent subtasks
-          let line = `${indent}${getBullet(index)}${formatLine(task, index)}`;
+          let line = `${indent}${getTaskIcon(index, bulletType)}${formatLine(task, index)}`;
           if (task.subtasks && task.subtasks.length > 0) {
-            line += `\n${formatTasks(task.subtasks, level + 1)}`; // Recursively format subtasks
+            line += `\n${task.subtasks
+              .map((subtask, subIndex) =>
+                ` ${formatLine(subtask, subIndex, true)}`
+              )
+              .join("\n")}`; // Use numeric values for subtasks if "1" is selected
           }
           return line;
         })
@@ -478,8 +486,8 @@ ${name.trim()}`;
                       <Select
                         id="icon"
                         placeholder="Select icon"
-                        value={selectedIcon}
-                        onChange={(value) => setSelectedIcon(value)}
+                        value={selectedSubIcon}
+                        onChange={(value) => setSelectedSubIcon(value)}
                         style={{ width: "100%" }}
                       >
                         <Option value="bullet">•</Option>
@@ -669,7 +677,7 @@ ${name.trim()}`;
                                 <Input
                                   className="task-id-input"
                                   placeholder="Subtask ID"
-                                  style={{ visibility: "hidden" }}                                  
+                                  style={{ visibility: "hidden" }}
                                 />
                               </div>
                               <div className="input-group title-field">
