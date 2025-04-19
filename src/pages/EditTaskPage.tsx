@@ -3,7 +3,7 @@ import { AddIcon, minusIcon } from "../assets/fontAwesomeIcons";
 import { Button, DatePicker, Input, Select, Tooltip } from "antd";
 const { Option } = Select;
 import moment from "moment";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
     useLocation,
     useNavigate,
@@ -38,6 +38,9 @@ const EditTaskPage = () => {
         report?.data.nextTask || ""
     );
     const [selectedSubIcon, setSelectedSubIcon] = useState<"bullet" | "number" | ">" | "=>">("bullet"); // Default subtask icon
+
+    const taskRefs = useRef<(HTMLInputElement | null)[]>([]); // Ref for task inputs
+    const subtaskRefs = useRef<(HTMLInputElement | null)[][]>([]); // Ref for subtask inputs
 
     const workingTimeLimit = 8.5; // Total working time in hours
 
@@ -114,7 +117,14 @@ const EditTaskPage = () => {
             minutes: "",
             status: "Completed",
         };
-        setTasks((prevTasks) => [...prevTasks, newTask]);
+        setTasks((prevTasks) => {
+            const updatedTasks = [...prevTasks, newTask];
+            taskRefs.current.push(null); // Add a new ref for the new task
+            return updatedTasks;
+        });
+        setTimeout(() => {
+            taskRefs.current[taskRefs.current.length - 1]?.focus(); // Focus on the ID input if it exists
+        }, 0);
     };
 
     const addSubtask = (parentIndex: number) => {
@@ -131,10 +141,16 @@ const EditTaskPage = () => {
             const updatedTasks = [...prevTasks];
             if (!updatedTasks[parentIndex].subtasks) {
                 updatedTasks[parentIndex].subtasks = [];
+                subtaskRefs.current[parentIndex] = []; // Initialize subtask refs for the parent
             }
             updatedTasks[parentIndex].subtasks.push(newSubtask);
+            subtaskRefs.current[parentIndex].push(null); // Add a new ref for the new subtask
             return updatedTasks;
         });
+        setTimeout(() => {
+            const subtaskRef = subtaskRefs.current[parentIndex]?.[subtaskRefs.current[parentIndex].length - 1];
+            subtaskRef?.focus(); // Focus on the Title input of the new subtask
+        }, 0);
     };
 
     const clearTask = (taskId: number) => {
@@ -320,7 +336,14 @@ const EditTaskPage = () => {
                                 </Tooltip>
                             </div>
                         </div>
-                        <div className="task-details-inputs" style={{ marginTop: "10px" }}>
+                        <div
+                            className="task-details-inputs"
+                            style={{
+                                marginTop: "10px",
+                                maxHeight: "400px", // Limit the height for scrolling
+                                overflowY: "auto", // Enable vertical scrolling
+                            }}
+                        >
                             {tasks.map((task, index) => (
                                 <div key={`task-${index}`}>
                                     <div
@@ -331,6 +354,9 @@ const EditTaskPage = () => {
                                     >
                                         <div className="input-group id-field">
                                             <Input
+                                                ref={(el) => {
+                                                    taskRefs.current[index] = el?.input || null; // Assign ref to the underlying input element
+                                                }}
                                                 placeholder="Task ID"
                                                 value={task.taskId}
                                                 onChange={(e) =>
@@ -421,6 +447,12 @@ const EditTaskPage = () => {
                                                 </div>
                                                 <div className="input-group title-field">
                                                     <Input
+                                                        ref={(el) => {
+                                                            if (!subtaskRefs.current[index]) {
+                                                                subtaskRefs.current[index] = [];
+                                                            }
+                                                            subtaskRefs.current[index][subIndex] = el?.input || null; // Assign ref to the Title input
+                                                        }}
                                                         placeholder="Subtask Title"
                                                         value={subtask.title}
                                                         onChange={(e) =>
@@ -505,11 +537,31 @@ const EditTaskPage = () => {
                     </pre>
                 </div>
             </div>
-            <div className="button-group" style={{ marginTop: "20px" }}>
-                <Button type="primary" onClick={handleSave}>
+            <div className="button-group" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-start", gap: "20px" }}>
+                <Button
+                    type="default"
+                    onClick={handleSave}
+                    style={{
+                        borderColor: "#4caf50",
+                        color: "#4caf50",
+                        padding: "10px 20px",
+                        fontSize: "16px",
+                        borderRadius: "5px",
+                    }}
+                >
                     Save
                 </Button>
-                <Button type="default" onClick={() => navigate("/reports")}>
+                <Button
+                    type="default"
+                    onClick={() => navigate("/reports")}
+                    style={{
+                        borderColor: "#f44336",
+                        color: "#f44336",
+                        padding: "10px 20px",
+                        fontSize: "16px",
+                        borderRadius: "5px",
+                    }}
+                >
                     Cancel
                 </Button>
             </div>
