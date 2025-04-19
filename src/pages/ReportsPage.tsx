@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button, DatePicker } from "antd"; 
+import { Button, DatePicker, Tooltip } from "antd"; 
 import {
     CheckOutlined,
     CopyOutlined,
@@ -139,38 +139,44 @@ const ReportsPage: React.FC = () => {
                     format="DD/MM/YYYY" // Set date picker format
                 />
             </div>
-            <div className="report-grid">
+            <div className="report-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
                 {reportData.length > 0 ? (
                     reportData.map((report, index) => (
                         <div key={index} className="report-card">
                             <div className="task-preview-header">
                                 <h3>{`Date: ${report.date}`}</h3>
-                                <div className="button-group">
-                                    <Button
-                                        type="primary"
-                                        icon={
-                                            copiedIndex === index ? (
-                                                <CheckOutlined />
-                                            ) : (
-                                                <CopyOutlined />
-                                            )
-                                        } // Change icon on copy
-                                        onClick={() => handleCopy(report.data, index)}
-                                        title="Copy"
-                                    />
-                                    <Button
-                                        type="default"
-                                        icon={<EditOutlined />} // Use Edit icon
-                                        onClick={() => handleEdit(report)} // Trigger edit
-                                        title="Edit"
-                                    />
-                                    <Button
-                                        type="primary"
-                                        danger
-                                        icon={<DeleteOutlined />} // Use Delete icon
-                                        onClick={() => handleDelete(report.date)}
-                                        title="Delete"
-                                    />
+                                <div className="button-group" style={{ display: "flex", gap: "10px" }}>
+                                    <Tooltip title="Copy to Clipboard">
+                                        <Button
+                                            type="default"
+                                            icon={
+                                                copiedIndex === index ? (
+                                                    <CheckOutlined style={{ color: "#4caf50" }} /> // Green color for success
+                                                ) : (
+                                                    <CopyOutlined style={{ color: "#4caf50" }} /> // Green color for default
+                                                )
+                                            }
+                                            onClick={() => handleCopy(report.data, index)}
+                                            title="Copy"
+                                        />
+                                    </Tooltip>
+                                    <Tooltip title="Edit Report">
+                                        <Button
+                                            type="default"
+                                            icon={<EditOutlined style={{ color: "#1e88e5" }} />} // Blue color for edit
+                                            onClick={() => handleEdit(report)}
+                                            title="Edit"
+                                        />
+                                    </Tooltip>
+                                    <Tooltip title="Delete Report">
+                                        <Button
+                                            type="default" // Change from "primary" to "default" to remove background color
+                                            danger
+                                            icon={<DeleteOutlined style={{ color: "#f44336" }} />} // Red color for delete
+                                            onClick={() => handleDelete(report.date)}
+                                            title="Delete"
+                                        />
+                                    </Tooltip>
                                 </div>
                             </div>
                             <pre
