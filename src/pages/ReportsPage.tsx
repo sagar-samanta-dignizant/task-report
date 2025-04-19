@@ -137,9 +137,8 @@ ${nextTask && nextTask.trim()
             }
 
 Thanks & regards
-${name.trim()}`;
+${name?.trim()}`;
     };
-console.log(reportData, "reportData");
 
     return (
         <div className="reports-page">
