@@ -150,10 +150,11 @@ ${name?.trim()}`;
         const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     
         // Constants for styling
+        const HEADER_COLOR = "#4A90E2"; // Blue header color
+        const HEADER_TEXT_COLOR = "#ffffff"; // White text color in header
         const FONT_FAMILY = "Helvetica"; // Professional font
-        const TITLE_FONT_SIZE = 16;
+        const TITLE_FONT_SIZE = 18;
         const SUBTITLE_FONT_SIZE = 12;
-        const PAGE_MARGIN = 5; // 5px margin for left and right
     
         // Convert "YYYY-MM-DD" to "DD/MM/YYYY"
         const formatDate = (dateStr: string) => {
@@ -170,15 +171,20 @@ ${name?.trim()}`;
         const fromDate = selectedDateRange?.[0] || dates[0];
         const toDate = selectedDateRange?.[1] || dates[dates.length - 1];
     
-        // Add text at the top of the PDF
+        // Add a header with a background color
+        doc.setFillColor(HEADER_COLOR);
+        doc.rect(0, 0, 210, 30, "F"); // Full-width header with height of 30mm
         doc.setFont(FONT_FAMILY, "bold");
         doc.setFontSize(TITLE_FONT_SIZE);
-        doc.text("Monthly Work Report", 10, 10); // Title at the top-left
+        doc.setTextColor(HEADER_TEXT_COLOR);
+        doc.text("Monthly Work Report", 105, 15, { align: "center" }); // Center-aligned title with spacing above
     
+        // Add name on the left and date on the right
         doc.setFont(FONT_FAMILY, "normal");
         doc.setFontSize(SUBTITLE_FONT_SIZE);
-        doc.text(`Date: ${formatDate(fromDate)} to ${formatDate(toDate)}`, 10, 20); // Date range below the title
-        doc.text("Name: Sagar", 10, 30); // Name below the date range
+        doc.setTextColor(HEADER_TEXT_COLOR);
+        doc.text("Name: Sagar", 10, 28); // Left-aligned name
+        doc.text(`Date: ${formatDate(fromDate)} to ${formatDate(toDate)}`, 200, 28, { align: "right" }); // Right-aligned date
     
         // Table Rows Preparation
         const allRows: any[] = [];
@@ -222,8 +228,7 @@ ${name?.trim()}`;
         });
     
         // Adding Table with Stylish Layout (Full width adjustment)
-        const tableStartY = 40; // Starting Y position for the table
-        const tableWidth = 210 - 2 * PAGE_MARGIN; // Adjusted width to account for the margin
+        const tableStartY = 35; // Starting Y position for the table
     
         autoTable(doc, {
             startY: tableStartY, // Start the table below the text
@@ -238,8 +243,8 @@ ${name?.trim()}`;
                 cellWidth: "auto", // Full width usage for each column
             },
             headStyles: {
-                fillColor: "#4A90E2",
-                textColor: "#ffffff",
+                fillColor: HEADER_COLOR,
+                textColor: HEADER_TEXT_COLOR,
                 fontSize: 11,
                 font: FONT_FAMILY,
             },
