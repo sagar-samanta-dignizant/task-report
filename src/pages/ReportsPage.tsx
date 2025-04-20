@@ -363,7 +363,6 @@ ${name?.trim()}`;
                     <div className="summary-section">
                         {(() => {
                             const { totalHours, totalMinutes, actualWorkingHours, extraHours, lessHours } = calculateSummary(reportData);
-                            console.log("Total Hours:", totalHours, "Total Minutes:", totalMinutes, "Actual Working Hours:", actualWorkingHours, "Extra Hours:", extraHours, "Less Hours:", lessHours);
                             
                             // Determine text colors based on conditions
                             const workedHoursColor = totalHours + totalMinutes / 60 === actualWorkingHours
