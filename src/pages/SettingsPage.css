@@ -4,7 +4,7 @@
     color: #e0e0e0; /* Light text color */
     border-radius: 10px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
-    max-width: 1000px;
+    max-width: 1600px;
     margin: 20px auto;
 }
 
@@ -55,7 +55,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
+    width: auto; /* Allow label to take up only the necessary width */
+    white-space: nowrap; /* Prevent label text from wrapping */
 }
 
 .custom-switch {
@@ -97,6 +98,7 @@
     color: #e0e0e0;
     text-align: center;
     margin-left: 10px;
+    flex-shrink: 0; /* Prevent input from shrinking */
 }
 
 .gap-input:focus {
