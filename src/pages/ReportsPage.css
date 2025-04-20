@@ -53,7 +53,7 @@
 
 .report-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Dynamically adjust columns */
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Increase min-width to 320px */
     gap: 16px; /* Maintain gap between cards */
     align-items: stretch; /* Ensure all cards in a row have the same height */
     justify-content: center; /* Center the grid content */
