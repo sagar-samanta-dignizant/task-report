@@ -2,7 +2,7 @@ import "./app.css";
 
 import { ALERT_DISMISS_TIME, ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "./constant/task.constant";
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
-import { Alert, Button, DatePicker, Input, InputRef, Layout, Select, Tooltip } from "antd";
+import { Alert, Avatar, Button, DatePicker, Input, InputRef, Layout, Select, Tooltip, Upload } from "antd";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 import { CheckOutlined, CopyOutlined, FileTextOutlined, HomeOutlined, ReloadOutlined, SaveOutlined, SettingOutlined } from "@ant-design/icons";
 import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
@@ -97,6 +97,7 @@ const App = () => {
   const subtaskRefs = useRef<(InputRef | null)[][]>([]);
   const location = useLocation();
   const navigate = useNavigate();
+  const [profilePicture, setProfilePicture] = useState(localStorage.getItem("profilePicture") || "");
 
   const TASK_GAP = settings.generateSettings.taskGap || 1; // Default to 1 if not set
   const SUBTASK_GAP = settings.generateSettings.subtaskGap || 1; // Default to 1 if not set
@@ -113,6 +114,28 @@ const App = () => {
       return () => clearTimeout(timer);
     }
   }, [alertMessage]);
+
+  useEffect(() => {
+    localStorage.setItem("name", name);
+  }, [name]);
+
+  useEffect(() => {
+    localStorage.setItem("date", date);
+  }, [date]);
+
+  useEffect(() => {
+    localStorage.setItem("selectedProjects", JSON.stringify(selectedProjects));
+  }, [selectedProjects]);
+
+  useEffect(() => {
+    Object.keys(settings).forEach((section) => {
+      localStorage.setItem(section, JSON.stringify(settings[section as keyof typeof settings]));
+    });
+  }, [settings]);
+
+  useEffect(() => {
+    localStorage.setItem("profilePicture", profilePicture);
+  }, [profilePicture]);
 
   const calculateRemainingTime = () => {
     const totalTaskTime = tasks.reduce((sum, task) => {
@@ -170,24 +193,6 @@ const App = () => {
   };
 
   const remainingTime = calculateRemainingTime();
-
-  useEffect(() => {
-    localStorage.setItem("name", name);
-  }, [name]);
-
-  useEffect(() => {
-    localStorage.setItem("date", date);
-  }, [date]);
-
-  useEffect(() => {
-    localStorage.setItem("selectedProjects", JSON.stringify(selectedProjects));
-  }, [selectedProjects]);
-
-  useEffect(() => {
-    Object.keys(settings).forEach((section) => {
-      localStorage.setItem(section, JSON.stringify(settings[section as keyof typeof settings]));
-    });
-  }, [settings]);
 
   const handleTaskChange = (
     index: number,
@@ -550,6 +555,15 @@ ${name.trim()}`;
             >
               <FileTextOutlined className="nav-icon" /> Reports
             </NavLink>
+          </div>
+          <div className="profile-avatar">
+            <Avatar
+              src={profilePicture || undefined} // Show nothing if no image is uploaded
+              size="large"
+              style={{ cursor: "pointer", backgroundColor: profilePicture ? "transparent" : "#f56a00" }}
+            >
+              {!profilePicture && name ? name[0].toUpperCase() : null} {/* Show initial if no image */}
+            </Avatar>
           </div>
         </div>
       </Header>
@@ -1058,7 +1072,11 @@ ${name.trim()}`;
             <Route
               path="/settings"
               element={
-                <SettingsPage settings={settings} toggleSetting={toggleSetting} />
+                <SettingsPage
+                  settings={settings}
+                  toggleSetting={toggleSetting}
+                  setProfilePicture={setProfilePicture}
+                />
               }
             />
             <Route path="/reports" element={<ReportsPage />} />

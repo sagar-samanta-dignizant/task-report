@@ -1,5 +1,6 @@
 import "./SettingsPage.css"; // Import custom CSS for the settings page
-import { Input } from "antd"; // Import Ant Design Input component
+import { Input, Upload, Button } from "antd"; // Import Ant Design Input, Upload, and Button components
+import { UploadOutlined } from "@ant-design/icons"; // Import Upload icon
 
 const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) => (
     <div
@@ -10,13 +11,14 @@ const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (chec
     </div>
 );
 
-const SettingsPage = ({ settings, toggleSetting }: any) => {
+const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
     const generateSettings = JSON.parse(localStorage.getItem("generateSettings") || "{}");
 
     return (
         <div className="settings-page">
             <h2 className="settings-title">Settings</h2>
-            <div className="settings-container">
+            <div className="settings-container">              
+
                 {/* Task Settings Section */}
                 <div className="settings-section">
                     <h3 className="settings-section-title">Task Settings</h3>
@@ -272,6 +274,36 @@ const SettingsPage = ({ settings, toggleSetting }: any) => {
                                     toggleSetting("generateSettings", "closingText", e.target.value || "Thanks & regards")
                                 }
                             />
+                        </label>
+                    </div>
+                    <div className="settings-option">
+                        <label>
+                            Closing Text
+                            <Input
+                                className="text-input"
+                                value={generateSettings.closingText || "Thanks & regards"}
+                                onChange={(e) =>
+                                    toggleSetting("generateSettings", "closingText", e.target.value || "Thanks & regards")
+                                }
+                            />
+                        </label>
+                    </div>
+                    <div className="settings-option">
+                        <label>
+                            Upload Profile Picture
+                            <Upload
+                                showUploadList={false}
+                                beforeUpload={(file) => {
+                                    const reader = new FileReader();
+                                    reader.onload = () => {
+                                        setProfilePicture(reader.result as string);
+                                    };
+                                    reader.readAsDataURL(file);
+                                    return false; // Prevent automatic upload
+                                }}
+                            >
+                                <Button icon={<UploadOutlined />}>Upload</Button>
+                            </Upload>
                         </label>
                     </div>
                 </div>

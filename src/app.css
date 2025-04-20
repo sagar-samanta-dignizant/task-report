@@ -315,7 +315,7 @@ header {
 .header-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; /* Space out elements in the header */
   width: 100%;
   max-width: 1200px; /* Limit the width for better alignment */
 }
@@ -787,6 +787,7 @@ label .input-field {
 .nav-links {
   display: flex;
   gap: 20px; /* Space between links */
+  margin-right: auto; /* Push the nav-links to the left */
   align-items: center;
 }
 
@@ -817,6 +818,11 @@ label .input-field {
 
 .nav-link.active-link .nav-icon {
   color: #4caf50; /* Active icon color */
+}
+
+.profile-avatar {
+ position: absolute;
+ right: 30px ;
 }
 
 @media (max-width: 768px) {
