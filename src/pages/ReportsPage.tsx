@@ -95,7 +95,7 @@ const ReportsPage: React.FC = () => {
         const bullet = getBullet(bulletType, index);
         const indent = "    ".repeat(level); // 4 spaces per level for better visual offset
 
-        let line = `${indent}${bullet} `; // Indent comes before bullet
+        let line = `${indent}${bullet} `;
         if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `;
         line += task.title.trim();
         if (task.status) line += ` (${task.status.trim()})`;
@@ -110,29 +110,65 @@ const ReportsPage: React.FC = () => {
         const { tasks, selectedProjects, date, name, nextTask, bulletType, subIcon } = data;
 
         const generateSettings = JSON.parse(localStorage.getItem("generateSettings") || "{}");
+        const previewSettings = JSON.parse(localStorage.getItem("previewSettings") || "{}");
+
         const TASK_GAP = generateSettings.taskGap || 1; // Default to 1 if not set
         const SUBTASK_GAP = generateSettings.subtaskGap || 1; // Default to 1 if not set
+
+        const formatLine = (task: any, level = 0, bulletType: string, index: number) => {
+            const getBullet = (type: string, index: number) => {
+                switch (type) {
+                    case "dot":
+                        return "•";
+                    case "number":
+                        return `${index + 1}.`;
+                    case ">":
+                        return ">";
+                    case ">>":
+                        return ">>";
+                    case "=>":
+                        return "=>";
+                    case "bullet":
+                        return "●";
+                    default:
+                        return "-";
+                }
+            };
+
+            const bullet = getBullet(bulletType, index);
+            const indent = "    ".repeat(level); // 4 spaces per level for better visual offset
+
+            let line = `${indent}${bullet} `;
+            if (previewSettings.showID && task.taskId) line += `ID: ${task.taskId.toString().trim()} - `;
+            line += task.title.trim();
+            if (previewSettings.showStatus && task.status) line += ` (${task.status.trim()})`;
+            if (previewSettings.showHours) {
+                const taskTime = formatTaskTime(task.hours, task.minutes);
+                if (taskTime) line += ` (${taskTime})`;
+            }
+            return line;
+        };
 
         const formatTasks = (tasks: any[], level = 0, bulletType: string, subIcon: string): string =>
             tasks
                 .map((task, index) => {
                     const taskLine = `${formatLine(task, level, bulletType, index)}`;
-                    const subtaskLines = task.subtasks
+                    const subtaskLines = previewSettings.allowSubtask && task.subtasks
                         ? formatTasks(task.subtasks, level + 1, subIcon, subIcon)
                         : "";
                     return `${taskLine}${subtaskLines ? `\n${subtaskLines}` : ""}`;
                 })
-                .join("\n".repeat(level === 0 ? TASK_GAP : SUBTASK_GAP)); // Use TASK_GAP for tasks and SUBTASK_GAP for subtasks
+                .join("\n".repeat(level === 0 ? TASK_GAP : SUBTASK_GAP));
 
-        return `Today's work update - ${moment(date, "YYYY-MM-DD").format("YYYY-MM-DD")}
+        return `Today's work update - ${previewSettings.showDate ? moment(date, "YYYY-MM-DD").format("YYYY-MM-DD") : ""}
 
-${selectedProjects.length > 0
+${previewSettings.showProject && selectedProjects.length > 0
             ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
             : ""
         } 
 ----------------------------------------
 ${formatTasks(tasks, 0, bulletType, subIcon)}
-${nextTask && nextTask.trim()
+${previewSettings.showNextTask && nextTask && nextTask.trim()
             ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}`
             : ""
         }

@@ -36,6 +36,8 @@ const EditTaskPage = () => {
     const workingTimeLimit = 8.5;
 
     const generateSettings = JSON.parse(localStorage.getItem("generateSettings") || "{}");
+    const previewSettings = JSON.parse(localStorage.getItem("previewSettings") || "{}");
+
     const TASK_GAP = generateSettings.taskGap || 1; // Default to 1 if not set
     const SUBTASK_GAP = generateSettings.subtaskGap || 1; // Default to 1 if not set
     console.log(TASK_GAP, SUBTASK_GAP);
@@ -212,11 +214,11 @@ const EditTaskPage = () => {
             const bullet = getBullet(bulletType, index);
             const indent = "    ".repeat(level); // 4 spaces per level for better visual offset
 
-            let line = `${indent}${bullet} `; // Indent comes before bullet
-            if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `;
+            let line = `${indent}${bullet} `;
+            if (previewSettings.showID && task.taskId) line += `ID: ${task.taskId.toString().trim()} - `;
             line += task.title.trim();
-            if (task.status) line += ` (${task.status.trim()})`;
-            if (task.hours || task.minutes) {
+            if (previewSettings.showStatus && task.status) line += ` (${task.status.trim()})`;
+            if (previewSettings.showHours) {
                 const taskTime = `${task.hours || 0}h ${task.minutes || 0}m`.trim();
                 if (taskTime) line += ` (${taskTime})`;
             }
@@ -227,19 +229,19 @@ const EditTaskPage = () => {
             tasks
                 .map((task, index) => {
                     const taskLine = `${formatLine(task, level, bulletType, index)}`;
-                    const subtaskLines = task.subtasks
+                    const subtaskLines = previewSettings.allowSubtask && task.subtasks
                         ? formatTasks(task.subtasks, level + 1, subIcon, subIcon)
                         : "";
                     return `${taskLine}${subtaskLines ? `\n${subtaskLines}` : ""}`;
                 })
-                .join("\n".repeat(level === 0 ? TASK_GAP : SUBTASK_GAP)); // Use TASK_GAP for tasks and SUBTASK_GAP for subtasks
+                .join("\n".repeat(level === 0 ? TASK_GAP : SUBTASK_GAP));
 
-        return `Today's work update - ${moment(date).format("YYYY-MM-DD")}
+        return `Today's work update - ${previewSettings.showDate ? moment(date).format("YYYY-MM-DD") : ""}
 
-Project: ${selectedProjects.join(" & ") || "Not Selected"}
+Project: ${previewSettings.showProject ? selectedProjects.join(" & ") || "Not Selected" : ""}
 ----------------------------------------
 ${formatTasks(tasks, 0, bulletType, selectedSubIcon)}
-${nextTaskValue.trim()
+${previewSettings.showNextTask && nextTaskValue.trim()
             ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
             : ""
         }
