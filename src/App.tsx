@@ -4,7 +4,7 @@ import { Alert, Button, DatePicker, Input, Select, Layout, Tooltip, InputRef } f
 import { CheckOutlined, CopyOutlined, SaveOutlined, HomeOutlined, SettingOutlined, FileTextOutlined, ReloadOutlined } from "@ant-design/icons";
 import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import moment from "moment";
+import dayjs from "dayjs";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import EditTaskPage from "./pages/EditTaskPage";
@@ -593,11 +593,9 @@ ${name.trim()}`;
                           <label htmlFor="date">Date</label>
                           <DatePicker
                             id="date"
-                            value={date ? moment(date, "YYYY-MM-DD") : null}
-                            format="YYYY-MM-DD"
-                            onChange={(_, dateString) =>
-                              setDate(dateString as string)
-                            }
+                            value={date ? dayjs(date, "YYYY-MM-DD") : null} // Use dayjs object for value
+                            onChange={(date) => date && setDate(date.format("YYYY-MM-DD"))} // Use dayjs's format method
+                            format="DD-MM-YYYY" // Display date in DD-MM-YYYY format
                             style={{ width: "100%" }}
                           />
                         </div>

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button, DatePicker, Input, Select, Tooltip } from "antd";
 const { Option } = Select;
-import moment from "moment";
+import dayjs from "dayjs"; // Replace moment with dayjs
 import { useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "../constant/task.constant";
@@ -279,9 +279,13 @@ ${name.trim()}`;
                                 <label htmlFor="date">Date</label>
                                 <DatePicker
                                     id="date"
-                                    value={date ? moment(date, "YYYY-MM-DD") : null}
-                                    format="YYYY-MM-DD"
-                                    onChange={(_, dateString) => setDate(dateString as string)}
+                                    value={date ? dayjs(date, "YYYY-MM-DD") : null} // Use dayjs object for value
+                                    onChange={(_, dateString) => {
+                                        if (typeof dateString === "string") {
+                                            setDate(dayjs(dateString, "DD-MM-YYYY").format("YYYY-MM-DD")); // Convert back to YYYY-MM-DD for storage
+                                        }
+                                    }}
+                                    format="DD-MM-YYYY" // Display date in DD-MM-YYYY format
                                     style={{ width: "100%" }}
                                 />
                             </div>

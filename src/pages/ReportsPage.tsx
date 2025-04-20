@@ -3,11 +3,14 @@ import { Button, DatePicker, Tooltip, Dropdown, Menu } from "antd";
 import { CheckOutlined, CopyOutlined, DeleteOutlined, EditOutlined, FilePdfOutlined, FileExcelOutlined, FileTextOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import moment from "moment";
+import dayjs from "dayjs"; // Import dayjs
+import isBetween from "dayjs/plugin/isBetween"; // Import isBetween plugin
 import { fileExportIcon } from "../assets/fontAwesomeIcons";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { reverseDate } from "../utils/dateUtils";
+
+dayjs.extend(isBetween); // Extend dayjs with isBetween plugin
 
 const { RangePicker } = DatePicker;
 
@@ -25,16 +28,11 @@ const ReportsPage: React.FC = () => {
             .filter(([date]) => {
                 const [start, end] = dateStrings;
                 if (!start || !end) return false;
-                const normalizedDate = moment(date, "YYYY-MM-DD");
-                const normalizedStart = moment(start, "DD/MM/YYYY").format("YYYY-MM-DD");
-                const normalizedEnd = moment(end, "DD/MM/YYYY").format("YYYY-MM-DD");
+                const normalizedDate = dayjs(date, "YYYY-MM-DD");
+                const normalizedStart = dayjs(start, "DD-MM-YYYY");
+                const normalizedEnd = dayjs(end, "DD-MM-YYYY");
 
-                return normalizedDate.isBetween(
-                    moment(normalizedStart),
-                    moment(normalizedEnd),
-                    "days",
-                    "[]"
-                );
+                return normalizedDate.isBetween(normalizedStart, normalizedEnd, "day", "[]"); // Use isBetween
             })
             .map(([date, data]) => ({ date, data }));
 
@@ -281,7 +279,7 @@ console.log(reportData);
                 <div className="reports-header-controls">
                     <RangePicker
                         onChange={handleDateRangeChange}
-                        format="DD/MM/YYYY"
+                        format="DD-MM-YYYY" // Display date in DD-MM-YYYY format
                     />
                     <Dropdown overlay={exportMenu} trigger={['click']}>
                         <Button
@@ -332,7 +330,7 @@ console.log(reportData);
                         reportData.map((report: any, index: number) => (
                             <div key={index} className="report-card">
                                 <div className="task-preview-header">
-                                    <h3>{`Date: ${report.date}`}</h3>
+                                    <h3>{`Date: ${dayjs(report.date, "YYYY-MM-DD").format("DD-MM-YYYY")}`}</h3> {/* Format date as DD-MM-YYYY */}
                                     <div className="button-group" style={{ display: "flex", gap: "10px" }}>
                                         <Tooltip title="Copy to Clipboard">
                                             <Button
