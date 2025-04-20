@@ -10,6 +10,7 @@ import SettingsPage from "./pages/SettingsPage";
 import EditTaskPage from "./pages/EditTaskPage";
 import { ALERT_DISMISS_TIME, ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "./constant/task.constant";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
+import { reverseDate } from "./utils/dateUtils";
 
 const { Option } = Select;
 const { Header } = Layout;
@@ -383,7 +384,7 @@ const App = () => {
     const workUpdateText = settings.generateSettings.workUpdateText || "Today's work update -";
     const closingText = settings.generateSettings.closingText || "Thanks & regards";
 
-    return `${workUpdateText} ${settings.previewSettings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""}
+    return `${workUpdateText} ${settings.previewSettings.showDate ? reverseDate(date) : ""}
 
 ${settings.previewSettings.showProject
         ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"

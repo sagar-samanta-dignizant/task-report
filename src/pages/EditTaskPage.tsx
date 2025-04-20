@@ -6,6 +6,7 @@ import { useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "../constant/task.constant";
 import { AddIcon, minusIcon } from "../assets/fontAwesomeIcons";
+import { reverseDate } from "../utils/dateUtils";
 
 interface Task {
     id: number;
@@ -239,7 +240,7 @@ const EditTaskPage = () => {
         const workUpdateText = generateSettings.workUpdateText || "Today's work update -";
         const closingText = generateSettings.closingText || "Thanks & regards";
 
-        return `${workUpdateText} ${previewSettings.showDate ? moment(date).format("YYYY-MM-DD") : ""}
+        return `${workUpdateText} ${previewSettings.showDate ? reverseDate(date) : ""}
 
 Project: ${previewSettings.showProject ? selectedProjects.join(" & ") || "Not Selected" : ""}
 ----------------------------------------

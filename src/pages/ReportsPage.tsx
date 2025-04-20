@@ -7,6 +7,7 @@ import moment from "moment";
 import { fileExportIcon } from "../assets/fontAwesomeIcons";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { reverseDate } from "../utils/dateUtils";
 
 const { RangePicker } = DatePicker;
 
@@ -128,7 +129,7 @@ const ReportsPage: React.FC = () => {
                 })
                 .join("\n".repeat(level === 0 ? TASK_GAP : SUBTASK_GAP));
 
-        return `${workUpdateText} ${previewSettings.showDate ? moment(date, "YYYY-MM-DD").format("YYYY-MM-DD") : ""}
+        return `${workUpdateText} ${previewSettings.showDate ? reverseDate(date) : ""}
 
 ${previewSettings.showProject && selectedProjects.length > 0
             ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
