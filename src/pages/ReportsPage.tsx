@@ -146,47 +146,65 @@ ${name?.trim()}`;
 
     const handleExport = (key: string) => {
         if (key !== "pdf") return;
-
+    
         const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
+    
+        // Constants for styling
+        const HEADER_COLOR = "#4A90E2"; // Blue header color
+        const HEADER_TEXT_COLOR = "#ffffff"; // White text color in header
+        const FONT_FAMILY = "Helvetica"; // Professional font
+        const TITLE_FONT_SIZE = 18;
+        const SUBTITLE_FONT_SIZE = 14;
+        const PAGE_MARGIN = 5; // 5px margin for left and right
+    
         // Convert "YYYY-MM-DD" to "DD/MM/YYYY"
         const formatDate = (dateStr: string) => {
             const [year, month, day] = dateStr.split("-");
             return `${day}/${month}/${year}`;
         };
-      
+    
+        // Sorting data and defining date range
         const sortedData = [...reportData].sort(
             (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
         );
-
+    
         const dates = sortedData.map((item) => item.date);
-
         const fromDate = selectedDateRange?.[0] || dates[0];
         const toDate = selectedDateRange?.[1] || dates[dates.length - 1];
-
-        // Add report header
-        doc.setFontSize(12);
-        doc.text(`Work Report from: ${fromDate} to ${toDate}`, 14, 20);
-
-        const userName = sortedData.find((entry) => entry.data?.name)?.data?.name || "User";
-        doc.text(`Name: ${userName}`, 14, 28);
-
+    
+        // Add header with a background color and white text
+        doc.setFillColor(HEADER_COLOR);
+        doc.rect(0, 0, 210, 30, "F"); // Larger header for better visibility
+        doc.setFontSize(TITLE_FONT_SIZE);
+        doc.setTextColor(HEADER_TEXT_COLOR);
+        doc.setFont(FONT_FAMILY, "bold");
+        doc.text("Work Report", 105, 18, { align: "center" }); // Center-aligned title
+    
+        // Add the date range text at the top (below "Work Report")
+        doc.setFontSize(SUBTITLE_FONT_SIZE);
+        doc.text(`Date from: ${formatDate(fromDate)} to ${formatDate(toDate)}`, 105, 40, { align: "center" });
+    
+        // Add Name below the date range (e.g., "Name: Sagar")
+        const userName = "Sagar"; // You can replace this with dynamic name if needed
+        doc.text(`Name: ${userName}`, 105, 46, { align: "center" });
+    
+        // Table Rows Preparation
         const allRows: any[] = [];
         let previousMonthYear = "";
-
+    
         sortedData.forEach((entry) => {
             const date = entry.date;
             const dayData = entry.data || {};
             const tasks = dayData.tasks || [];
-
+    
             const currentMonthYear = formatDate(date).slice(3, 10); // MM/YYYY
-
+    
             if (currentMonthYear !== previousMonthYear) {
                 previousMonthYear = currentMonthYear;
             }
-
+    
             let isFirstTask = true;
-
+    
             tasks.forEach((task: any) => {
                 allRows.push([
                     isFirstTask ? formatDate(date) : "",
@@ -196,7 +214,7 @@ ${name?.trim()}`;
                     `${task?.hours || 0}h ${task?.minutes || 0}m`,
                 ]);
                 isFirstTask = false;
-
+    
                 if (task?.subtasks?.length > 0) {
                     task.subtasks.forEach((subtask: any) => {
                         allRows.push([
@@ -210,24 +228,65 @@ ${name?.trim()}`;
                 }
             });
         });
-
+    
+        // Adding Table with Stylish Layout (Full width adjustment)
+        const tableStartY = 55; // Starting Y position for the table
+        const tableWidth = 210 - 2 * PAGE_MARGIN; // Adjusted width to account for the margin
+    
         autoTable(doc, {
-            startY: 35,
+            startY: tableStartY, // Start the table just after the user info
             head: [["Date", "ID", "Task", "Status", "Time"]],
             body: allRows,
-            styles: { fontSize: 8, cellPadding: 2, overflow: "linebreak" },
+            styles: {
+                fontSize: 9,
+                cellPadding: 2, // Reduced padding for more content space
+                overflow: "linebreak",
+                font: FONT_FAMILY,
+                fillColor: [240, 240, 240], // Light grey fill for rows
+                cellWidth: "auto", // Full width usage for each column
+            },
+            headStyles: {
+                fillColor: HEADER_COLOR,
+                textColor: HEADER_TEXT_COLOR,
+                fontSize: 11,
+                font: FONT_FAMILY,
+            },
             columnStyles: {
-                0: { cellWidth: 30 },
-                1: { cellWidth: 20 },
-                2: { cellWidth: 80 },
-                3: { cellWidth: 30, halign: "center" },
-                4: { cellWidth: 30, halign: "center" },
+                0: { cellWidth: 30 }, // Static width for Date
+                1: { cellWidth: 20 }, // Static width for ID
+                2: { cellWidth: "auto" }, // Dynamic width for Task Title
+                3: { cellWidth: 30 }, // Static width for Status
+                4: { cellWidth: 30 }, // Static width for Time
             },
             theme: "grid",
+            alternateRowStyles: { fillColor: [220, 220, 220] }, // Light row color
+            didDrawPage: function (data) {
+                const cursorY = data.cursor?.y ?? 0; // Default to 0 if data.cursor is null
+                if (cursorY > 290) {
+                    doc.addPage(); // If table overflows, add a new page
+                }
+            }
         });
-
+    
+        // Add footer with page number
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text(`Page ${doc.getNumberOfPages()}`, 190, 285);
+    
+        // Save the document with professional naming
         doc.save(`task-report-${fromDate}-to-${toDate}.pdf`);
     };
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     const exportMenu = (
         <Menu
