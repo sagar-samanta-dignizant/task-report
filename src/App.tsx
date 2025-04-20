@@ -2,7 +2,7 @@ import "./app.css";
 
 import { ALERT_DISMISS_TIME, ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "./constant/task.constant";
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
-import { Alert, Avatar, Button, DatePicker, Input, InputRef, Layout, Select, Tooltip, Upload } from "antd";
+import { Alert, Avatar, Button, DatePicker, Input, InputRef, Layout, Select, Tooltip } from "antd";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 import { CheckOutlined, CopyOutlined, FileTextOutlined, HomeOutlined, ReloadOutlined, SaveOutlined, SettingOutlined } from "@ant-design/icons";
 import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
