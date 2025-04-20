@@ -72,40 +72,6 @@ const ReportsPage: React.FC = () => {
         return timeString.trim();
     };
 
-    const formatLine = (task: any, level = 0, bulletType: string, index: number) => {
-        const getBullet = (type: string, index: number) => {
-            switch (type) {
-                case "dot":
-                    return "•";
-                case "number":
-                    return `${index + 1}.`;
-                case ">":
-                    return ">";
-                case ">>":
-                    return ">>";
-                case "=>":
-                    return "=>";
-                case "bullet":
-                    return "●";
-                default:
-                    return "-";
-            }
-        };
-
-        const bullet = getBullet(bulletType, index);
-        const indent = "    ".repeat(level); // 4 spaces per level for better visual offset
-
-        let line = `${indent}${bullet} `;
-        if (task.taskId) line += `ID: ${task.taskId.toString().trim()} - `;
-        line += task.title.trim();
-        if (task.status) line += ` (${task.status.trim()})`;
-        if (task.hours || task.minutes) {
-            const taskTime = formatTaskTime(task.hours, task.minutes);
-            if (taskTime) line += ` (${taskTime})`;
-        }
-        return line;
-    };
-
     const formatPreview = (data: any) => {
         const { tasks, selectedProjects, date, name, nextTask, bulletType, subIcon } = data;
 
@@ -114,6 +80,8 @@ const ReportsPage: React.FC = () => {
 
         const TASK_GAP = generateSettings.taskGap || 1; // Default to 1 if not set
         const SUBTASK_GAP = generateSettings.subtaskGap || 1; // Default to 1 if not set
+        const workUpdateText = generateSettings.workUpdateText || "Today's work update -";
+        const closingText = generateSettings.closingText || "Thanks & regards";
 
         const formatLine = (task: any, level = 0, bulletType: string, index: number) => {
             const getBullet = (type: string, index: number) => {
@@ -160,7 +128,7 @@ const ReportsPage: React.FC = () => {
                 })
                 .join("\n".repeat(level === 0 ? TASK_GAP : SUBTASK_GAP));
 
-        return `Today's work update - ${previewSettings.showDate ? moment(date, "YYYY-MM-DD").format("YYYY-MM-DD") : ""}
+        return `${workUpdateText} ${previewSettings.showDate ? moment(date, "YYYY-MM-DD").format("YYYY-MM-DD") : ""}
 
 ${previewSettings.showProject && selectedProjects.length > 0
             ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
@@ -173,7 +141,7 @@ ${previewSettings.showNextTask && nextTask && nextTask.trim()
             : ""
         }
 
-Thanks & regards
+${closingText}
 ${name?.trim()}`;
     };
 

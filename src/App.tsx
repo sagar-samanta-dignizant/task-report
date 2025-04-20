@@ -380,8 +380,10 @@ const App = () => {
         })
         .join("\n".repeat(TASK_GAP));
 
-    return `Today's work update - ${settings.previewSettings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""
-      }
+    const workUpdateText = settings.generateSettings.workUpdateText || "Today's work update -";
+    const closingText = settings.generateSettings.closingText || "Thanks & regards";
+
+    return `${workUpdateText} ${settings.previewSettings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""}
 
 ${settings.previewSettings.showProject
         ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
@@ -392,7 +394,7 @@ ${settings.previewSettings.showProject
         : ""
       }
 
-Thanks & regards
+${closingText}
 ${name.trim()}`;
   };
 

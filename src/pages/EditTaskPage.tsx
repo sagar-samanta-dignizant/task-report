@@ -236,7 +236,10 @@ const EditTaskPage = () => {
                 })
                 .join("\n".repeat(level === 0 ? TASK_GAP : SUBTASK_GAP));
 
-        return `Today's work update - ${previewSettings.showDate ? moment(date).format("YYYY-MM-DD") : ""}
+        const workUpdateText = generateSettings.workUpdateText || "Today's work update -";
+        const closingText = generateSettings.closingText || "Thanks & regards";
+
+        return `${workUpdateText} ${previewSettings.showDate ? moment(date).format("YYYY-MM-DD") : ""}
 
 Project: ${previewSettings.showProject ? selectedProjects.join(" & ") || "Not Selected" : ""}
 ----------------------------------------
@@ -246,7 +249,7 @@ ${previewSettings.showNextTask && nextTaskValue.trim()
             : ""
         }
 
-Thanks & regards
+${closingText}
 ${name.trim()}`;
     };
 
