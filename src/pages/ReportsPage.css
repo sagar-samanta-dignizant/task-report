@@ -94,7 +94,7 @@
     font-size: 14px; /* Standard font size */
     color: #c6bfbf; /* Dark text color */
     display: flex; /* Use flexbox for alignment */
-    justify-content: space-between; /* Distribute items evenly */
+    justify-content: center; /* Distribute items evenly */
     align-items: center; /* Align items vertically */
     gap: 16px; /* Add spacing between items */
 }

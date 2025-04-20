@@ -386,19 +386,19 @@ ${name?.trim()}`;
                         return (
                             <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
                                 <p>
-                                    <strong>Total Hours :</strong> 
+                                    <strong>Working Hours :</strong> 
                                     <span style={{ color: "green" }}> {actualWorkingHours}</span>
                                 </p>
                                 <p>
-                                    <strong>Worked Hours :</strong> 
+                                    <strong>Actual Hours Worked :</strong> 
                                     <span style={{ color: workedHoursColor }}> {totalHours} h {totalMinutes} min</span>
                                 </p>
                                 <p>
-                                    <strong>Extra Hours :</strong> 
+                                    <strong>Overtime (Extra Hours) :</strong> 
                                     <span style={{ color: extraHoursColor }}> {extraHours}</span>
                                 </p>
                                 <p>
-                                    <strong>Less Worked :</strong> 
+                                    <strong>Undertime (Less Worked) :</strong> 
                                     <span style={{ color: lessHoursColor }}> {lessHours}</span>
                                 </p>
                             </div>
