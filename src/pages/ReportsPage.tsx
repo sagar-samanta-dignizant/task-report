@@ -274,16 +274,57 @@ ${name?.trim()}`;
         doc.save(`task-report-${fromDate}-to-${toDate}.pdf`);
     };
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    const calculateWorkingHours = (tasks: any[]) => {
+        let totalHours = 0;
+        let totalMinutes = 0;
+
+        tasks.forEach((task) => {
+            totalHours += task.hours || 0;
+            totalMinutes += task.minutes || 0;
+
+            if (task.subtasks?.length > 0) {
+                task.subtasks.forEach((subtask: any) => {
+                    totalHours += subtask.hours || 0;
+                    totalMinutes += subtask.minutes || 0;
+                });
+            }
+        });
+
+        totalHours += Math.floor(totalMinutes / 60);
+        totalMinutes %= 60;
+
+        return { totalHours, totalMinutes };
+    };
+
+    const calculateSummary = (reports: any[]) => {
+        let totalHours = 0;
+        let totalMinutes = 0;
+
+        reports.forEach((report) => {
+            const tasks = report.data.tasks || [];
+            tasks.forEach((task: any) => {
+                totalHours += task.hours || 0;
+                totalMinutes += task.minutes || 0;
+
+                if (task.subtasks?.length > 0) {
+                    task.subtasks.forEach((subtask: any) => {
+                        totalHours += subtask.hours || 0;
+                        totalMinutes += subtask.minutes || 0;
+                    });
+                }
+            });
+        });
+
+        totalHours += Math.floor(totalMinutes / 60);
+        totalMinutes %= 60;
+
+        const totalWorkedHours = totalHours + totalMinutes / 60;
+        const actualWorkingHours = reports.length * 8.5; // Assuming 8.5 hours per day
+        const extraHours = Math.max(0, totalWorkedHours - actualWorkingHours);
+        const lessHours = Math.max(0, actualWorkingHours - totalWorkedHours);
+
+        return { totalHours, totalMinutes, actualWorkingHours, extraHours, lessHours };
+    };
 
     const exportMenu = (
         <Menu
@@ -338,6 +379,45 @@ ${name?.trim()}`;
                 </div>
             </div>
             <div className="reports-content">
+                {selectedDateRange && reportData.length > 0 && (
+                    <div className="summary-section">
+                        {(() => {
+                            const { totalHours, totalMinutes, actualWorkingHours, extraHours, lessHours } = calculateSummary(reportData);
+                            console.log("Total Hours:", totalHours, "Total Minutes:", totalMinutes, "Actual Working Hours:", actualWorkingHours, "Extra Hours:", extraHours, "Less Hours:", lessHours);
+                            
+                            // Determine text colors based on conditions
+                            const workedHoursColor = totalHours + totalMinutes / 60 === actualWorkingHours
+                                ? "green"
+                                : totalHours + totalMinutes / 60 > actualWorkingHours
+                                    ? "green"
+                                    : "red";
+
+                            const extraHoursColor = extraHours > 0 ? "green" : "inherit";
+                            const lessHoursColor = lessHours > 0 ? "yellow" : "inherit";
+
+                            return (
+                                <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+                                    <p>
+                                        <strong>Total Hours :</strong> 
+                                        <span style={{ color: "green" }}> {actualWorkingHours.toFixed(2)} h</span>
+                                    </p>
+                                    <p>
+                                        <strong>Worked Hours :</strong> 
+                                        <span style={{ color: workedHoursColor }}> {totalHours} h {totalMinutes} min</span>
+                                    </p>
+                                    <p>
+                                        <strong>Extra Hours :</strong> 
+                                        <span style={{ color: extraHoursColor }}> {extraHours.toFixed(2)} h</span>
+                                    </p>
+                                    <p>
+                                        <strong>Less Worked :</strong> 
+                                        <span style={{ color: lessHoursColor }}> {lessHours.toFixed(2)} h</span>
+                                    </p>
+                                </div>
+                            );
+                        })()}
+                    </div>
+                )}
                 {(reportData.length === 0 || !selectedDateRange) && (
                     <div
                         style={{
@@ -369,7 +449,7 @@ ${name?.trim()}`;
                         reportData.map((report: any, index: number) => (
                             <div key={index} className="report-card">
                                 <div className="task-preview-header">
-                                    <h3>{`Date: ${dayjs(report.date, "YYYY-MM-DD").format("DD-MM-YYYY")}`}</h3> {/* Format date as DD-MM-YYYY */}
+                                    <h3>{`Date: ${dayjs(report.date, "YYYY-MM-DD").format("DD-MM-YYYY")}`}</h3>
                                     <div className="button-group" style={{ display: "flex", gap: "10px" }}>
                                         <Tooltip title="Copy to Clipboard">
                                             <Button
