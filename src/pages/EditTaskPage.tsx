@@ -470,10 +470,43 @@ ${name.trim()}`;
                                                 onChange={(value) =>
                                                     handleTaskChange(index, "status", value)
                                                 }
-                                                style={{ width: "100%" }}
+                                                style={{
+                                                    width: "100%",
+                                                    color:
+                                                        task.status === "Completed"
+                                                            ? "green"
+                                                            : task.status === "In Progress"
+                                                            ? "orange"
+                                                            : task.status === "Hold"
+                                                            ? "yellow"
+                                                            : task.status === "Fixed"
+                                                            ? "blue"
+                                                            : task.status === "Not Fixed"
+                                                            ? "red"
+                                                            : "inherit",
+                                                }}
+                                                optionLabelProp="label"
                                             >
                                                 {ALL_STATUS_OPTIONS.map((status) => (
-                                                    <Option key={status} value={status}>
+                                                    <Option
+                                                        key={status}
+                                                        value={status}
+                                                        label={status}
+                                                        style={{
+                                                            color:
+                                                                status === "Completed"
+                                                                    ? "green"
+                                                                    : status === "In Progress"
+                                                                    ? "orange"
+                                                                    : status === "Hold"
+                                                                    ? "yellow"
+                                                                    : status === "Fixed"
+                                                                    ? "blue"
+                                                                    : status === "Not Fixed"
+                                                                    ? "red"
+                                                                    : "inherit",
+                                                        }}
+                                                    >
                                                         {status}
                                                     </Option>
                                                 ))}
@@ -555,10 +588,43 @@ ${name.trim()}`;
                                                         onChange={(value) =>
                                                             handleSubtaskChange(index, subIndex, "status", value)
                                                         }
-                                                        style={{ width: "100%" }}
+                                                        style={{
+                                                            width: "100%",
+                                                            color:
+                                                                subtask.status === "Completed"
+                                                                    ? "green"
+                                                                    : subtask.status === "In Progress"
+                                                                    ? "orange"
+                                                                    : subtask.status === "Hold"
+                                                                    ? "yellow"
+                                                                    : subtask.status === "Fixed"
+                                                                    ? "blue"
+                                                                    : subtask.status === "Not Fixed"
+                                                                    ? "red"
+                                                                    : "inherit",
+                                                        }}
+                                                        optionLabelProp="label"
                                                     >
                                                         {ALL_STATUS_OPTIONS.map((status) => (
-                                                            <Option key={status} value={status}>
+                                                            <Option
+                                                                key={status}
+                                                                value={status}
+                                                                label={status}
+                                                                style={{
+                                                                    color:
+                                                                        status === "Completed"
+                                                                            ? "green"
+                                                                            : status === "In Progress"
+                                                                            ? "orange"
+                                                                            : status === "Hold"
+                                                                            ? "yellow"
+                                                                            : status === "Fixed"
+                                                                            ? "blue"
+                                                                            : status === "Not Fixed"
+                                                                            ? "red"
+                                                                            : "inherit",
+                                                                }}
+                                                            >
                                                                 {status}
                                                             </Option>
                                                         ))}
