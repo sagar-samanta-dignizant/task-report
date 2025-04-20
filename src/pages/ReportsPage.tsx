@@ -358,45 +358,44 @@ ${name?.trim()}`;
                     </Dropdown>
                 </div>
             </div>
-            <div className="reports-content">
-                {selectedDateRange && reportData.length > 0 && (
-                    <div className="summary-section">
-                        {(() => {
-                            const { totalHours, totalMinutes, actualWorkingHours, extraHours, lessHours } = calculateSummary(reportData);
-                            
-                            // Determine text colors based on conditions
-                            const workedHoursColor = totalHours + totalMinutes / 60 === actualWorkingHours
+            {selectedDateRange && reportData.length > 0 && (
+                <div className="summary-section" >
+                    {(() => {
+                        const { totalHours, totalMinutes, actualWorkingHours, extraHours, lessHours } = calculateSummary(reportData);
+                        // Determine text colors based on conditions
+                        const workedHoursColor = totalHours + totalMinutes / 60 === actualWorkingHours
+                            ? "green"
+                            : totalHours + totalMinutes / 60 > actualWorkingHours
                                 ? "green"
-                                : totalHours + totalMinutes / 60 > actualWorkingHours
-                                    ? "green"
-                                    : "red";
+                                : "red";
 
-                            const extraHoursColor = extraHours > 0 ? "green" : "inherit";
-                            const lessHoursColor = lessHours > 0 ? "yellow" : "inherit";
+                        const extraHoursColor = extraHours > 0 ? "green" : "inherit";
+                        const lessHoursColor = lessHours > 0 ? "yellow" : "inherit";
 
-                            return (
-                                <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-                                    <p>
-                                        <strong>Total Hours :</strong> 
-                                        <span style={{ color: "green" }}> {actualWorkingHours.toFixed(2)} h</span>
-                                    </p>
-                                    <p>
-                                        <strong>Worked Hours :</strong> 
-                                        <span style={{ color: workedHoursColor }}> {totalHours} h {totalMinutes} min</span>
-                                    </p>
-                                    <p>
-                                        <strong>Extra Hours :</strong> 
-                                        <span style={{ color: extraHoursColor }}> {extraHours.toFixed(2)} h</span>
-                                    </p>
-                                    <p>
-                                        <strong>Less Worked :</strong> 
-                                        <span style={{ color: lessHoursColor }}> {lessHours.toFixed(2)} h</span>
-                                    </p>
-                                </div>
-                            );
-                        })()}
-                    </div>
-                )}
+                        return (
+                            <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+                                <p>
+                                    <strong>Total Hours :</strong> 
+                                    <span style={{ color: "green" }}> {actualWorkingHours.toFixed(2)} h</span>
+                                </p>
+                                <p>
+                                    <strong>Worked Hours :</strong> 
+                                    <span style={{ color: workedHoursColor }}> {totalHours} h {totalMinutes} min</span>
+                                </p>
+                                <p>
+                                    <strong>Extra Hours :</strong> 
+                                    <span style={{ color: extraHoursColor }}> {extraHours.toFixed(2)} h</span>
+                                </p>
+                                <p>
+                                    <strong>Less Worked :</strong> 
+                                    <span style={{ color: lessHoursColor }}> {lessHours.toFixed(2)} h</span>
+                                </p>
+                            </div>
+                        );
+                    })()}
+                </div>
+            )}
+            <div className="reports-content">
                 {(reportData.length === 0 || !selectedDateRange) && (
                     <div
                         style={{
