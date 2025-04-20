@@ -183,8 +183,9 @@ ${name?.trim()}`;
         doc.setFont(FONT_FAMILY, "normal");
         doc.setFontSize(SUBTITLE_FONT_SIZE);
         doc.setTextColor(HEADER_TEXT_COLOR);
-        doc.text("Name: Sagar", 10, 28); // Left-aligned name
-        doc.text(`Date: ${formatDate(fromDate)} to ${formatDate(toDate)}`, 200, 28, { align: "right" }); // Right-aligned date
+        const name = localStorage.getItem("name") || ""; // Default to "User" if not set
+        doc.text(`Name : ${name}`, 10, 28); // Left-aligned name
+        doc.text(`Date: ${(fromDate)} to ${(toDate)}`, 200, 28, { align: "right" }); // Right-aligned date
     
         // Table Rows Preparation
         const allRows: any[] = [];
