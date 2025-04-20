@@ -774,13 +774,6 @@ label .input-field {
   margin-bottom: 5px;
 }
 
-.report-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 3 cards per row */
-  gap: 20px; /* Space between cards */
-  margin-top: 20px;
-}
-
 .report-card {
   max-width: 100%; /* Ensure cards don't exceed their container */
   background-color: #1e1e1e; /* Match theme */

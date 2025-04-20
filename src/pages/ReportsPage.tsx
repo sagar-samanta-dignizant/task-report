@@ -364,7 +364,7 @@ ${name?.trim()}`;
                         )}
                     </div>
                 )}
-                <div className="report-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+                <div className="report-grid">
                     {reportData.length > 0 && (
                         reportData.map((report: any, index: number) => (
                             <div key={index} className="report-card">

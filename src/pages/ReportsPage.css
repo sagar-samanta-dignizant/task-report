@@ -53,8 +53,36 @@
 
 .report-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Dynamically adjust columns */
+    gap: 16px; /* Maintain gap between cards */
+    align-items: stretch; /* Ensure all cards in a row have the same height */
+    justify-content: center; /* Center the grid content */
+}
+
+.report-card {
+    max-width: 100%; /* Ensure cards don't exceed their container */
+    border: 1px solid #ddd; /* Optional: Add a border for better visual separation */
+    padding: 16px; /* Optional: Add padding for better content spacing */
+    border-radius: 8px; /* Optional: Add rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle shadow */
+    overflow: hidden; /* Prevent internal scrolling */
+    display: flex;
+    flex-direction: column; /* Ensure content stacks vertically */
+    height: auto; /* Allow cards to expand naturally */
+}
+
+/* Media query for smaller screens (e.g., tablets) */
+@media (max-width: 768px) {
+    .report-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust card size for smaller screens */
+    }
+}
+
+/* Media query for very small screens (e.g., mobile devices) */
+@media (max-width: 480px) {
+    .report-grid {
+        grid-template-columns: 1fr; /* Show one card per row */
+    }
 }
 
 button.ant-btn-primary {
