@@ -35,6 +35,9 @@ const EditTaskPage = () => {
 
     const workingTimeLimit = 8.5;
 
+    const TASK_GAP = report?.data.generateSettings?.taskGap || 1; // Default to 1 if not set
+    const SUBTASK_GAP = report?.data.generateSettings?.subtaskGap || 1; // Default to 1 if not set
+
     const calculateRemainingTime = () => {
         const totalTaskTime = tasks.reduce((sum, task) => {
             const subtaskTime =
@@ -227,7 +230,7 @@ const EditTaskPage = () => {
                         : "";
                     return `${taskLine}${subtaskLines ? `\n${subtaskLines}` : ""}`;
                 })
-                .join("\n");
+                .join("\n".repeat(TASK_GAP));
 
         return `Today's work update - ${moment(date).format("YYYY-MM-DD")}
 

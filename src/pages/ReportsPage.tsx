@@ -106,19 +106,22 @@ const ReportsPage: React.FC = () => {
         return line;
     };
 
-    const formatTasks = (tasks: any[], level = 0, bulletType: string, subIcon: string): string =>
-        tasks
-            .map((task, index) => {
-                const taskLine = `${formatLine(task, level, bulletType, index)}`;
-                const subtaskLines = task.subtasks
-                    ? formatTasks(task.subtasks, level + 1, subIcon, subIcon)
-                    : "";
-                return `${taskLine}${subtaskLines ? `\n${subtaskLines}` : ""}`;
-            })
-            .join("\n");
-
     const formatPreview = (data: any) => {
-        const { tasks, selectedProjects, date, name, nextTask, bulletType, subIcon } = data;
+        const { tasks, selectedProjects, date, name, nextTask, bulletType, subIcon, generateSettings } = data;
+
+        const TASK_GAP = generateSettings?.taskGap || 1; // Default to 1 if not set
+        const SUBTASK_GAP = generateSettings?.subtaskGap || 1; // Default to 1 if not set
+
+        const formatTasks = (tasks: any[], level = 0, bulletType: string, subIcon: string): string =>
+            tasks
+                .map((task, index) => {
+                    const taskLine = `${formatLine(task, level, bulletType, index)}`;
+                    const subtaskLines = task.subtasks
+                        ? formatTasks(task.subtasks, level + 1, subIcon, subIcon)
+                        : "";
+                    return `${taskLine}${subtaskLines ? `\n${subtaskLines}` : ""}`;
+                })
+                .join("\n".repeat(TASK_GAP));
 
         return `Today's work update - ${moment(date, "YYYY-MM-DD").format("YYYY-MM-DD")}
 

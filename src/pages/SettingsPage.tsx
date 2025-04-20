@@ -216,6 +216,37 @@ const SettingsPage = ({ settings, toggleSetting }: any) => (
                     </label>
                 </div>
             </div>
+
+            {/* Generate Settings Section */}
+            <div className="settings-section">
+                <h3 className="settings-section-title">Generate Settings</h3>
+                <div className="settings-option">
+                    <label>
+                        Task Gap
+                        <input
+                            type="number"
+                            className="gap-input"
+                            value={settings.generateSettings.taskGap || 1} // Default to 1 if not set
+                            onChange={(e) =>
+                                toggleSetting("generateSettings", "taskGap", parseInt(e.target.value) || 1)
+                            }
+                        />
+                    </label>
+                </div>
+                <div className="settings-option">
+                    <label>
+                        Subtask Gap
+                        <input
+                            type="number"
+                            className="gap-input"
+                            value={settings.generateSettings.subtaskGap || 1} // Default to 1 if not set
+                            onChange={(e) =>
+                                toggleSetting("generateSettings", "subtaskGap", parseInt(e.target.value) || 1)
+                            }
+                        />
+                    </label>
+                </div>
+            </div>
         </div>
     </div>
 );

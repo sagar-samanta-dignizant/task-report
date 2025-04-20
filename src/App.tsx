@@ -79,6 +79,10 @@ const App = () => {
         showNextTask: true,
         showProject: true,
       },
+      generateSettings: JSON.parse(localStorage.getItem("generateSettings") || "{}") || {
+        taskGap: 2,
+        subtaskGap: 1,
+      },
     };
     return defaultSettings;
   });
@@ -90,6 +94,9 @@ const App = () => {
   const subtaskRefs = useRef<(InputRef | null)[][]>([]);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const TASK_GAP = settings.generateSettings.taskGap || 1; // Default to 1 if not set
+  const SUBTASK_GAP = settings.generateSettings.subtaskGap || 1; // Default to 1 if not set
 
   const handleNavigation = (to: string) => {
     if (location.pathname !== to) {
@@ -366,12 +373,12 @@ const App = () => {
                 .map((subtask, subIndex) =>
                   `${formatLine(subtask, subIndex, true)}`
                 )
-                .join("\n")}`;
+                .join("\n".repeat(SUBTASK_GAP))}`;
             }
           }
           return line;
         })
-        .join("\n");
+        .join("\n".repeat(TASK_GAP));
 
     return `Today's work update - ${settings.previewSettings.showDate ? moment(date).format("YYYY-MM-DD") || "YYYY-MM-DD" : ""
       }
