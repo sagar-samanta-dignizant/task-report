@@ -150,11 +150,9 @@ ${name?.trim()}`;
         const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     
         // Constants for styling
-        const HEADER_COLOR = "#4A90E2"; // Blue header color
-        const HEADER_TEXT_COLOR = "#ffffff"; // White text color in header
         const FONT_FAMILY = "Helvetica"; // Professional font
-        const TITLE_FONT_SIZE = 18;
-        const SUBTITLE_FONT_SIZE = 14;
+        const TITLE_FONT_SIZE = 16;
+        const SUBTITLE_FONT_SIZE = 12;
         const PAGE_MARGIN = 5; // 5px margin for left and right
     
         // Convert "YYYY-MM-DD" to "DD/MM/YYYY"
@@ -172,21 +170,15 @@ ${name?.trim()}`;
         const fromDate = selectedDateRange?.[0] || dates[0];
         const toDate = selectedDateRange?.[1] || dates[dates.length - 1];
     
-        // Add header with a background color and white text
-        doc.setFillColor(HEADER_COLOR);
-        doc.rect(0, 0, 210, 30, "F"); // Larger header for better visibility
-        doc.setFontSize(TITLE_FONT_SIZE);
-        doc.setTextColor(HEADER_TEXT_COLOR);
+        // Add text at the top of the PDF
         doc.setFont(FONT_FAMILY, "bold");
-        doc.text("Work Report", 105, 18, { align: "center" }); // Center-aligned title
+        doc.setFontSize(TITLE_FONT_SIZE);
+        doc.text("Monthly Work Report", 10, 10); // Title at the top-left
     
-        // Add the date range text at the top (below "Work Report")
+        doc.setFont(FONT_FAMILY, "normal");
         doc.setFontSize(SUBTITLE_FONT_SIZE);
-        doc.text(`Date from: ${formatDate(fromDate)} to ${formatDate(toDate)}`, 105, 40, { align: "center" });
-    
-        // Add Name below the date range (e.g., "Name: Sagar")
-        const userName = "Sagar"; // You can replace this with dynamic name if needed
-        doc.text(`Name: ${userName}`, 105, 46, { align: "center" });
+        doc.text(`Date: ${formatDate(fromDate)} to ${formatDate(toDate)}`, 10, 20); // Date range below the title
+        doc.text("Name: Sagar", 10, 30); // Name below the date range
     
         // Table Rows Preparation
         const allRows: any[] = [];
@@ -230,11 +222,11 @@ ${name?.trim()}`;
         });
     
         // Adding Table with Stylish Layout (Full width adjustment)
-        const tableStartY = 55; // Starting Y position for the table
+        const tableStartY = 40; // Starting Y position for the table
         const tableWidth = 210 - 2 * PAGE_MARGIN; // Adjusted width to account for the margin
     
         autoTable(doc, {
-            startY: tableStartY, // Start the table just after the user info
+            startY: tableStartY, // Start the table below the text
             head: [["Date", "ID", "Task", "Status", "Time"]],
             body: allRows,
             styles: {
@@ -246,8 +238,8 @@ ${name?.trim()}`;
                 cellWidth: "auto", // Full width usage for each column
             },
             headStyles: {
-                fillColor: HEADER_COLOR,
-                textColor: HEADER_TEXT_COLOR,
+                fillColor: "#4A90E2",
+                textColor: "#ffffff",
                 fontSize: 11,
                 font: FONT_FAMILY,
             },
