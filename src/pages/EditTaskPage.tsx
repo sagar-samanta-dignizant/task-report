@@ -30,6 +30,8 @@ const EditTaskPage = () => {
     const [bulletType, setBulletType] = useState(report?.data.bulletType || "bullet");
     const [nextTaskValue, setNextTaskValue] = useState(report?.data.nextTask || "");
     const [selectedSubIcon, setSelectedSubIcon] = useState<"bullet" | "number" | ">" | "=>">("bullet");
+    const [alertMessage, setAlertMessage] = useState<string | null>(null); // Add state for alert messages
+    const [isDateConflict, setIsDateConflict] = useState(false); // Track if the selected date conflicts with an existing record
 
     const taskRefs = useRef<(HTMLInputElement | null)[]>([]);
     const subtaskRefs = useRef<(HTMLInputElement | null)[][]>([]);
@@ -177,8 +179,26 @@ const EditTaskPage = () => {
         setTasks(updatedTasks);
     };
 
+    const handleDateChange = (dateString: string) => {
+        const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
+        const formattedDate = dayjs(dateString, "DD-MM-YYYY").format("YYYY-MM-DD");
+
+        // Check if the new date already exists in the store and is not the current record's date
+        if (formattedDate !== report.date && savedReports[formattedDate]) {
+            setAlertMessage(`Warning: A record already exists for the date: ${dayjs(formattedDate).format("DD-MM-YYYY")}. Saving will replace the existing record.`);
+            setIsDateConflict(true); // Indicate a date conflict
+        } else {
+            setAlertMessage(null); // Clear the warning if no conflict
+            setIsDateConflict(false); // No conflict
+        }
+
+        setDate(formattedDate); // Update the date
+    };
+
     const handleSave = () => {
-        // Save the updated report data in the correct structure
+        const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
+
+        // Save the updated report data
         const updatedReport = {
             date,
             tasks,
@@ -188,8 +208,12 @@ const EditTaskPage = () => {
             nextTask: nextTaskValue,
         };
 
-        const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
-        savedReports[date] = updatedReport; // Save the updated report directly under the date key
+        // Remove the old record if the date has changed
+        if (date !== report.date) {
+            delete savedReports[report.date];
+        }
+
+        savedReports[date] = updatedReport; // Save the updated report under the new date
         localStorage.setItem("reports", JSON.stringify(savedReports));
 
         navigate("/reports"); // Navigate back to the reports page after saving
@@ -260,6 +284,20 @@ ${name.trim()}`;
 
     return (
         <div className="edit-task-page">
+            {alertMessage && (
+                <div
+                    style={{
+                        backgroundColor: isDateConflict ? "#fff3cd" : "#d4edda", // Yellow for warning, green for success
+                        color: isDateConflict ? "#856404" : "#155724", // Text color based on warning or success
+                        padding: "10px",
+                        borderRadius: "5px",
+                        marginBottom: "15px",
+                        border: `1px solid ${isDateConflict ? "#ffeeba" : "#c3e6cb"}`, // Border color based on warning or success
+                    }}
+                >
+                    {alertMessage}
+                </div>
+            )}
             <h2>Edit Report</h2>
             <div className="content" style={{ display: "flex", gap: "20px" }}>
                 <div className="task-input-container" style={{ flex: "65%" }}>
@@ -280,11 +318,7 @@ ${name.trim()}`;
                                 <DatePicker
                                     id="date"
                                     value={date ? dayjs(date, "YYYY-MM-DD") : null} // Use dayjs object for value
-                                    onChange={(_, dateString) => {
-                                        if (typeof dateString === "string") {
-                                            setDate(dayjs(dateString, "DD-MM-YYYY").format("YYYY-MM-DD")); // Convert back to YYYY-MM-DD for storage
-                                        }
-                                    }}
+                                    onChange={(_, dateString) => handleDateChange(dateString as string)} // Handle date change
                                     format="DD-MM-YYYY" // Display date in DD-MM-YYYY format
                                     style={{ width: "100%" }}
                                 />
