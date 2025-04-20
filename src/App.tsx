@@ -1,15 +1,17 @@
 import "./app.css";
+
+import { ALERT_DISMISS_TIME, ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "./constant/task.constant";
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
-import { Alert, Button, DatePicker, Input, Select, Layout, Tooltip, InputRef } from "antd";
-import { CheckOutlined, CopyOutlined, SaveOutlined, HomeOutlined, SettingOutlined, FileTextOutlined, ReloadOutlined } from "@ant-design/icons";
+import { Alert, Button, DatePicker, Input, InputRef, Layout, Select, Tooltip } from "antd";
+import { CSSTransition, TransitionGroup } from "react-transition-group";
+import { CheckOutlined, CopyOutlined, FileTextOutlined, HomeOutlined, ReloadOutlined, SaveOutlined, SettingOutlined } from "@ant-design/icons";
 import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
-import dayjs from "dayjs";
+import { useEffect, useRef, useState } from "react";
+
+import EditTaskPage from "./pages/EditTaskPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
-import EditTaskPage from "./pages/EditTaskPage";
-import { ALERT_DISMISS_TIME, ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "./constant/task.constant";
-import { CSSTransition, TransitionGroup } from "react-transition-group";
+import dayjs from "dayjs";
 import { reverseDate } from "./utils/dateUtils";
 
 const { Option } = Select;
@@ -511,7 +513,7 @@ ${name.trim()}`;
     <Layout className={`app-container ${theme}`}>
       <Header className="header">
         <div className="header-content">
-          <div className="logo">
+          <div className="logo" onClick={() => handleNavigation("/")}>
             <img src={"/test-1.png"} alt="Logo" />
           </div>
           <div className="header-title">
