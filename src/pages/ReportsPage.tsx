@@ -272,29 +272,8 @@ ${name?.trim()}`;
     
         // Save the document with professional naming
         doc.save(`task-report-${fromDate}-to-${toDate}.pdf`);
-    };
+    };    
     
-    const calculateWorkingHours = (tasks: any[]) => {
-        let totalHours = 0;
-        let totalMinutes = 0;
-
-        tasks.forEach((task) => {
-            totalHours += task.hours || 0;
-            totalMinutes += task.minutes || 0;
-
-            if (task.subtasks?.length > 0) {
-                task.subtasks.forEach((subtask: any) => {
-                    totalHours += subtask.hours || 0;
-                    totalMinutes += subtask.minutes || 0;
-                });
-            }
-        });
-
-        totalHours += Math.floor(totalMinutes / 60);
-        totalMinutes %= 60;
-
-        return { totalHours, totalMinutes };
-    };
 
     const calculateSummary = (reports: any[]) => {
         let totalHours = 0;
@@ -303,25 +282,26 @@ ${name?.trim()}`;
         reports.forEach((report) => {
             const tasks = report.data.tasks || [];
             tasks.forEach((task: any) => {
-                totalHours += task.hours || 0;
-                totalMinutes += task.minutes || 0;
+                totalHours += Number(task.hours) || 0; // Ensure hours are treated as numbers
+                totalMinutes += Number(task.minutes) || 0; // Ensure minutes are treated as numbers
 
                 if (task.subtasks?.length > 0) {
                     task.subtasks.forEach((subtask: any) => {
-                        totalHours += subtask.hours || 0;
-                        totalMinutes += subtask.minutes || 0;
+                        totalHours += Number(subtask.hours) || 0; // Ensure subtask hours are numbers
+                        totalMinutes += Number(subtask.minutes) || 0; // Ensure subtask minutes are numbers
                     });
                 }
             });
         });
 
+        // Convert total minutes to hours and adjust total hours and minutes
         totalHours += Math.floor(totalMinutes / 60);
         totalMinutes %= 60;
 
         const totalWorkedHours = totalHours + totalMinutes / 60;
         const actualWorkingHours = reports.length * 8.5; // Assuming 8.5 hours per day
-        const extraHours = Math.max(0, totalWorkedHours - actualWorkingHours);
-        const lessHours = Math.max(0, actualWorkingHours - totalWorkedHours);
+        const extraHours = totalWorkedHours > actualWorkingHours ? totalWorkedHours - actualWorkingHours : 0;
+        const lessHours = totalWorkedHours < actualWorkingHours ? actualWorkingHours - totalWorkedHours : 0;
 
         return { totalHours, totalMinutes, actualWorkingHours, extraHours, lessHours };
     };
