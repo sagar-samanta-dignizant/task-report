@@ -107,10 +107,11 @@ const ReportsPage: React.FC = () => {
     };
 
     const formatPreview = (data: any) => {
-        const { tasks, selectedProjects, date, name, nextTask, bulletType, subIcon, generateSettings } = data;
+        const { tasks, selectedProjects, date, name, nextTask, bulletType, subIcon } = data;
 
-        const TASK_GAP = generateSettings?.taskGap || 1; // Default to 1 if not set
-        const SUBTASK_GAP = generateSettings?.subtaskGap || 1; // Default to 1 if not set
+        const generateSettings = JSON.parse(localStorage.getItem("generateSettings") || "{}");
+        const TASK_GAP = generateSettings.taskGap || 1; // Default to 1 if not set
+        const SUBTASK_GAP = generateSettings.subtaskGap || 1; // Default to 1 if not set
 
         const formatTasks = (tasks: any[], level = 0, bulletType: string, subIcon: string): string =>
             tasks
@@ -121,20 +122,20 @@ const ReportsPage: React.FC = () => {
                         : "";
                     return `${taskLine}${subtaskLines ? `\n${subtaskLines}` : ""}`;
                 })
-                .join("\n".repeat(TASK_GAP));
+                .join("\n".repeat(level === 0 ? TASK_GAP : SUBTASK_GAP)); // Use TASK_GAP for tasks and SUBTASK_GAP for subtasks
 
         return `Today's work update - ${moment(date, "YYYY-MM-DD").format("YYYY-MM-DD")}
 
 ${selectedProjects.length > 0
-                ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
-                : ""
-            } 
+            ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
+            : ""
+        } 
 ----------------------------------------
 ${formatTasks(tasks, 0, bulletType, subIcon)}
 ${nextTask && nextTask.trim()
-                ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}`
-                : ""
-            }
+            ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}`
+            : ""
+        }
 
 Thanks & regards
 ${name?.trim()}`;
