@@ -15,7 +15,7 @@ dayjs.extend(isBetween); // Extend dayjs with isBetween plugin
 const { RangePicker } = DatePicker;
 
 const ReportsPage: React.FC = () => {
-    const [reportData, setReportData] = useState<Record<string, any>>([]);
+    const [reportData, setReportData] = useState<Array<{ date: string; data: any }>>([]);
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const [copiedPreview, setCopiedPreview] = useState<string | null>(null);
     const [selectedDateRange, setSelectedDateRange] = useState<[string, string] | null>(null);
@@ -130,15 +130,15 @@ const ReportsPage: React.FC = () => {
         return `${workUpdateText} ${previewSettings.showDate ? reverseDate(date) : ""}
 
 ${previewSettings.showProject && selectedProjects.length > 0
-            ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
-            : ""
-        } 
+                ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
+                : ""
+            } 
 ----------------------------------------
 ${formatTasks(tasks, 0, bulletType, subIcon)}
 ${previewSettings.showNextTask && nextTask && nextTask.trim()
-            ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}`
-            : ""
-        }
+                ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}`
+                : ""
+            }
 
 ${closingText}
 ${name?.trim()}`;
@@ -149,45 +149,37 @@ ${name?.trim()}`;
 
         const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
-        // Format date to DD/MM/YYYY
+        // Convert "YYYY-MM-DD" to "DD/MM/YYYY"
         const formatDate = (dateStr: string) => {
             const [year, month, day] = dateStr.split("-");
             return `${day}/${month}/${year}`;
         };
-        const formatSelectedDate = (dateStr: string) => {
-            const [year, month, day] = dateStr.split("/");
-            return `${day}/${month}/${year}`;
-        };
-        // Log to check if selectedDateRange is set
+      
+        const sortedData = [...reportData].sort(
+            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
 
-        const dates = Object.keys(reportData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+        const dates = sortedData.map((item) => item.date);
 
-        // Ensure selectedDateRange has valid dates
-        const fromDate = selectedDateRange && selectedDateRange[0] ? selectedDateRange[0] : dates[0]; // Fallback to the first date
-        const toDate = selectedDateRange && selectedDateRange[1] ? selectedDateRange[1] : dates[dates.length - 1]; // Fallback to the last date
+        const fromDate = selectedDateRange?.[0] || dates[0];
+        const toDate = selectedDateRange?.[1] || dates[dates.length - 1];
 
-        // Log to check if fromDate and toDate are being set correctly
-
-        const formattedFromDate = formatSelectedDate(fromDate);
-        const formattedToDate = formatSelectedDate(toDate);
-
-        // Title and Name
+        // Add report header
         doc.setFontSize(12);
-        doc.text(`Work Report from: ${formattedFromDate} to ${formattedToDate}`, 14, 20);
+        doc.text(`Work Report from: ${fromDate} to ${toDate}`, 14, 20);
 
-        const userName = reportData[dates[0]]?.data?.name || "User";
+        const userName = sortedData.find((entry) => entry.data?.name)?.data?.name || "User";
         doc.text(`Name: ${userName}`, 14, 28);
 
         const allRows: any[] = [];
-
         let previousMonthYear = "";
 
-        // Loop through each day and collect rows
-        dates.forEach((date) => {
-            const dayData = reportData[date] || {};
-            const tasks = dayData.data?.tasks || [];
+        sortedData.forEach((entry) => {
+            const date = entry.date;
+            const dayData = entry.data || {};
+            const tasks = dayData.tasks || [];
 
-            const currentMonthYear = formatDate(date).slice(3, 10);
+            const currentMonthYear = formatDate(date).slice(3, 10); // MM/YYYY
 
             if (currentMonthYear !== previousMonthYear) {
                 previousMonthYear = currentMonthYear;
@@ -196,32 +188,29 @@ ${name?.trim()}`;
             let isFirstTask = true;
 
             tasks.forEach((task: any) => {
-                console.log("task", dayData);
-
-                // Add main task row
                 allRows.push([
-                    isFirstTask ? formatDate(dayData.date) : "", // Date only once for this task
-                    task?.id || "",
-                    task.title,
-                    task.status,
-                    `${task.hours}h ${task.minutes}m`,
+                    isFirstTask ? formatDate(date) : "",
+                    task?.id || task?.taskId || "",
+                    task?.title || "",
+                    task?.status || "",
+                    `${task?.hours || 0}h ${task?.minutes || 0}m`,
                 ]);
                 isFirstTask = false;
 
-                // Add subtasks
-                task.subtasks?.forEach((subtask: any) => {
-                    allRows.push([
-                        "", // No date
-                        "", // No ID
-                        `${subtask.title}`,
-                        subtask.status,
-                        `${subtask.hours}h ${subtask.minutes}m`,
-                    ]);
-                });
+                if (task?.subtasks?.length > 0) {
+                    task.subtasks.forEach((subtask: any) => {
+                        allRows.push([
+                            "",
+                            "",
+                            subtask?.title || "",
+                            subtask?.status || "",
+                            `${subtask?.hours || 0}h ${subtask?.minutes || 0}m`,
+                        ]);
+                    });
+                }
             });
         });
 
-        // Create table
         autoTable(doc, {
             startY: 35,
             head: [["Date", "ID", "Task", "Status", "Time"]],
@@ -237,14 +226,8 @@ ${name?.trim()}`;
             theme: "grid",
         });
 
-        // Save the PDF
-        doc.save(`task-report-${formattedFromDate.replace(/\//g, "-")}-to-${formattedToDate.replace(/\//g, "-")}.pdf`);
+        doc.save(`task-report-${fromDate}-to-${toDate}.pdf`);
     };
-
-
-
-
-console.log(reportData);
 
     const exportMenu = (
         <Menu
