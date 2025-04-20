@@ -282,28 +282,39 @@ ${name?.trim()}`;
         reports.forEach((report) => {
             const tasks = report.data.tasks || [];
             tasks.forEach((task: any) => {
-                totalHours += Number(task.hours) || 0; // Ensure hours are treated as numbers
-                totalMinutes += Number(task.minutes) || 0; // Ensure minutes are treated as numbers
+                totalHours += Number(task.hours) || 0;
+                totalMinutes += Number(task.minutes) || 0;
 
                 if (task.subtasks?.length > 0) {
                     task.subtasks.forEach((subtask: any) => {
-                        totalHours += Number(subtask.hours) || 0; // Ensure subtask hours are numbers
-                        totalMinutes += Number(subtask.minutes) || 0; // Ensure subtask minutes are numbers
+                        totalHours += Number(subtask.hours) || 0;
+                        totalMinutes += Number(subtask.minutes) || 0;
                     });
                 }
             });
         });
 
-        // Convert total minutes to hours and adjust total hours and minutes
         totalHours += Math.floor(totalMinutes / 60);
         totalMinutes %= 60;
 
         const totalWorkedHours = totalHours + totalMinutes / 60;
-        const actualWorkingHours = reports.length * 8.5; // Assuming 8.5 hours per day
+        const actualWorkingHours = reports.length * 8.5;
         const extraHours = totalWorkedHours > actualWorkingHours ? totalWorkedHours - actualWorkingHours : 0;
         const lessHours = totalWorkedHours < actualWorkingHours ? actualWorkingHours - totalWorkedHours : 0;
 
-        return { totalHours, totalMinutes, actualWorkingHours, extraHours, lessHours };
+        const formatTime = (hours: number, minutes: number) => {
+            const h = Math.floor(hours);
+            const m = Math.round((hours - h) * 60 + minutes);
+            return `${h > 0 ? `${h} h` : "0 h"} ${m > 0 ? `${m} min` : "0 min"}`.trim();
+        };
+
+        return {
+            totalHours,
+            totalMinutes,
+            actualWorkingHours: formatTime(Math.floor(actualWorkingHours), (actualWorkingHours % 1) * 60),
+            extraHours: formatTime(Math.floor(extraHours), (extraHours % 1) * 60),
+            lessHours: formatTime(Math.floor(lessHours), (lessHours % 1) * 60),
+        };
     };
 
     const exportMenu = (
@@ -363,20 +374,20 @@ ${name?.trim()}`;
                     {(() => {
                         const { totalHours, totalMinutes, actualWorkingHours, extraHours, lessHours } = calculateSummary(reportData);
                         // Determine text colors based on conditions
-                        const workedHoursColor = totalHours + totalMinutes / 60 === actualWorkingHours
+                        const workedHoursColor = totalHours + totalMinutes / 60 === parseFloat(actualWorkingHours)
                             ? "green"
-                            : totalHours + totalMinutes / 60 > actualWorkingHours
+                            : totalHours + totalMinutes / 60 > parseFloat(actualWorkingHours)
                                 ? "green"
                                 : "red";
 
-                        const extraHoursColor = extraHours > 0 ? "green" : "inherit";
-                        const lessHoursColor = lessHours > 0 ? "yellow" : "inherit";
+                        const extraHoursColor = extraHours ? "green" : "inherit";
+                        const lessHoursColor = lessHours ? "yellow" : "inherit";
 
                         return (
                             <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
                                 <p>
                                     <strong>Total Hours :</strong> 
-                                    <span style={{ color: "green" }}> {actualWorkingHours.toFixed(2)} h</span>
+                                    <span style={{ color: "green" }}> {actualWorkingHours}</span>
                                 </p>
                                 <p>
                                     <strong>Worked Hours :</strong> 
@@ -384,11 +395,11 @@ ${name?.trim()}`;
                                 </p>
                                 <p>
                                     <strong>Extra Hours :</strong> 
-                                    <span style={{ color: extraHoursColor }}> {extraHours.toFixed(2)} h</span>
+                                    <span style={{ color: extraHoursColor }}> {extraHours}</span>
                                 </p>
                                 <p>
                                     <strong>Less Worked :</strong> 
-                                    <span style={{ color: lessHoursColor }}> {lessHours.toFixed(2)} h</span>
+                                    <span style={{ color: lessHoursColor }}> {lessHours}</span>
                                 </p>
                             </div>
                         );
