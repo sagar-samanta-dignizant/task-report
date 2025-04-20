@@ -146,31 +146,37 @@ ${name?.trim()}`;
 
     const handleExport = (key: string) => {
         if (key !== "pdf") return;
-    
+
+        const exportSettings = JSON.parse(localStorage.getItem("exportSettings") || "{}");
+        const includeID = exportSettings.showID === true;
+        const includeStatus = exportSettings.showStatus === true;
+        const includeTime = exportSettings.showHours === true;
+        const includeSubtasks = exportSettings.allowSubtask === true;
+
         const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    
+
         // Constants for styling
         const HEADER_COLOR = "#4A90E2"; // Blue header color
         const HEADER_TEXT_COLOR = "#ffffff"; // White text color in header
         const FONT_FAMILY = "Helvetica"; // Professional font
         const TITLE_FONT_SIZE = 18;
         const SUBTITLE_FONT_SIZE = 12;
-    
+
         // Convert "YYYY-MM-DD" to "DD/MM/YYYY"
         const formatDate = (dateStr: string) => {
             const [year, month, day] = dateStr.split("-");
             return `${day}/${month}/${year}`;
         };
-    
+
         // Sorting data and defining date range
         const sortedData = [...reportData].sort(
             (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
         );
-    
+
         const dates = sortedData.map((item) => item.date);
         const fromDate = selectedDateRange?.[0] || dates[0];
         const toDate = selectedDateRange?.[1] || dates[dates.length - 1];
-    
+
         // Add a header with a background color
         doc.setFillColor(HEADER_COLOR);
         doc.rect(0, 0, 210, 30, "F"); // Full-width header with height of 30mm
@@ -178,7 +184,7 @@ ${name?.trim()}`;
         doc.setFontSize(TITLE_FONT_SIZE);
         doc.setTextColor(HEADER_TEXT_COLOR);
         doc.text("Monthly Work Report", 105, 15, { align: "center" }); // Center-aligned title with spacing above
-    
+
         // Add name on the left and date on the right
         doc.setFont(FONT_FAMILY, "normal");
         doc.setFontSize(SUBTITLE_FONT_SIZE);
@@ -186,54 +192,65 @@ ${name?.trim()}`;
         const name = localStorage.getItem("name") || ""; // Default to "User" if not set
         doc.text(`Name : ${name}`, 10, 28); // Left-aligned name
         doc.text(`Date: ${(fromDate)} to ${(toDate)}`, 200, 28, { align: "right" }); // Right-aligned date
-    
+
+        // Define table headers dynamically based on exportSettings
+        const tableHeaders = [
+            "Date",
+            ...(includeID ? ["ID"] : []),
+            "Task",
+            ...(includeStatus ? ["Status"] : []),
+            ...(includeTime ? ["Time"] : []),
+        ];
+
         // Table Rows Preparation
         const allRows: any[] = [];
         let previousMonthYear = "";
-    
+
         sortedData.forEach((entry) => {
             const date = entry.date;
             const dayData = entry.data || {};
             const tasks = dayData.tasks || [];
-    
+
             const currentMonthYear = formatDate(date).slice(3, 10); // MM/YYYY
-    
+
             if (currentMonthYear !== previousMonthYear) {
                 previousMonthYear = currentMonthYear;
             }
-    
+
             let isFirstTask = true;
-    
+
             tasks.forEach((task: any) => {
-                allRows.push([
+                const row = [
                     isFirstTask ? formatDate(date) : "",
-                    task?.id || task?.taskId || "",
+                    ...(includeID ? [task?.id || task?.taskId || ""] : []),
                     task?.title || "",
-                    task?.status || "",
-                    `${task?.hours || 0}h ${task?.minutes || 0}m`,
-                ]);
+                    ...(includeStatus ? [task?.status || ""] : []),
+                    ...(includeTime ? [`${task?.hours || 0}h ${task?.minutes || 0}m`] : []),
+                ];
+                allRows.push(row);
                 isFirstTask = false;
-    
-                if (task?.subtasks?.length > 0) {
+
+                if (includeSubtasks && task?.subtasks?.length > 0) {
                     task.subtasks.forEach((subtask: any) => {
-                        allRows.push([
+                        const subtaskRow = [
                             "",
-                            "",
+                            ...(includeID ? [""] : []),
                             subtask?.title || "",
-                            subtask?.status || "",
-                            `${subtask?.hours || 0}h ${subtask?.minutes || 0}m`,
-                        ]);
+                            ...(includeStatus ? [subtask?.status || ""] : []),
+                            ...(includeTime ? [`${subtask?.hours || 0}h ${subtask?.minutes || 0}m`] : []),
+                        ];
+                        allRows.push(subtaskRow);
                     });
                 }
             });
         });
-    
+
         // Adding Table with Stylish Layout (Full width adjustment)
         const tableStartY = 35; // Starting Y position for the table
-    
+
         autoTable(doc, {
             startY: tableStartY, // Start the table below the text
-            head: [["Date", "ID", "Task", "Status", "Time"]],
+            head: [tableHeaders], // Use dynamic headers
             body: allRows,
             styles: {
                 fontSize: 9,
@@ -251,10 +268,10 @@ ${name?.trim()}`;
             },
             columnStyles: {
                 0: { cellWidth: 30 }, // Static width for Date
-                1: { cellWidth: 20 }, // Static width for ID
-                2: { cellWidth: "auto" }, // Dynamic width for Task Title
-                3: { cellWidth: 30 }, // Static width for Status
-                4: { cellWidth: 30 }, // Static width for Time
+                ...(includeID ? { 1: { cellWidth: 20 } } : {}),
+                ...(includeID ? { 2: { cellWidth: "auto" } } : { 1: { cellWidth: "auto" } }),
+                ...(includeStatus ? { [includeID ? 3 : 2]: { cellWidth: 30 } } : {}),
+                ...(includeTime ? { [includeID ? (includeStatus ? 4 : 3) : (includeStatus ? 3 : 2)]: { cellWidth: 30 } } : {}),
             },
             theme: "grid",
             alternateRowStyles: { fillColor: [220, 220, 220] }, // Light row color
@@ -265,16 +282,15 @@ ${name?.trim()}`;
                 }
             }
         });
-    
+
         // Add footer with page number
         doc.setFontSize(10);
         doc.setTextColor(150);
         doc.text(`Page ${doc.getNumberOfPages()}`, 190, 285);
-    
+
         // Save the document with professional naming
         doc.save(`task-report-${fromDate}-to-${toDate}.pdf`);
     };    
-    
 
     const calculateSummary = (reports: any[]) => {
         let totalHours = 0;
