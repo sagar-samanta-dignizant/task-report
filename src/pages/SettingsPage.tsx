@@ -1,6 +1,7 @@
 import "./SettingsPage.css"; // Import custom CSS for the settings page
-import { Input, Upload, Button } from "antd"; // Import Ant Design Input, Upload, and Button components
+import { Input, Upload, Button, Avatar, message } from "antd"; // Import Ant Design Input, Upload, Button, Avatar, and message components
 import { UploadOutlined } from "@ant-design/icons"; // Import Upload icon
+import React from "react";
 
 const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) => (
     <div
@@ -12,6 +13,7 @@ const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (chec
 );
 
 const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
+    const [uploadedImage, setUploadedImage] = React.useState<string | null>(null); // State for uploaded image preview
     const generateSettings = JSON.parse(localStorage.getItem("generateSettings") || "{}");
 
     return (
@@ -278,25 +280,20 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                     </div>
                     <div className="settings-option">
                         <label>
-                            Closing Text
-                            <Input
-                                className="text-input"
-                                value={generateSettings.closingText || "Thanks & regards"}
-                                onChange={(e) =>
-                                    toggleSetting("generateSettings", "closingText", e.target.value || "Thanks & regards")
-                                }
-                            />
-                        </label>
-                    </div>
-                    <div className="settings-option">
-                        <label>
                             Upload Profile Picture
                             <Upload
                                 showUploadList={false}
                                 beforeUpload={(file) => {
+                                    const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
+                                    if (!isJpgOrPng) {
+                                        message.error("You can only upload JPG/PNG files!");
+                                        return false; // Reject unsupported file types
+                                    }
                                     const reader = new FileReader();
                                     reader.onload = () => {
-                                        setProfilePicture(reader.result as string);
+                                        const result = reader.result as string;
+                                        setUploadedImage(result); // Set preview image
+                                        setProfilePicture(result); // Update profile picture
                                     };
                                     reader.readAsDataURL(file);
                                     return false; // Prevent automatic upload
@@ -305,6 +302,13 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                 <Button icon={<UploadOutlined />}>Upload</Button>
                             </Upload>
                         </label>
+                        {uploadedImage && (
+                            <Avatar
+                                src={uploadedImage}
+                                size={64}
+                                style={{ marginTop: "10px", border: "1px solid #4caf50" }}
+                            />
+                        )}
                     </div>
                 </div>
             </div>
