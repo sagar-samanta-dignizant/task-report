@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Button, DatePicker, Input, Select, Tooltip } from "antd";
-const { Option } = Select;
-import dayjs from "dayjs"; // Replace moment with dayjs
-import { useState, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+
 import { ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "../constant/task.constant";
 import { AddIcon, minusIcon } from "../assets/fontAwesomeIcons";
+import { Button, DatePicker, Input, Select, Tooltip } from "antd";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
+
+import dayjs from "dayjs"; // Replace moment with dayjs
 import { reverseDate } from "../utils/dateUtils";
+
+const { Option } = Select;
 
 interface Task {
     id: number;
@@ -18,7 +21,7 @@ interface Task {
     subtasks?: Omit<Task, "subtasks">[]; // Add subtasks property
 }
 
-const EditTaskPage = () => {
+const EditTaskPage = ({ settings }: { settings: any }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const report = location.state?.report;
@@ -131,12 +134,17 @@ const EditTaskPage = () => {
             status: "Completed",
         };
         setTasks((prevTasks) => {
-            const updatedTasks = [...prevTasks, newTask];
-            taskRefs.current.push(null); // Add a new ref for the new task
+            const updatedTasks = [newTask, ...prevTasks]; // Add new task at the top
+            taskRefs.current.unshift(null); // Adjust the refs array
             return updatedTasks;
         });
         setTimeout(() => {
-            taskRefs.current[taskRefs.current.length - 1]?.focus(); // Focus on the ID input if it exists
+            if (settings.taskSettings.showID) {
+                taskRefs.current[0]?.focus(); // Focus on the ID input if it exists
+            } else {
+                const titleInput = document.querySelectorAll<HTMLInputElement>('.task-details-inputs .title-field input')[0];
+                titleInput?.focus(); // Focus on the title field if ID is not shown
+            }
         }, 0);
     };
 
@@ -417,21 +425,25 @@ ${name.trim()}`;
                                     <div
                                         className="task-row"
                                         style={{
-                                            gridTemplateColumns: "1fr 3fr 1fr 1fr 1fr auto auto",
+                                            gridTemplateColumns: settings.taskSettings.showID
+                                                ? "1fr 3fr 1fr 1fr 1fr auto auto" // With ID field
+                                                : "3fr 1fr 1fr 1fr auto auto", // Without ID field
                                         }}
                                     >
-                                        <div className="input-group id-field">
-                                            <Input
-                                                ref={(el) => {
-                                                    taskRefs.current[index] = el?.input || null; // Assign ref to the underlying input element
-                                                }}
-                                                placeholder="Task ID"
-                                                value={task.taskId}
-                                                onChange={(e) =>
-                                                    handleTaskChange(index, "taskId", e.target.value)
-                                                }
-                                            />
-                                        </div>
+                                        {settings.taskSettings.showID && (
+                                            <div className="input-group id-field">
+                                                <Input
+                                                    ref={(el) => {
+                                                        taskRefs.current[index] = el?.input || null; // Assign ref to the underlying input element
+                                                    }}
+                                                    placeholder="Task ID"
+                                                    value={task.taskId}
+                                                    onChange={(e) =>
+                                                        handleTaskChange(index, "taskId", e.target.value)
+                                                    }
+                                                />
+                                            </div>
+                                        )}
                                         <div className="input-group title-field">
                                             <Input
                                                 placeholder="Task Title"
@@ -439,6 +451,7 @@ ${name.trim()}`;
                                                 onChange={(e) =>
                                                     handleTaskChange(index, "title", e.target.value)
                                                 }
+                                                spellCheck={true} // Enable spell checking
                                             />
                                         </div>
                                         <div className="input-group">
@@ -533,19 +546,24 @@ ${name.trim()}`;
                                                 className="task-row subtask-row"
                                                 key={`subtask-${index}-${subIndex}`}
                                                 style={{
-                                                    gridTemplateColumns: "1fr 3fr 1fr 1fr 1fr auto auto", // Same layout as tasks
+                                                    gridTemplateColumns: settings.taskSettings.showID
+                                                        ? "1fr 3fr 1fr 1fr 1fr auto auto" // With ID field
+                                                        : "3fr 1fr 1fr 1fr auto auto", // Without ID field
                                                 }}
+                                                
                                             >
-                                                <div className="input-group id-field">
-                                                    <Input
-                                                        style={{ visibility: "hidden" }} // Hide subtask ID field
-                                                        placeholder="Subtask ID"
-                                                        value={subtask.taskId}
-                                                        onChange={(e) =>
-                                                            handleSubtaskChange(index, subIndex, "taskId", e.target.value)
-                                                        }
-                                                    />
-                                                </div>
+                                                {settings.taskSettings.showID && (
+                                                    <div className="input-group id-field">
+                                                        <Input
+                                                            style={{ visibility: "hidden" }} // Hide subtask ID field
+                                                            placeholder="Subtask ID"
+                                                            value={subtask.taskId}
+                                                            onChange={(e) =>
+                                                                handleSubtaskChange(index, subIndex, "taskId", e.target.value)
+                                                            }
+                                                        />
+                                                    </div>
+                                                )}
                                                 <div className="input-group title-field">
                                                     <Input
                                                         ref={(el) => {
@@ -654,6 +672,7 @@ ${name.trim()}`;
                                 placeholder="Enter next task"
                                 value={nextTaskValue}
                                 onChange={(e) => setNextTaskValue(e.target.value)}
+                                spellCheck={true} // Enable spell checking
                             />
                         </div>
                     </div>

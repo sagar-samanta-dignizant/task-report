@@ -255,15 +255,15 @@ const App = () => {
       status: "Completed",
     };
     setTasks((prevTasks) => {
-      const updatedTasks = [...prevTasks, newTask];
-      taskRefs.current.push(null);
+      const updatedTasks = [newTask, ...prevTasks]; // Add new task at the top
+      taskRefs.current.unshift(null); // Adjust the refs array
       return updatedTasks;
     });
     setTimeout(() => {
       if (settings.taskSettings.showID) {
-        taskRefs.current[taskRefs.current.length - 1]?.focus();
+        taskRefs.current[0]?.focus(); // Focus on the ID field of the new task
       } else {
-        document.querySelector<HTMLInputElement>('.task-title-input:last-child')?.focus();
+        document.querySelector<HTMLInputElement>('.task-title-input')?.focus(); // Focus on the title field
       }
     }, 0);
   };
@@ -754,6 +754,7 @@ ${name.trim()}`;
                                   onChange={(e) =>
                                     handleTaskChange(index, "title", e.target.value)
                                   }
+                                  spellCheck={true} // Enable spell checking
                                 />
                               </div>
                               {settings.taskSettings.showHours && (
@@ -1029,6 +1030,7 @@ ${name.trim()}`;
                             placeholder="Enter next task"
                             value={nextTaskValue}
                             onChange={(e) => setNextTaskValue(e.target.value)}
+                            spellCheck={true} // Enable spell checking
                           />
                         </div>
                       )}
@@ -1069,7 +1071,7 @@ ${name.trim()}`;
                 </div>
               }
             />
-            <Route path="/edit-task" element={<EditTaskPage />} />
+            <Route path="/edit-task" element={<EditTaskPage settings={settings} />} />
             <Route
               path="/settings"
               element={
