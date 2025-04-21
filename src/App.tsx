@@ -514,6 +514,7 @@ ${name.trim()}`;
     setEditingReport(null);
   };
 
+  
   return (
     <Layout className={`app-container ${theme}`}>
       <Header className="header">
