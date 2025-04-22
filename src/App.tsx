@@ -401,17 +401,34 @@ const App = () => {
     const workUpdateText = settings.generateSettings.workUpdateText || "Today's work update -";
     const closingText = settings.generateSettings.closingText || "Thanks & regards";
 
+    const lineAfterWorkUpdate = settings.previewSettings.allowLineAfterWorkUpdate
+        ? "-".repeat(settings.previewSettings.lineAfterWorkUpdate || 3)
+        : "";
+    const lineAfterProject = settings.previewSettings.allowLineAfterProject
+        ? "-".repeat(settings.previewSettings.lineAfterProject || 3)
+        : "";
+    const lineAfterNextTask = settings.previewSettings.allowLineAfterNextTask
+        ? "-".repeat(settings.previewSettings.lineAfterNextTask || 3)
+        : "";
+    const lineBeforeClosingText = settings.previewSettings.allowLineBeforeClosingText
+        ? "-".repeat(settings.previewSettings.lineBeforeClosingText || 3)
+        : "";
+
     return `${workUpdateText} ${settings.previewSettings.showDate ? reverseDate(date) : ""}
+${lineAfterWorkUpdate}
 
 ${settings.previewSettings.showProject
-        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
-        }\n---------------------\n`
+        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"}`
         : ""
-      }${formatTasks(allTasks)}${settings.previewSettings.showNextTask && nextTaskValue.trim()
-        ? `\n\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
-        : ""
-      }
+    }
+${lineAfterProject}
 
+${formatTasks(allTasks)}${settings.previewSettings.showNextTask && nextTaskValue.trim()
+        ? `\n\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
+        : ""
+    }
+
+${lineBeforeClosingText}
 ${closingText}
 ${name.trim()}`;
   };
@@ -779,6 +796,7 @@ ${name.trim()}`;
                                         handleTaskChange(index, "hours", value);
                                       }
                                     }}
+                                    onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
                                     disabled={!!task.subtasks?.length}
                                     min={0}
                                     max={23}
@@ -797,6 +815,7 @@ ${name.trim()}`;
                                         handleTaskChange(index, "minutes", value);
                                       }
                                     }}
+                                    onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
                                     disabled={!!task.subtasks?.length}
                                     min={0}
                                     max={59}
@@ -939,6 +958,7 @@ ${name.trim()}`;
                                           const value = Math.min(23, Math.max(0, parseInt(e.target.value) || 0));
                                           handleSubtaskChange(index, subIndex, "hours", value);
                                         }}
+                                        onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
                                         min={0}
                                         max={23}
                                       />
@@ -954,6 +974,7 @@ ${name.trim()}`;
                                           const value = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
                                           handleSubtaskChange(index, subIndex, "minutes", value);
                                         }}
+                                        onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
                                         min={0}
                                         max={59}
                                       />

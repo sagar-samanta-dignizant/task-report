@@ -173,6 +173,90 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                             />
                         </label>
                     </div>
+                    <div className="settings-option">
+                        <label>
+                            Allow Line After "Today's Work Update"
+                            <CustomSwitch
+                                checked={settings.previewSettings.allowLineAfterWorkUpdate}
+                                onChange={(checked) => toggleSetting("previewSettings", "allowLineAfterWorkUpdate", checked)}
+                            />
+                        </label>
+                        {settings.previewSettings.allowLineAfterWorkUpdate && (
+                            <Input
+                                type="number"
+                                className="line-input"
+                                placeholder="Enter line length"
+                                value={settings.previewSettings.lineAfterWorkUpdate || 3}
+                                onChange={(e) =>
+                                    toggleSetting("previewSettings", "lineAfterWorkUpdate", parseInt(e.target.value) || 3)
+                                }
+                                onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
+                            />
+                        )}
+                    </div>
+                    <div className="settings-option">
+                        <label>
+                            Allow Line After "Project"
+                            <CustomSwitch
+                                checked={settings.previewSettings.allowLineAfterProject}
+                                onChange={(checked) => toggleSetting("previewSettings", "allowLineAfterProject", checked)}
+                            />
+                        </label>
+                        {settings.previewSettings.allowLineAfterProject && (
+                            <Input
+                                type="number"
+                                className="line-input"
+                                placeholder="Enter line length"
+                                value={settings.previewSettings.lineAfterProject || 3}
+                                onChange={(e) =>
+                                    toggleSetting("previewSettings", "lineAfterProject", parseInt(e.target.value) || 3)
+                                }
+                                onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
+                            />
+                        )}
+                    </div>
+                    <div className="settings-option">
+                        <label>
+                            Allow Line After "Next Task"
+                            <CustomSwitch
+                                checked={settings.previewSettings.allowLineAfterNextTask}
+                                onChange={(checked) => toggleSetting("previewSettings", "allowLineAfterNextTask", checked)}
+                            />
+                        </label>
+                        {settings.previewSettings.allowLineAfterNextTask && (
+                            <Input
+                                type="number"
+                                className="line-input"
+                                placeholder="Enter line length"
+                                value={settings.previewSettings.lineAfterNextTask || 3}
+                                onChange={(e) =>
+                                    toggleSetting("previewSettings", "lineAfterNextTask", parseInt(e.target.value) || 3)
+                                }
+                                onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
+                            />
+                        )}
+                    </div>
+                    <div className="settings-option">
+                        <label>
+                            Allow Line Before "Thanks & Regards"
+                            <CustomSwitch
+                                checked={settings.previewSettings.allowLineBeforeClosingText}
+                                onChange={(checked) => toggleSetting("previewSettings", "allowLineBeforeClosingText", checked)}
+                            />
+                        </label>
+                        {settings.previewSettings.allowLineBeforeClosingText && (
+                            <Input
+                                type="number"
+                                className="line-input"
+                                placeholder="Enter line length"
+                                value={settings.previewSettings.lineBeforeClosingText || 3}
+                                onChange={(e) =>
+                                    toggleSetting("previewSettings", "lineBeforeClosingText", parseInt(e.target.value) || 3)
+                                }
+                                onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
+                            />
+                        )}
+                    </div>
                 </div>
 
                 {/* Export Settings Section */}

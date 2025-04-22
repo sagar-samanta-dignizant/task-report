@@ -280,16 +280,32 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
         const workUpdateText = generateSettings.workUpdateText || "Today's work update -";
         const closingText = generateSettings.closingText || "Thanks & regards";
 
+        const lineAfterWorkUpdate = previewSettings.allowLineAfterWorkUpdate
+            ? "-".repeat(previewSettings.lineAfterWorkUpdate || 3)
+            : "";
+        const lineAfterProject = previewSettings.allowLineAfterProject
+            ? "-".repeat(previewSettings.lineAfterProject || 3)
+            : "";
+        const lineAfterNextTask = previewSettings.allowLineAfterNextTask
+            ? "-".repeat(previewSettings.lineAfterNextTask || 3)
+            : "";
+        const lineBeforeClosingText = previewSettings.allowLineBeforeClosingText
+            ? "-".repeat(previewSettings.lineBeforeClosingText || 3)
+            : "";
+
         return `${workUpdateText} ${previewSettings.showDate ? reverseDate(date) : ""}
+${lineAfterWorkUpdate}
 
 Project: ${previewSettings.showProject ? selectedProjects.join(" & ") || "Not Selected" : ""}
-----------------------------------------
+${lineAfterProject}
+
 ${formatTasks(tasks, 0, bulletType, selectedSubIcon)}
 ${previewSettings.showNextTask && nextTaskValue.trim()
-            ? `\nNext's Tasks\n---------------------\n=> ${nextTaskValue.trim()}`
+            ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
             : ""
         }
 
+${lineBeforeClosingText}
 ${closingText}
 ${name.trim()}`;
     };
@@ -470,6 +486,9 @@ ${name.trim()}`;
                                                 onChange={(e) =>
                                                     handleTaskChange(index, "hours", e.target.value)
                                                 }
+                                                onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
+                                                min={0}
+                                                max={23}
                                                 disabled={!!task.subtasks?.length} // Disable if subtasks exist
                                             />
                                         </div>
@@ -481,6 +500,9 @@ ${name.trim()}`;
                                                 onChange={(e) =>
                                                     handleTaskChange(index, "minutes", e.target.value)
                                                 }
+                                                onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
+                                                min={0}
+                                                max={59}
                                                 disabled={!!task.subtasks?.length} // Disable if subtasks exist
                                             />
                                         </div>
@@ -595,6 +617,9 @@ ${name.trim()}`;
                                                         onChange={(e) =>
                                                             handleSubtaskChange(index, subIndex, "hours", e.target.value)
                                                         }
+                                                        onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
+                                                        min={0}
+                                                        max={23}
                                                     />
                                                 </div>
                                                 <div className="input-group">
@@ -605,6 +630,9 @@ ${name.trim()}`;
                                                         onChange={(e) =>
                                                             handleSubtaskChange(index, subIndex, "minutes", e.target.value)
                                                         }
+                                                        onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
+                                                        min={0}
+                                                        max={59}
                                                     />
                                                 </div>
                                                 <div className="input-group">
