@@ -112,7 +112,7 @@ const ReportsPage: React.FC = () => {
                 previewSettings.showStatus &&
                 !(previewSettings.hideParentTaskStatus && task.subtasks?.length > 0) // Hide parent task status if setting is enabled and subtasks exist
             ) {
-                line += ` (${task.status.trim()})`;
+                line += ` (${task?.status?.trim()})`;
             }
             if (
                 previewSettings.showHours &&
