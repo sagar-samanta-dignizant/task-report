@@ -47,9 +47,7 @@ const App = () => {
     }
   });
   const [name, setName] = useState(localStorage.getItem("name") || "");
-  const [date, setDate] = useState(
-    localStorage.getItem("date") || new Date().toISOString().split("T")[0]
-  );
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [bulletType, setBulletType] = useState<"bullet" | "dot" | "number" | ">" | ">>" | "=>">("bullet");
   const [copySuccess, setCopySuccess] = useState(false);
   const [nextTaskValue, setNextTaskValue] = useState("");
@@ -402,17 +400,17 @@ const App = () => {
     const closingText = settings.generateSettings.closingText || "Thanks & regards";
 
     const lineAfterWorkUpdate = settings.previewSettings.allowLineAfterWorkUpdate
-        ? "-".repeat(settings.previewSettings.lineAfterWorkUpdate || 3)
-        : "";
+      ? "-".repeat(settings.previewSettings.lineAfterWorkUpdate || 3)
+      : "";
     const lineAfterProject = settings.previewSettings.allowLineAfterProject
-        ? "-".repeat(settings.previewSettings.lineAfterProject || 3)
-        : "";
+      ? "-".repeat(settings.previewSettings.lineAfterProject || 3)
+      : "";
     const lineAfterNextTask = settings.previewSettings.allowLineAfterNextTask
-        ? "-".repeat(settings.previewSettings.lineAfterNextTask || 3)
-        : "";
+      ? "-".repeat(settings.previewSettings.lineAfterNextTask || 3)
+      : "";
     const lineBeforeClosingText = settings.previewSettings.allowLineBeforeClosingText
-        ? "-".repeat(settings.previewSettings.lineBeforeClosingText || 3)
-        : "";
+      ? "-".repeat(settings.previewSettings.lineBeforeClosingText || 3)
+      : "";
 
     return `${workUpdateText} ${settings.previewSettings.showDate ? reverseDate(date) : ""}
 ${lineAfterWorkUpdate}
@@ -420,13 +418,13 @@ ${lineAfterWorkUpdate}
 ${settings.previewSettings.showProject
         ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"}`
         : ""
-    }
+      }
 ${lineAfterProject}
 
 ${formatTasks(allTasks)}${settings.previewSettings.showNextTask && nextTaskValue.trim()
         ? `\n\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
         : ""
-    }
+      }
 
 ${lineBeforeClosingText}
 ${closingText}
