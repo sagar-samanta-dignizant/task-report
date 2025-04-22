@@ -72,6 +72,8 @@ const App = () => {
         showID: true,
         showNextTask: false,
         showProject: true,
+        hideParentTaskTime: false, // New setting to hide parent task time
+        hideParentTaskStatus: false, // New setting to hide parent task status
       },
       exportSettings: JSON.parse(localStorage.getItem("exportSettings") || "{}") || {
         allowSubtask: false,
@@ -255,15 +257,16 @@ const App = () => {
       status: "Completed",
     };
     setTasks((prevTasks) => {
-      const updatedTasks = [newTask, ...prevTasks]; // Add new task at the top
-      taskRefs.current.unshift(null); // Adjust the refs array
+      const updatedTasks = [...prevTasks, newTask]; // Add new task at the bottom
+      taskRefs.current.push(null); // Adjust the refs array
       return updatedTasks;
     });
     setTimeout(() => {
       if (settings.taskSettings.showID) {
-        taskRefs.current[0]?.focus(); // Focus on the ID field of the new task
+        taskRefs.current[taskRefs.current.length - 1]?.focus(); // Focus on the ID field of the new task
       } else {
-        document.querySelector<HTMLInputElement>('.task-title-input')?.focus(); // Focus on the title field
+        const titleInput = document.querySelectorAll<HTMLInputElement>('.task-title-input');
+        titleInput[titleInput.length - 1]?.focus(); // Focus on the title field
       }
     }, 0);
   };
@@ -341,9 +344,16 @@ const App = () => {
         line += `  ${icon}`;
       }
       line += task.title.trim();
-      if (settings.previewSettings.showStatus && task.status)
+      if (
+        settings.previewSettings.showStatus &&
+        !(settings.previewSettings.hideParentTaskStatus && (task.subtasks?.length ?? 0) > 0) // Hide parent task status if setting is enabled and subtasks exist
+      ) {
         line += ` (${task.status.trim()})`;
-      if (settings.previewSettings.showHours) {
+      }
+      if (
+        settings.previewSettings.showHours &&
+        !(settings.previewSettings.hideParentTaskTime && (task.subtasks?.length ?? 0) > 0) // Hide parent task time if setting is enabled and subtasks exist
+      ) {
         const taskTime = formatTaskTime(task.hours, task.minutes, task.subtasks);
         if (taskTime) line += ` (${taskTime})`;
       }

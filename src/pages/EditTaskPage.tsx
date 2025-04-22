@@ -134,16 +134,16 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
             status: "Completed",
         };
         setTasks((prevTasks) => {
-            const updatedTasks = [newTask, ...prevTasks]; // Add new task at the top
-            taskRefs.current.unshift(null); // Adjust the refs array
+            const updatedTasks = [...prevTasks, newTask]; // Add new task at the bottom
+            taskRefs.current.push(null); // Adjust the refs array
             return updatedTasks;
         });
         setTimeout(() => {
             if (settings.taskSettings.showID) {
-                taskRefs.current[0]?.focus(); // Focus on the ID input if it exists
+                taskRefs.current[taskRefs.current.length - 1]?.focus(); // Focus on the ID input if it exists
             } else {
-                const titleInput = document.querySelectorAll<HTMLInputElement>('.task-details-inputs .title-field input')[0];
-                titleInput?.focus(); // Focus on the title field if ID is not shown
+                const titleInput = document.querySelectorAll<HTMLInputElement>('.task-details-inputs .title-field input');
+                titleInput[titleInput.length - 1]?.focus(); // Focus on the title field if ID is not shown
             }
         }, 0);
     };

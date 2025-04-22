@@ -155,6 +155,24 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                             />
                         </label>
                     </div>
+                    <div className="settings-option">
+                        <label>
+                            Hide Parent Task Hours/Minutes (if Subtasks Exist)
+                            <CustomSwitch
+                                checked={settings.previewSettings.hideParentTaskTime}
+                                onChange={(checked) => toggleSetting("previewSettings", "hideParentTaskTime", checked)}
+                            />
+                        </label>
+                    </div>
+                    <div className="settings-option">
+                        <label>
+                            Hide Parent Task Status (if Subtasks Exist)
+                            <CustomSwitch
+                                checked={settings.previewSettings.hideParentTaskStatus}
+                                onChange={(checked) => toggleSetting("previewSettings", "hideParentTaskStatus", checked)}
+                            />
+                        </label>
+                    </div>
                 </div>
 
                 {/* Export Settings Section */}

@@ -108,8 +108,16 @@ const ReportsPage: React.FC = () => {
             let line = `${indent}${bullet} `;
             if (previewSettings.showID && task.taskId) line += `ID: ${task.taskId.toString().trim()} - `;
             line += task.title.trim();
-            if (previewSettings.showStatus && task.status) line += ` (${task.status.trim()})`;
-            if (previewSettings.showHours) {
+            if (
+                previewSettings.showStatus &&
+                !(previewSettings.hideParentTaskStatus && task.subtasks?.length > 0) // Hide parent task status if setting is enabled and subtasks exist
+            ) {
+                line += ` (${task.status.trim()})`;
+            }
+            if (
+                previewSettings.showHours &&
+                !(previewSettings.hideParentTaskTime && task.subtasks?.length > 0) // Hide parent task time if setting is enabled and subtasks exist
+            ) {
                 const taskTime = formatTaskTime(task.hours, task.minutes);
                 if (taskTime) line += ` (${taskTime})`;
             }
