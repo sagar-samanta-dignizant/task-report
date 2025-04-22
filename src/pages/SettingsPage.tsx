@@ -238,7 +238,7 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                     </div>
                     <div className="settings-option">
                         <label>
-                            Allow Line Before "Closing"
+                            Allow Line Before "Closing Text"
                             <CustomSwitch
                                 checked={settings.previewSettings.allowLineBeforeClosingText}
                                 onChange={(checked) => toggleSetting("previewSettings", "allowLineBeforeClosingText", checked)}
