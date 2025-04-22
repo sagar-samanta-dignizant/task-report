@@ -175,7 +175,7 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                     </div>
                     <div className="settings-option">
                         <label>
-                            Allow Line After "Today's Work Update"
+                            Allow Line After "Work Update Text"
                             <CustomSwitch
                                 checked={settings.previewSettings.allowLineAfterWorkUpdate}
                                 onChange={(checked) => toggleSetting("previewSettings", "allowLineAfterWorkUpdate", checked)}
@@ -238,7 +238,7 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                     </div>
                     <div className="settings-option">
                         <label>
-                            Allow Line Before "Thanks & Regards"
+                            Allow Line Before "Closing"
                             <CustomSwitch
                                 checked={settings.previewSettings.allowLineBeforeClosingText}
                                 onChange={(checked) => toggleSetting("previewSettings", "allowLineBeforeClosingText", checked)}
