@@ -1,11 +1,39 @@
 import "./app.css";
 
-import { ALERT_DISMISS_TIME, ALL_AVAILABLE_PROJECTS, ALL_STATUS_OPTIONS } from "./constant/task.constant";
+import {
+  ALERT_DISMISS_TIME,
+  ALL_AVAILABLE_PROJECTS,
+  ALL_STATUS_OPTIONS,
+} from "./constant/task.constant";
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
-import { Alert, Avatar, Button, DatePicker, Input, InputRef, Layout, Select, Tooltip } from "antd";
+import {
+  Alert,
+  Avatar,
+  Button,
+  DatePicker,
+  Input,
+  InputRef,
+  Layout,
+  Select,
+  Tooltip,
+} from "antd";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
-import { CheckOutlined, CopyOutlined, FileTextOutlined, HomeOutlined, ReloadOutlined, SaveOutlined, SettingOutlined } from "@ant-design/icons";
-import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import {
+  CheckOutlined,
+  CopyOutlined,
+  FileTextOutlined,
+  HomeOutlined,
+  ReloadOutlined,
+  SaveOutlined,
+  SettingOutlined,
+} from "@ant-design/icons";
+import {
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 import EditTaskPage from "./pages/EditTaskPage";
@@ -48,12 +76,16 @@ const App = () => {
   });
   const [name, setName] = useState(localStorage.getItem("name") || "");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [bulletType, setBulletType] = useState<"bullet" | "dot" | "number" | ">" | ">>" | "=>" | "-">("bullet");
+  const [bulletType, setBulletType] = useState<
+    "bullet" | "dot" | "number" | ">" | ">>" | "=>"
+  >("bullet");
   const [copySuccess, setCopySuccess] = useState(false);
   const [nextTaskValue, setNextTaskValue] = useState("");
   const [settings, setSettings] = useState(() => {
     const defaultSettings = {
-      taskSettings: JSON.parse(localStorage.getItem("taskSettings") || "{}") || {
+      taskSettings: JSON.parse(
+        localStorage.getItem("taskSettings") || "{}"
+      ) || {
         allowSubtask: false,
         showHours: true,
         showStatus: true,
@@ -62,7 +94,9 @@ const App = () => {
         showNextTask: false,
         showProject: true,
       },
-      previewSettings: JSON.parse(localStorage.getItem("previewSettings") || "{}") || {
+      previewSettings: JSON.parse(
+        localStorage.getItem("previewSettings") || "{}"
+      ) || {
         allowSubtask: false,
         showHours: true,
         showStatus: true,
@@ -73,7 +107,9 @@ const App = () => {
         hideParentTaskTime: false, // New setting to hide parent task time
         hideParentTaskStatus: false, // New setting to hide parent task status
       },
-      exportSettings: JSON.parse(localStorage.getItem("exportSettings") || "{}") || {
+      exportSettings: JSON.parse(
+        localStorage.getItem("exportSettings") || "{}"
+      ) || {
         allowSubtask: false,
         showHours: true,
         showStatus: true,
@@ -82,7 +118,9 @@ const App = () => {
         showNextTask: true,
         showProject: true,
       },
-      generateSettings: JSON.parse(localStorage.getItem("generateSettings") || "{}") || {
+      generateSettings: JSON.parse(
+        localStorage.getItem("generateSettings") || "{}"
+      ) || {
         taskGap: 2,
         subtaskGap: 1,
       },
@@ -91,13 +129,17 @@ const App = () => {
   });
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [editingReport, setEditingReport] = useState<any | null>(null);
-  const [selectedSubIcon, setSelectedSubIcon] = useState<"bullet" | "dot" | "number" | ">" | ">>" | "=>" | "-">("bullet");
+  const [selectedSubIcon, setSelectedSubIcon] = useState<
+    "bullet" | "dot" | "number" | ">" | ">>" | "=>"
+  >("bullet");
   const [copiedPreview, setCopiedPreview] = useState<string | null>(null);
   const taskRefs = useRef<(HTMLInputElement | null)[]>([]);
   const subtaskRefs = useRef<(InputRef | null)[][]>([]);
   const location = useLocation();
   const navigate = useNavigate();
-  const [profilePicture, setProfilePicture] = useState(localStorage.getItem("profilePicture") || "");
+  const [profilePicture, setProfilePicture] = useState(
+    localStorage.getItem("profilePicture") || ""
+  );
 
   const TASK_GAP = settings.generateSettings.taskGap || 1; // Default to 1 if not set
   const SUBTASK_GAP = settings.generateSettings.subtaskGap || 1; // Default to 1 if not set
@@ -129,7 +171,10 @@ const App = () => {
 
   useEffect(() => {
     Object.keys(settings).forEach((section) => {
-      localStorage.setItem(section, JSON.stringify(settings[section as keyof typeof settings]));
+      localStorage.setItem(
+        section,
+        JSON.stringify(settings[section as keyof typeof settings])
+      );
     });
   }, [settings]);
 
@@ -142,12 +187,17 @@ const App = () => {
       const subtaskTime =
         task.subtasks?.reduce((subSum, subtask) => {
           const subtaskHours = parseFloat(subtask.hours as string) || 0;
-          const subtaskMinutes = (parseFloat(subtask.minutes as string) || 0) / 60;
+          const subtaskMinutes =
+            (parseFloat(subtask.minutes as string) || 0) / 60;
           return subSum + subtaskHours + subtaskMinutes;
         }, 0) || 0;
 
-      const taskHours = task.subtasks ? 0 : parseFloat(task.hours as string) || 0;
-      const taskMinutes = task.subtasks ? 0 : (parseFloat(task.minutes as string) || 0) / 60;
+      const taskHours = task.subtasks
+        ? 0
+        : parseFloat(task.hours as string) || 0;
+      const taskMinutes = task.subtasks
+        ? 0
+        : (parseFloat(task.minutes as string) || 0) / 60;
 
       return sum + taskHours + taskMinutes + subtaskTime;
     }, 0);
@@ -157,11 +207,18 @@ const App = () => {
   const formatRemainingTime = (remainingTime: number) => {
     const hours = Math.floor(Math.abs(remainingTime));
     const minutes = Math.round((Math.abs(remainingTime) - hours) * 60);
-    const extra = remainingTime < 0 ? `${hours}h ${minutes}m (Extra hour)` : `${hours}h ${minutes}m`;
+    const extra =
+      remainingTime < 0
+        ? `${hours}h ${minutes}m (Extra hour)`
+        : `${hours}h ${minutes}m`;
     return remainingTime < 0 ? extra : `${hours}h ${minutes}m`;
   };
 
-  const formatTaskTime = (hours: string | number, minutes: string | number, subtasks?: Task[]) => {
+  const formatTaskTime = (
+    hours: string | number,
+    minutes: string | number,
+    subtasks?: Task[]
+  ) => {
     if (subtasks && subtasks.length > 0) {
       const totalSubtaskTime = subtasks.reduce(
         (sum, subtask) => {
@@ -176,7 +233,8 @@ const App = () => {
       );
 
       const totalMinutes = totalSubtaskTime.minutes % 60;
-      const totalHours = totalSubtaskTime.hours + Math.floor(totalSubtaskTime.minutes / 60);
+      const totalHours =
+        totalSubtaskTime.hours + Math.floor(totalSubtaskTime.minutes / 60);
 
       const timeParts = [];
       if (totalHours > 0) timeParts.push(`${totalHours}h`);
@@ -237,7 +295,8 @@ const App = () => {
         );
 
         const totalMinutes = totalSubtaskTime.minutes % 60;
-        const totalHours = totalSubtaskTime.hours + Math.floor(totalSubtaskTime.minutes / 60);
+        const totalHours =
+          totalSubtaskTime.hours + Math.floor(totalSubtaskTime.minutes / 60);
 
         parentTask.hours = totalHours.toString();
         parentTask.minutes = totalMinutes.toString();
@@ -263,7 +322,8 @@ const App = () => {
       if (settings.taskSettings.showID) {
         taskRefs.current[taskRefs.current.length - 1]?.focus(); // Focus on the ID field of the new task
       } else {
-        const titleInput = document.querySelectorAll<HTMLInputElement>('.task-title-input');
+        const titleInput =
+          document.querySelectorAll<HTMLInputElement>(".task-title-input");
         titleInput[titleInput.length - 1]?.focus(); // Focus on the title field
       }
     }, 0);
@@ -290,7 +350,10 @@ const App = () => {
       return updatedTasks;
     });
     setTimeout(() => {
-      const subtaskRef = subtaskRefs.current[parentIndex]?.[subtaskRefs.current[parentIndex].length - 1];
+      const subtaskRef =
+        subtaskRefs.current[parentIndex]?.[
+          subtaskRefs.current[parentIndex].length - 1
+        ];
       subtaskRef?.focus();
     }, 0);
   };
@@ -310,7 +373,9 @@ const App = () => {
   };
 
   const clearTask = (taskIndex: number) => {
-    setTasks((prevTasks) => prevTasks.filter((_, index) => index !== taskIndex));
+    setTasks((prevTasks) =>
+      prevTasks.filter((_, index) => index !== taskIndex)
+    );
   };
 
   const clearSubtask = (parentIndex: number, subtaskIndex: number) => {
@@ -321,7 +386,11 @@ const App = () => {
     setTasks(updatedTasks);
   };
 
-  const toggleSetting = (section: keyof typeof settings, key: string, value: any) => {
+  const toggleSetting = (
+    section: keyof typeof settings,
+    key: string,
+    value: any
+  ) => {
     setSettings((prev) => {
       const updatedSection = { ...prev[section], [key]: value };
       localStorage.setItem(section, JSON.stringify(updatedSection));
@@ -338,21 +407,34 @@ const App = () => {
         line += `ID : ${task.id.trim()} `;
       }
       if (task.icon) {
-        const icon = isSubtask ? getTaskIcon(index, selectedSubIcon) : task.icon;
+        const icon = isSubtask
+          ? getTaskIcon(index, selectedSubIcon)
+          : task.icon;
         line += `  ${icon}`;
       }
       line += task.title.trim();
       if (
         settings.previewSettings.showStatus &&
-        !(settings.previewSettings.hideParentTaskStatus && (task.subtasks?.length ?? 0) > 0) // Hide parent task status if setting is enabled and subtasks exist
+        task?.status.trim() && // Only add status if it exists
+        !(
+          settings.previewSettings.hideParentTaskStatus &&
+          (task.subtasks?.length ?? 0) > 0
+        ) // Hide parent task status if setting is enabled and subtasks exist
       ) {
-        line += ` (${task.status.trim()})`;
+        line += ` (${task?.status.trim()})`;
       }
       if (
         settings.previewSettings.showHours &&
-        !(settings.previewSettings.hideParentTaskTime && (task.subtasks?.length ?? 0) > 0) // Hide parent task time if setting is enabled and subtasks exist
+        !(
+          settings.previewSettings.hideParentTaskTime &&
+          (task.subtasks?.length ?? 0) > 0
+        ) // Hide parent task time if setting is enabled and subtasks exist
       ) {
-        const taskTime = formatTaskTime(task.hours, task.minutes, task.subtasks);
+        const taskTime = formatTaskTime(
+          task.hours,
+          task.minutes,
+          task.subtasks
+        );
         if (taskTime) line += ` (${taskTime})`;
       }
       return line;
@@ -372,8 +454,6 @@ const App = () => {
           return "=> ";
         case "bullet":
           return "● ";
-        case "-":
-          return "- ";
         default:
           return "- ";
       }
@@ -383,13 +463,23 @@ const App = () => {
       tasks
         .map((task, index) => {
           const indent = "  ".repeat(level);
-          let line = `${indent}${getTaskIcon(index, bulletType)}${formatLine(task, index)}`;
-          if (settings.previewSettings.allowSubtask && task.subtasks && task.subtasks.length > 0) {
-            const filteredSubtasks = task.subtasks.filter((subtask) => subtask.title.trim());
+          let line = `${indent}${getTaskIcon(index, bulletType)}${formatLine(
+            task,
+            index
+          )}`;
+          if (
+            settings.previewSettings.allowSubtask &&
+            task.subtasks &&
+            task.subtasks.length > 0
+          ) {
+            const filteredSubtasks = task.subtasks.filter((subtask) =>
+              subtask.title.trim()
+            );
             if (filteredSubtasks.length > 0) {
               line += `\n${filteredSubtasks
-                .map((subtask, subIndex) =>
-                  `${formatLine(subtask, subIndex, true)}`
+                .map(
+                  (subtask, subIndex) =>
+                    `${formatLine(subtask, subIndex, true)}`
                 )
                 .join("\n".repeat(SUBTASK_GAP))}`;
             }
@@ -398,10 +488,13 @@ const App = () => {
         })
         .join("\n".repeat(TASK_GAP));
 
-    const workUpdateText = settings.generateSettings.workUpdateText || "Today's work update -";
-    const closingText = settings.generateSettings.closingText || "Thanks & regards";
+    const workUpdateText =
+      settings.generateSettings.workUpdateText || "Today's work update -";
+    const closingText =
+      settings.generateSettings.closingText || "Thanks & regards";
 
-    const lineAfterWorkUpdate = settings.previewSettings.allowLineAfterWorkUpdate
+    const lineAfterWorkUpdate = settings.previewSettings
+      .allowLineAfterWorkUpdate
       ? "-".repeat(settings.previewSettings.lineAfterWorkUpdate || 3)
       : "";
     const lineAfterProject = settings.previewSettings.allowLineAfterProject
@@ -410,23 +503,30 @@ const App = () => {
     const lineAfterNextTask = settings.previewSettings.allowLineAfterNextTask
       ? "-".repeat(settings.previewSettings.lineAfterNextTask || 3)
       : "";
-    const lineBeforeClosingText = settings.previewSettings.allowLineBeforeClosingText
+    const lineBeforeClosingText = settings.previewSettings
+      .allowLineBeforeClosingText
       ? "-".repeat(settings.previewSettings.lineBeforeClosingText || 3)
       : "";
 
-    return `${workUpdateText} ${settings.previewSettings.showDate ? reverseDate(date) : ""}
+    return `${workUpdateText} ${
+      settings.previewSettings.showDate ? reverseDate(date) : ""
+    }
 ${lineAfterWorkUpdate}
 
-${settings.previewSettings.showProject
-        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"}`
-        : ""
-      }
+${
+  settings.previewSettings.showProject
+    ? `Project : ${
+        selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
+      }`
+    : ""
+}
 ${lineAfterProject}
 
-${formatTasks(allTasks)}${settings.previewSettings.showNextTask && nextTaskValue.trim()
+${formatTasks(allTasks)}${
+      settings.previewSettings.showNextTask && nextTaskValue.trim()
         ? `\n\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
         : ""
-      }
+    }
 
 ${lineBeforeClosingText}
 ${closingText}
@@ -460,8 +560,7 @@ ${name.trim()}`;
 
     const hasEmptySubtask = filteredTasks.some(
       (task) =>
-        task.subtasks &&
-        task.subtasks.some((subtask) => !subtask.title.trim())
+        task.subtasks && task.subtasks.some((subtask) => !subtask.title.trim())
     );
 
     if (hasEmptySubtask) {
@@ -493,7 +592,9 @@ ${name.trim()}`;
         title: task.title.trim(),
         hours: settings.taskSettings.showHours ? task.hours : undefined,
         minutes: settings.taskSettings.showHours ? task.minutes : undefined,
-        status: settings.taskSettings.showStatus ? task.status.trim() : undefined,
+        status: settings.taskSettings.showStatus
+          ? task?.status.trim()
+          : undefined,
         icon: task.icon?.trim(),
         subtasks: task.subtasks
           ?.filter((subtask) => subtask.title.trim())
@@ -501,9 +602,11 @@ ${name.trim()}`;
             id: settings.taskSettings.showID ? subtask.id?.trim() : undefined,
             title: subtask.title.trim(),
             hours: settings.taskSettings.showHours ? subtask.hours : undefined,
-            minutes: settings.taskSettings.showHours ? subtask.minutes : undefined,
+            minutes: settings.taskSettings.showHours
+              ? subtask.minutes
+              : undefined,
             status: settings.taskSettings.showStatus
-              ? subtask.status.trim()
+              ? subtask?.status.trim()
               : undefined,
             icon: subtask.icon?.trim(),
           })),
@@ -541,7 +644,6 @@ ${name.trim()}`;
     setEditingReport(null);
   };
 
-
   return (
     <Layout className={`app-container ${theme}`}>
       <Header className="header">
@@ -559,7 +661,9 @@ ${name.trim()}`;
                 e.preventDefault();
                 handleNavigation("/");
               }}
-              className={({ isActive }) => `nav-link ${isActive ? "active-link" : ""}`}
+              className={({ isActive }) =>
+                `nav-link ${isActive ? "active-link" : ""}`
+              }
             >
               <HomeOutlined className="nav-icon" /> Home
             </NavLink>
@@ -569,7 +673,9 @@ ${name.trim()}`;
                 e.preventDefault();
                 handleNavigation("/settings");
               }}
-              className={({ isActive }) => `nav-link ${isActive ? "active-link" : ""}`}
+              className={({ isActive }) =>
+                `nav-link ${isActive ? "active-link" : ""}`
+              }
             >
               <SettingOutlined className="nav-icon" /> Settings
             </NavLink>
@@ -579,7 +685,9 @@ ${name.trim()}`;
                 e.preventDefault();
                 handleNavigation("/reports");
               }}
-              className={({ isActive }) => `nav-link ${isActive ? "active-link" : ""}`}
+              className={({ isActive }) =>
+                `nav-link ${isActive ? "active-link" : ""}`
+              }
             >
               <FileTextOutlined className="nav-icon" /> Reports
             </NavLink>
@@ -588,19 +696,19 @@ ${name.trim()}`;
             <Avatar
               src={profilePicture || undefined} // Show nothing if no image is uploaded
               size="large"
-              style={{ cursor: "pointer", backgroundColor: profilePicture ? "transparent" : "#f56a00" }}
+              style={{
+                cursor: "pointer",
+                backgroundColor: profilePicture ? "transparent" : "#f56a00",
+              }}
             >
-              {!profilePicture && name ? name[0].toUpperCase() : null} {/* Show initial if no image */}
+              {!profilePicture && name ? name[0].toUpperCase() : null}{" "}
+              {/* Show initial if no image */}
             </Avatar>
           </div>
         </div>
       </Header>
       <TransitionGroup>
-        <CSSTransition
-          key={location.key}
-          classNames="page"
-          timeout={300}
-        >
+        <CSSTransition key={location.key} classNames="page" timeout={300}>
           <Routes location={location}>
             <Route
               path="/"
@@ -633,12 +741,22 @@ ${name.trim()}`;
                             onChange={(e) => setName(e.target.value)}
                           />
                         </div>
-                        <div className="input-group" style={{ width: "140px", display: settings.taskSettings.showDate ? "block" : "none" }} >
+                        <div
+                          className="input-group"
+                          style={{
+                            width: "140px",
+                            display: settings.taskSettings.showDate
+                              ? "block"
+                              : "none",
+                          }}
+                        >
                           <label htmlFor="date">Date</label>
                           <DatePicker
                             id="date"
                             value={date ? dayjs(date, "YYYY-MM-DD") : null} // Use dayjs object for value
-                            onChange={(date) => date && setDate(date.format("YYYY-MM-DD"))} // Use dayjs's format method
+                            onChange={(date) =>
+                              date && setDate(date.format("YYYY-MM-DD"))
+                            } // Use dayjs's format method
                             format="DD-MM-YYYY" // Display date in DD-MM-YYYY format
                             style={{ width: "100%" }}
                           />
@@ -656,10 +774,17 @@ ${name.trim()}`;
                             <Option value="number">1</Option>
                             <Option value={">"}>{">"}</Option>
                             <Option value={"=>"}>{"=>"}</Option>
-                            <Option value="-">-</Option> {/* Add "-" as an option */}
                           </Select>
                         </div>
-                        <div className="input-group" style={{ width: "120px", display: settings.taskSettings.allowSubtask ? "block" : "none" }}>
+                        <div
+                          className="input-group"
+                          style={{
+                            width: "120px",
+                            display: settings.taskSettings.allowSubtask
+                              ? "block"
+                              : "none",
+                          }}
+                        >
                           <label htmlFor="icon">Sub Icon</label>
                           <Select
                             id="icon"
@@ -672,10 +797,17 @@ ${name.trim()}`;
                             <Option value="number">1</Option>
                             <Option value={">"}>{">"}</Option>
                             <Option value={"=>"}>{"=>"}</Option>
-                            <Option value="-">-</Option> {/* Add "-" as an option */}
                           </Select>
                         </div>
-                        <div className="input-group" style={{ width: "300px", display: settings.taskSettings.showProject ? "block" : "none" }}>
+                        <div
+                          className="input-group"
+                          style={{
+                            width: "300px",
+                            display: settings.taskSettings.showProject
+                              ? "block"
+                              : "none",
+                          }}
+                        >
                           <label htmlFor="project">Project</label>
                           <Select
                             id="project"
@@ -712,8 +844,8 @@ ${name.trim()}`;
                                 remainingTime < 0
                                   ? "time-exceeded"
                                   : remainingTime === 0
-                                    ? "time-matched"
-                                    : "time-in-limit"
+                                  ? "time-matched"
+                                  : "time-in-limit"
                               }
                             >
                               {formatRemainingTime(remainingTime)}
@@ -755,7 +887,8 @@ ${name.trim()}`;
                             <div
                               className="task-row"
                               style={{
-                                gridTemplateColumns: settings.taskSettings.showID
+                                gridTemplateColumns: settings.taskSettings
+                                  .showID
                                   ? "1fr 3fr 1fr 1fr 1fr auto auto"
                                   : "3fr 1fr 1fr 1fr auto auto",
                               }}
@@ -764,13 +897,18 @@ ${name.trim()}`;
                                 <div className="input-group id-field">
                                   <Input
                                     ref={(el) => {
-                                      taskRefs.current[index] = el?.input || null;
+                                      taskRefs.current[index] =
+                                        el?.input || null;
                                     }}
                                     className="task-id-input"
                                     placeholder="Task ID"
                                     value={task.id || ""}
                                     onChange={(e) =>
-                                      handleTaskChange(index, "id", e.target.value)
+                                      handleTaskChange(
+                                        index,
+                                        "id",
+                                        e.target.value
+                                      )
                                     }
                                   />
                                 </div>
@@ -781,7 +919,11 @@ ${name.trim()}`;
                                   placeholder="Task Title"
                                   value={task.title}
                                   onChange={(e) =>
-                                    handleTaskChange(index, "title", e.target.value)
+                                    handleTaskChange(
+                                      index,
+                                      "title",
+                                      e.target.value
+                                    )
                                   }
                                   spellCheck={true} // Enable spell checking
                                 />
@@ -791,9 +933,19 @@ ${name.trim()}`;
                                   <Input
                                     type="number"
                                     placeholder="Hours"
-                                    value={task.subtasks?.length ? task.hours : task.hours}
+                                    value={
+                                      task.subtasks?.length
+                                        ? task.hours
+                                        : task.hours
+                                    }
                                     onChange={(e) => {
-                                      const value = Math.min(23, Math.max(0, parseInt(e.target.value) || 0));
+                                      const value = Math.min(
+                                        23,
+                                        Math.max(
+                                          0,
+                                          parseInt(e.target.value) || 0
+                                        )
+                                      );
                                       if (!task.subtasks?.length) {
                                         handleTaskChange(index, "hours", value);
                                       }
@@ -810,11 +962,25 @@ ${name.trim()}`;
                                   <Input
                                     type="number"
                                     placeholder="Minutes"
-                                    value={task.subtasks?.length ? task.minutes : task.minutes}
+                                    value={
+                                      task.subtasks?.length
+                                        ? task.minutes
+                                        : task.minutes
+                                    }
                                     onChange={(e) => {
-                                      const value = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
+                                      const value = Math.min(
+                                        59,
+                                        Math.max(
+                                          0,
+                                          parseInt(e.target.value) || 0
+                                        )
+                                      );
                                       if (!task.subtasks?.length) {
-                                        handleTaskChange(index, "minutes", value);
+                                        handleTaskChange(
+                                          index,
+                                          "minutes",
+                                          value
+                                        );
                                       }
                                     }}
                                     onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
@@ -828,44 +994,23 @@ ${name.trim()}`;
                                 <div className="input-group">
                                   <Select
                                     placeholder="Select status"
-                                    value={task.status}
-                                    onChange={(value) => handleTaskChange(index, "status", value)}
-                                    style={{
-                                      width: "100%",
-                                      color:
-                                        task.status === "Completed"
-                                          ? "green"
-                                          : task.status === "In Progress"
-                                            ? "orange"
-                                            : task.status === "Hold"
-                                              ? "yellow"
-                                              : task.status === "Fixed"
-                                                ? "blue"
-                                                : task.status === "Not Fixed"
-                                                  ? "red"
-                                                  : "inherit",
-                                    }}
+                                    value={task?.status || undefined} // Allow empty value
+                                    onChange={(value) =>
+                                      handleTaskChange(
+                                        index,
+                                        "status",
+                                        value || ""
+                                      )
+                                    } // Set empty string if no value is selected                                    
                                     optionLabelProp="label"
                                   >
                                     {ALL_STATUS_OPTIONS.map((status) => (
                                       <Option
                                         key={status}
-                                        value={status}
-                                        label={status}
-                                        style={{
-                                          color:
-                                            status === "Completed"
-                                              ? "green"
-                                              : status === "In Progress"
-                                                ? "orange"
-                                                : status === "Hold"
-                                                  ? "yellow"
-                                                  : status === "Fixed"
-                                                    ? "blue"
-                                                    : status === "Not Fixed"
-                                                      ? "red"
-                                                      : "inherit",
-                                        }}
+                                        value={
+                                          status === "None" ? null : status
+                                        } // Set empty string for "None"
+                                        label={status}                                        
                                       >
                                         {status}
                                       </Option>
@@ -887,7 +1032,11 @@ ${name.trim()}`;
                                   addSubtask(index);
                                 }}
                                 title="Add Subtask"
-                                style={{ display: settings.taskSettings.allowSubtask ? "flex" : "none" }}
+                                style={{
+                                  display: settings.taskSettings.allowSubtask
+                                    ? "flex"
+                                    : "none",
+                                }}
                               >
                                 {AddIcon}
                               </div>
@@ -898,7 +1047,8 @@ ${name.trim()}`;
                                   className="task-row subtask-row"
                                   key={`subtask-${index}-${subIndex}`}
                                   style={{
-                                    gridTemplateColumns: settings.taskSettings.showID
+                                    gridTemplateColumns: settings.taskSettings
+                                      .showID
                                       ? "1fr 3fr 1fr 1fr 1fr auto auto"
                                       : "3fr 1fr 1fr 1fr auto auto",
                                   }}
@@ -910,10 +1060,11 @@ ${name.trim()}`;
                                           if (!subtaskRefs.current[index]) {
                                             subtaskRefs.current[index] = [];
                                           }
-                                          subtaskRefs.current[index][subIndex] = el || null;
+                                          subtaskRefs.current[index][subIndex] =
+                                            el || null;
                                         }}
                                         style={{
-                                          visibility: "hidden"
+                                          visibility: "hidden",
                                         }}
                                         className="task-id-input"
                                         placeholder="Subtask ID"
@@ -935,7 +1086,8 @@ ${name.trim()}`;
                                         if (!subtaskRefs.current[index]) {
                                           subtaskRefs.current[index] = [];
                                         }
-                                        subtaskRefs.current[index][subIndex] = el;
+                                        subtaskRefs.current[index][subIndex] =
+                                          el;
                                       }}
                                       className="task-title-input"
                                       placeholder="Subtask Title"
@@ -957,8 +1109,19 @@ ${name.trim()}`;
                                         placeholder="Hours"
                                         value={subtask.hours}
                                         onChange={(e) => {
-                                          const value = Math.min(23, Math.max(0, parseInt(e.target.value) || 0));
-                                          handleSubtaskChange(index, subIndex, "hours", value);
+                                          const value = Math.min(
+                                            23,
+                                            Math.max(
+                                              0,
+                                              parseInt(e.target.value) || 0
+                                            )
+                                          );
+                                          handleSubtaskChange(
+                                            index,
+                                            subIndex,
+                                            "hours",
+                                            value
+                                          );
                                         }}
                                         onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
                                         min={0}
@@ -973,8 +1136,19 @@ ${name.trim()}`;
                                         placeholder="Minutes"
                                         value={subtask.minutes}
                                         onChange={(e) => {
-                                          const value = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
-                                          handleSubtaskChange(index, subIndex, "minutes", value);
+                                          const value = Math.min(
+                                            59,
+                                            Math.max(
+                                              0,
+                                              parseInt(e.target.value) || 0
+                                            )
+                                          );
+                                          handleSubtaskChange(
+                                            index,
+                                            subIndex,
+                                            "minutes",
+                                            value
+                                          );
                                         }}
                                         onWheel={(e) => e.currentTarget.blur()} // Prevent scrolling on number input
                                         min={0}
@@ -986,43 +1160,64 @@ ${name.trim()}`;
                                     <div className="input-group">
                                       <Select
                                         placeholder="Select status"
-                                        value={subtask.status}
-                                        onChange={(value) => handleSubtaskChange(index, subIndex, "status", value)}
+                                        value={subtask?.status}
+                                        onChange={(value) =>
+                                          handleSubtaskChange(
+                                            index,
+                                            subIndex,
+                                            "status",
+                                            value
+                                          )
+                                        }
                                         style={{
                                           width: "100%",
                                           color:
-                                            subtask.status === "Completed"
+                                            subtask?.status === "Completed"
                                               ? "green"
-                                              : subtask.status === "In Progress"
-                                                ? "orange"
-                                                : subtask.status === "Hold"
-                                                  ? "yellow"
-                                                  : subtask.status === "Fixed"
-                                                    ? "blue"
-                                                    : subtask.status === "Not Fixed"
-                                                      ? "red"
-                                                      : "inherit",
+                                              : subtask?.status === "In Progress"
+                                              ? "orange"
+                                              : subtask?.status === "Hold"
+                                              ? "yellow"
+                                              : subtask?.status === "Fixed"
+                                              ? "#9c9ad6"
+                                              : subtask?.status === "In Progress"
+                                              ? "orange"
+                                              : subtask?.status === "Hold"
+                                              ? "yellow"
+                                              : subtask?.status === "Fixed"
+                                              ? "#9c9ad6"
+                                              : subtask?.status === "Not Fixed"
+                                              ? "red"
+                                              : "inherit",
                                         }}
                                         optionLabelProp="label"
                                       >
                                         {ALL_STATUS_OPTIONS.map((status) => (
                                           <Option
                                             key={status}
-                                            value={status}
+                                            value={
+                                              status === "None" ? null : status
+                                            }
                                             label={status}
                                             style={{
                                               color:
                                                 status === "Completed"
                                                   ? "green"
                                                   : status === "In Progress"
-                                                    ? "orange"
-                                                    : status === "Hold"
-                                                      ? "yellow"
-                                                      : status === "Fixed"
-                                                        ? "blue"
-                                                        : status === "Not Fixed"
-                                                          ? "red"
-                                                          : "inherit",
+                                                  ? "orange"
+                                                  : status === "Hold"
+                                                  ? "yellow"
+                                                  : status === "Fixed"
+                                                  ? "#7e7be3"
+                                                  : status === "In Progress"
+                                                  ? "orange"
+                                                  : status === "Hold"
+                                                  ? "yellow"
+                                                  : status === "Fixed"
+                                                  ? "#9c9ad6"
+                                                  : status === "Not Fixed"
+                                                  ? "red"
+                                                  : "inherit",
                                             }}
                                           >
                                             {status}
@@ -1057,7 +1252,10 @@ ${name.trim()}`;
                         ))}
                       </div>
                       {settings.taskSettings.showNextTask && (
-                        <div className="input-group" style={{ marginTop: "20px" }}>
+                        <div
+                          className="input-group"
+                          style={{ marginTop: "20px" }}
+                        >
                           <Input
                             id="nextTask"
                             placeholder="Enter next task"
@@ -1076,7 +1274,9 @@ ${name.trim()}`;
                         <Tooltip title="Copy to Clipboard">
                           <Button
                             type="default"
-                            icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
+                            icon={
+                              copySuccess ? <CheckOutlined /> : <CopyOutlined />
+                            }
                             onClick={handleCopy}
                             title="Copy"
                             className="copy-btn"
@@ -1104,7 +1304,10 @@ ${name.trim()}`;
                 </div>
               }
             />
-            <Route path="/edit-task" element={<EditTaskPage settings={settings} />} />
+            <Route
+              path="/edit-task"
+              element={<EditTaskPage settings={settings} />}
+            />
             <Route
               path="/settings"
               element={
@@ -1120,21 +1323,23 @@ ${name.trim()}`;
         </CSSTransition>
       </TransitionGroup>
       {copiedPreview && (
-        <div style={{
-          position: "fixed",
-          bottom: "20px",
-          right: "20px",
-          padding: "16px",
-          backgroundColor: "#333",
-          color: "#fff",
-          border: "1px solid #555",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-          borderRadius: "8px",
-          zIndex: 9999,
-          maxWidth: "400px",
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word",
-        }}>
+        <div
+          style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "20px",
+            padding: "16px",
+            backgroundColor: "#333",
+            color: "#fff",
+            border: "1px solid #555",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            borderRadius: "8px",
+            zIndex: 9999,
+            maxWidth: "400px",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+          }}
+        >
           <strong style={{ color: "#4caf50" }}>Copied Preview:</strong>
           <div style={{ marginTop: "8px" }}>{copiedPreview}</div>
         </div>

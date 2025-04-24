@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import moment from "moment";
+
 interface Task {
     id: number;
     taskId: string | number;
@@ -48,7 +50,7 @@ export const getFormattedPreview = (
       line += `ID: ${task.taskId.toString().trim()} - `; // Trim Task ID
     }
     line += task.title.trim(); // Trim Title
-    if (settings.showStatus && task.status) line += ` (${task.status.trim()})`; // Trim Status
+    if (settings.showStatus && task?.status) line += ` (${task?.status.trim()})`; // Trim Status
     if (settings.showHours) {
       const taskTime = formatTaskTime(task.hours, task.minutes);
       if (taskTime) line += ` (${taskTime})`; // Only include time if it's not empty

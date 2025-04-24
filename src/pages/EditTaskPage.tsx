@@ -30,9 +30,9 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
     const [selectedProjects, setSelectedProjects] = useState<string[]>(report?.data.selectedProjects || []);
     const [name, setName] = useState(report?.data.name || "");
     const [date, setDate] = useState(report?.date || "");
-    const [bulletType, setBulletType] = useState<"bullet" | "number" | ">" | "=>" | "-">("bullet");
+    const [bulletType, setBulletType] = useState<"bullet" | "number" | ">" | "=>">("bullet");
     const [nextTaskValue, setNextTaskValue] = useState(report?.data.nextTask || "");
-    const [selectedSubIcon, setSelectedSubIcon] = useState<"bullet" | "number" | ">" | "=>" | "-">("bullet");
+    const [selectedSubIcon, setSelectedSubIcon] = useState<"bullet" | "number" | ">" | "=>">("bullet");
     const [alertMessage, setAlertMessage] = useState<string | null>(null); // Add state for alert messages
     const [isDateConflict, setIsDateConflict] = useState(false); // Track if the selected date conflicts with an existing record
 
@@ -46,7 +46,6 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
 
     const TASK_GAP = generateSettings.taskGap || 1; // Default to 1 if not set
     const SUBTASK_GAP = generateSettings.subtaskGap || 1; // Default to 1 if not set
-    console.log(TASK_GAP, SUBTASK_GAP);
     
     const calculateRemainingTime = () => {
         const totalTaskTime = tasks.reduce((sum, task) => {
@@ -252,9 +251,10 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
             line += task.title.trim();
             if (
                 previewSettings.showStatus &&
+                task?.status?.trim() && // Only add status if it exists
                 !(previewSettings.hideParentTaskStatus && (task.subtasks?.length ?? 0) > 0) // Hide parent task status if setting is enabled and subtasks exist
             ) {
-                line += ` (${task.status.trim()})`;
+                line += task?.status ? ` (${task?.status.trim()})` : ""; // Add status in parentheses
             }
             if (
                 previewSettings.showHours &&
@@ -367,7 +367,6 @@ ${name.trim()}`;
                                     <Option value="number">1</Option>
                                     <Option value={">"}>{">"}</Option>
                                     <Option value={"=>"}>{"=>"}</Option>
-                                    <Option value="-">-</Option> {/* Add "-" as an option */}
                                 </Select>
                             </div>
                             <div className="input-group" style={{ width: "120px" }}>
@@ -383,7 +382,6 @@ ${name.trim()}`;
                                     <Option value="number">1</Option>
                                     <Option value={">"}>{">"}</Option>
                                     <Option value={"=>"}>{"=>"}</Option>
-                                    <Option value="-">-</Option> {/* Add "-" as an option */}
                                 </Select>
                             </div>
                             <div className="input-group" style={{ flex: "1 1 25%" }}>
@@ -512,46 +510,16 @@ ${name.trim()}`;
                                             {settings.taskSettings.showStatus && (
                                                 <Select
                                                     placeholder="Select status"
-                                                    value={task.status}
-                                                    onChange={(value) =>
-                                                        handleTaskChange(index, "status", value)
-                                                    }
-                                                    style={{
-                                                        width: "100%",
-                                                        color:
-                                                            task.status === "Completed"
-                                                                ? "green"
-                                                                : task.status === "In Progress"
-                                                                ? "orange"
-                                                                : task.status === "Hold"
-                                                                ? "yellow"
-                                                                : task.status === "Fixed"
-                                                                ? "blue"
-                                                                : task.status === "Not Fixed"
-                                                                ? "red"
-                                                                : "inherit",
-                                                    }}
+                                                    value={task?.status || undefined} // Allow empty value
+                                                    onChange={(value) => handleTaskChange(index, "status", value || "")} // Set empty string if no value is selected
+                                                   
                                                     optionLabelProp="label"
                                                 >
                                                     {ALL_STATUS_OPTIONS.map((status) => (
                                                         <Option
                                                             key={status}
-                                                            value={status}
-                                                            label={status}
-                                                            style={{
-                                                                color:
-                                                                    status === "Completed"
-                                                                        ? "green"
-                                                                        : status === "In Progress"
-                                                                        ? "orange"
-                                                                        : status === "Hold"
-                                                                        ? "yellow"
-                                                                        : status === "Fixed"
-                                                                        ? "blue"
-                                                                        : status === "Not Fixed"
-                                                                        ? "red"
-                                                                        : "inherit",
-                                                            }}
+                                                            value={status === "None" ? null : status}
+                                                            label={status}                                                           
                                                         >
                                                             {status}
                                                         </Option>
@@ -643,46 +611,18 @@ ${name.trim()}`;
                                                     {settings.taskSettings.showStatus && (
                                                         <Select
                                                             placeholder="Select status"
-                                                            value={subtask.status}
+                                                            value={subtask?.status}
                                                             onChange={(value) =>
                                                                 handleSubtaskChange(index, subIndex, "status", value)
-                                                            }
-                                                            style={{
-                                                                width: "100%",
-                                                                color:
-                                                                    subtask.status === "Completed"
-                                                                        ? "green"
-                                                                        : subtask.status === "In Progress"
-                                                                        ? "orange"
-                                                                        : subtask.status === "Hold"
-                                                                        ? "yellow"
-                                                                        : subtask.status === "Fixed"
-                                                                        ? "blue"
-                                                                        : subtask.status === "Not Fixed"
-                                                                        ? "red"
-                                                                        : "inherit",
-                                                            }}
+                                                            }                                                           
                                                             optionLabelProp="label"
                                                         >
                                                             {ALL_STATUS_OPTIONS.map((status) => (
                                                                 <Option
                                                                     key={status}
-                                                                    value={status}
+                                                                    value={status === "None" ? null : status}
                                                                     label={status}
-                                                                    style={{
-                                                                        color:
-                                                                            status === "Completed"
-                                                                                ? "green"
-                                                                                : status === "In Progress"
-                                                                                ? "orange"
-                                                                                : status === "Hold"
-                                                                                ? "yellow"
-                                                                                : status === "Fixed"
-                                                                                ? "blue"
-                                                                                : status === "Not Fixed"
-                                                                                ? "red"
-                                                                                : "inherit",
-                                                                    }}
+                                                                   
                                                                 >
                                                                     {status}
                                                                 </Option>

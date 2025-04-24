@@ -1,14 +1,16 @@
 import "./ReportsPage.css"
-import { Button, DatePicker, Tooltip, Dropdown, Menu } from "antd";
-import { CheckOutlined, CopyOutlined, DeleteOutlined, EditOutlined, FilePdfOutlined, FileExcelOutlined, FileTextOutlined } from "@ant-design/icons";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import dayjs from "dayjs"; // Import dayjs
-import isBetween from "dayjs/plugin/isBetween"; // Import isBetween plugin
-import { fileExportIcon } from "../assets/fontAwesomeIcons";
-import jsPDF from "jspdf";
+
+import { Button, DatePicker, Dropdown, Menu, Tooltip } from "antd";
+import { CheckOutlined, CopyOutlined, DeleteOutlined, EditOutlined, FileExcelOutlined, FilePdfOutlined, FileTextOutlined } from "@ant-design/icons";
+
 import autoTable from "jspdf-autotable";
+import dayjs from "dayjs"; // Import dayjs
+import { fileExportIcon } from "../assets/fontAwesomeIcons";
+import isBetween from "dayjs/plugin/isBetween"; // Import isBetween plugin
+import jsPDF from "jspdf";
 import { reverseDate } from "../utils/dateUtils";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 dayjs.extend(isBetween); // Extend dayjs with isBetween plugin
 
@@ -112,7 +114,7 @@ const ReportsPage: React.FC = () => {
                 previewSettings.showStatus &&
                 !(previewSettings.hideParentTaskStatus && task.subtasks?.length > 0) // Hide parent task status if setting is enabled and subtasks exist
             ) {
-                line += ` (${task?.status?.trim()})`;
+                line += task?.status ? ` (${task?.status?.trim()})` : "";
             }
             if (
                 previewSettings.showHours &&
