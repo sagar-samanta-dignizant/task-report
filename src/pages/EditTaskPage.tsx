@@ -30,9 +30,9 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
     const [selectedProjects, setSelectedProjects] = useState<string[]>(report?.data.selectedProjects || []);
     const [name, setName] = useState(report?.data.name || "");
     const [date, setDate] = useState(report?.date || "");
-    const [bulletType, setBulletType] = useState(report?.data.bulletType || "bullet");
+    const [bulletType, setBulletType] = useState<"bullet" | "number" | ">" | "=>" | "-">("bullet");
     const [nextTaskValue, setNextTaskValue] = useState(report?.data.nextTask || "");
-    const [selectedSubIcon, setSelectedSubIcon] = useState<"bullet" | "number" | ">" | "=>">("bullet");
+    const [selectedSubIcon, setSelectedSubIcon] = useState<"bullet" | "number" | ">" | "=>" | "-">("bullet");
     const [alertMessage, setAlertMessage] = useState<string | null>(null); // Add state for alert messages
     const [isDateConflict, setIsDateConflict] = useState(false); // Track if the selected date conflicts with an existing record
 
@@ -367,6 +367,7 @@ ${name.trim()}`;
                                     <Option value="number">1</Option>
                                     <Option value={">"}>{">"}</Option>
                                     <Option value={"=>"}>{"=>"}</Option>
+                                    <Option value="-">-</Option> {/* Add "-" as an option */}
                                 </Select>
                             </div>
                             <div className="input-group" style={{ width: "120px" }}>
@@ -382,6 +383,7 @@ ${name.trim()}`;
                                     <Option value="number">1</Option>
                                     <Option value={">"}>{">"}</Option>
                                     <Option value={"=>"}>{"=>"}</Option>
+                                    <Option value="-">-</Option> {/* Add "-" as an option */}
                                 </Select>
                             </div>
                             <div className="input-group" style={{ flex: "1 1 25%" }}>

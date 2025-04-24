@@ -48,7 +48,7 @@ const App = () => {
   });
   const [name, setName] = useState(localStorage.getItem("name") || "");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-  const [bulletType, setBulletType] = useState<"bullet" | "dot" | "number" | ">" | ">>" | "=>">("bullet");
+  const [bulletType, setBulletType] = useState<"bullet" | "dot" | "number" | ">" | ">>" | "=>" | "-">("bullet");
   const [copySuccess, setCopySuccess] = useState(false);
   const [nextTaskValue, setNextTaskValue] = useState("");
   const [settings, setSettings] = useState(() => {
@@ -91,7 +91,7 @@ const App = () => {
   });
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [editingReport, setEditingReport] = useState<any | null>(null);
-  const [selectedSubIcon, setSelectedSubIcon] = useState<"bullet" | "dot" | "number" | ">" | ">>" | "=>">("bullet");
+  const [selectedSubIcon, setSelectedSubIcon] = useState<"bullet" | "dot" | "number" | ">" | ">>" | "=>" | "-">("bullet");
   const [copiedPreview, setCopiedPreview] = useState<string | null>(null);
   const taskRefs = useRef<(HTMLInputElement | null)[]>([]);
   const subtaskRefs = useRef<(InputRef | null)[][]>([]);
@@ -372,6 +372,8 @@ const App = () => {
           return "=> ";
         case "bullet":
           return "● ";
+        case "-":
+          return "- ";
         default:
           return "- ";
       }
@@ -654,6 +656,7 @@ ${name.trim()}`;
                             <Option value="number">1</Option>
                             <Option value={">"}>{">"}</Option>
                             <Option value={"=>"}>{"=>"}</Option>
+                            <Option value="-">-</Option> {/* Add "-" as an option */}
                           </Select>
                         </div>
                         <div className="input-group" style={{ width: "120px", display: settings.taskSettings.allowSubtask ? "block" : "none" }}>
@@ -669,6 +672,7 @@ ${name.trim()}`;
                             <Option value="number">1</Option>
                             <Option value={">"}>{">"}</Option>
                             <Option value={"=>"}>{"=>"}</Option>
+                            <Option value="-">-</Option> {/* Add "-" as an option */}
                           </Select>
                         </div>
                         <div className="input-group" style={{ width: "300px", display: settings.taskSettings.showProject ? "block" : "none" }}>
