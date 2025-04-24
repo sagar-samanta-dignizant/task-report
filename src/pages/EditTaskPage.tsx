@@ -142,6 +142,7 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
     setTasks(updatedTasks);
   };
 
+
   const addTask = () => {
     const newTask: Task = {
       id: tasks.length + 1,
@@ -157,8 +158,9 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       return updatedTasks;
     });
     setTimeout(() => {
-      if (settings.taskSettings.showID) {
-        taskRefs.current[taskRefs.current.length - 1]?.focus(); // Focus on the ID input if it exists
+      const lastTaskRef = taskRefs.current[taskRefs.current.length - 1];
+      if (settings.taskSettings.showID && lastTaskRef) {
+        lastTaskRef.focus(); // Focus on the ID input if it exists
       } else {
         const titleInput = document.querySelectorAll<HTMLInputElement>(
           ".task-details-inputs .title-field input"
@@ -197,17 +199,21 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
     }, 0);
   };
 
-  const clearTask = (taskId: number) => {
-    const updatedTasks = tasks.filter((task) => task.id !== taskId);
-    setTasks(updatedTasks);
+  const clearTask = (taskIndex: number) => {
+    setTasks((prevTasks) => prevTasks.filter((_, index) => index !== taskIndex));
   };
 
   const clearSubtask = (parentIndex: number, subtaskIndex: number) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[parentIndex].subtasks = updatedTasks[
-      parentIndex
-    ].subtasks?.filter((_, index) => index !== subtaskIndex);
-    setTasks(updatedTasks);
+    setTasks((prevTasks) => {
+      const updatedTasks = [...prevTasks];
+      const parentTask = updatedTasks[parentIndex];
+      if (parentTask.subtasks) {
+        parentTask.subtasks = parentTask.subtasks.filter(
+          (_, index) => index !== subtaskIndex
+        );
+      }
+      return updatedTasks;
+    });
   };
 
   const handleDateChange = (dateString: string) => {
@@ -585,7 +591,7 @@ ${name.trim()}`;
                     </div>
                     <div
                       className="clear-task-circle"
-                      onClick={() => clearTask(task.id)}
+                      onClick={() => clearTask(index)} // Use index to remove the task
                       title="Delete Task"
                     >
                       {minusIcon}
@@ -712,7 +718,7 @@ ${name.trim()}`;
                         </div>
                         <div
                           className="clear-task-circle"
-                          onClick={() => clearSubtask(index, subIndex)}
+                          onClick={() => clearSubtask(index, subIndex)} // Use parentIndex and subtaskIndex to remove the subtask
                           title="Delete Subtask"
                         >
                           {minusIcon}

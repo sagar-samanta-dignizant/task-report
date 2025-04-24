@@ -46,7 +46,7 @@ const { Option } = Select;
 const { Header } = Layout;
 
 interface Task {
-  id?: string;
+  id?: string; // Keep id for its intended purpose
   title: string;
   hours: string | number;
   minutes: string | number;
@@ -58,15 +58,17 @@ interface Task {
 const App = () => {
   const theme = "light";
   const workingTimeLimit = 8.5;
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "",
-      title: "",
-      hours: "",
-      minutes: "",
-      status: "Completed",
-    },
-  ]);
+  const [tasks, setTasks] = useState<Task[]>(
+    [
+      {
+        id: "",
+        title: "",
+        hours: "",
+        minutes: "",
+        status: "Completed",
+      },
+    ]
+  );
   const [selectedProjects, setSelectedProjects] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem("selectedProjects") || "[]");
@@ -305,33 +307,37 @@ const App = () => {
     });
   };
 
+  // Utility function to generate unique IDs
+
   const addTask = () => {
     const newTask: Task = {
-      id: "",
+      id: "", // Keep id field for its purpose
       title: "",
       hours: "",
       minutes: "",
       status: "Completed",
     };
     setTasks((prevTasks) => {
-      const updatedTasks = [...prevTasks, newTask]; // Add new task at the bottom
+      const updatedTasks = [...prevTasks, newTask];
       taskRefs.current.push(null); // Adjust the refs array
       return updatedTasks;
     });
     setTimeout(() => {
-      if (settings.taskSettings.showID) {
-        taskRefs.current[taskRefs.current.length - 1]?.focus(); // Focus on the ID field of the new task
+      const lastTaskRef = taskRefs.current[taskRefs.current.length - 1];
+      if (settings.taskSettings.showID && lastTaskRef) {
+        lastTaskRef.focus(); // Focus on the ID input if it exists
       } else {
-        const titleInput =
-          document.querySelectorAll<HTMLInputElement>(".task-title-input");
-        titleInput[titleInput.length - 1]?.focus(); // Focus on the title field
+        const titleInput = document.querySelectorAll<HTMLInputElement>(
+          ".task-title-input"
+        );
+        titleInput[titleInput.length - 1]?.focus(); // Focus on the title field if ID is not shown
       }
     }, 0);
   };
 
   const addSubtask = (parentIndex: number) => {
     const newSubtask: Task = {
-      id: "",
+      id: "", // Keep id field for its purpose
       title: "",
       hours: "",
       minutes: "",
@@ -373,17 +379,17 @@ const App = () => {
   };
 
   const clearTask = (taskIndex: number) => {
-    setTasks((prevTasks) =>
-      prevTasks.filter((_, index) => index !== taskIndex)
-    );
+    setTasks((prevTasks) => prevTasks.filter((_, index) => index !== taskIndex));
   };
 
   const clearSubtask = (parentIndex: number, subtaskIndex: number) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[parentIndex].subtasks = updatedTasks[
-      parentIndex
-    ].subtasks?.filter((_, index) => index !== subtaskIndex);
-    setTasks(updatedTasks);
+    setTasks((prevTasks) => {
+      const updatedTasks = [...prevTasks];
+      updatedTasks[parentIndex].subtasks = updatedTasks[parentIndex].subtasks?.filter(
+        (_, index) => index !== subtaskIndex
+      );
+      return updatedTasks;
+    });
   };
 
   const toggleSetting = (
@@ -584,6 +590,7 @@ ${name.trim()}`;
       setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME);
       return;
     }
+    console.log(filteredTasks);
 
     const previewData = {
       date,
@@ -1001,7 +1008,7 @@ ${name.trim()}`;
                                         "status",
                                         value || ""
                                       )
-                                    } // Set empty string if no value is selected                                    
+                                    } // Set empty string if no value is selected
                                     optionLabelProp="label"
                                   >
                                     {ALL_STATUS_OPTIONS.map((status) => (
@@ -1010,7 +1017,7 @@ ${name.trim()}`;
                                         value={
                                           status === "None" ? null : status
                                         } // Set empty string for "None"
-                                        label={status}                                        
+                                        label={status}
                                       >
                                         {status}
                                       </Option>
@@ -1020,7 +1027,7 @@ ${name.trim()}`;
                               )}
                               <div
                                 className="clear-task-circle"
-                                onClick={() => clearTask(index)}
+                                onClick={() => clearTask(index)} // Use index to remove the task
                                 title="Delete Task"
                               >
                                 {minusIcon}
@@ -1170,25 +1177,7 @@ ${name.trim()}`;
                                           )
                                         }
                                         style={{
-                                          width: "100%",
-                                          color:
-                                            subtask?.status === "Completed"
-                                              ? "green"
-                                              : subtask?.status === "In Progress"
-                                              ? "orange"
-                                              : subtask?.status === "Hold"
-                                              ? "yellow"
-                                              : subtask?.status === "Fixed"
-                                              ? "#9c9ad6"
-                                              : subtask?.status === "In Progress"
-                                              ? "orange"
-                                              : subtask?.status === "Hold"
-                                              ? "yellow"
-                                              : subtask?.status === "Fixed"
-                                              ? "#9c9ad6"
-                                              : subtask?.status === "Not Fixed"
-                                              ? "red"
-                                              : "inherit",
+                                          width: "100%",                                         
                                         }}
                                         optionLabelProp="label"
                                       >
@@ -1198,27 +1187,7 @@ ${name.trim()}`;
                                             value={
                                               status === "None" ? null : status
                                             }
-                                            label={status}
-                                            style={{
-                                              color:
-                                                status === "Completed"
-                                                  ? "green"
-                                                  : status === "In Progress"
-                                                  ? "orange"
-                                                  : status === "Hold"
-                                                  ? "yellow"
-                                                  : status === "Fixed"
-                                                  ? "#7e7be3"
-                                                  : status === "In Progress"
-                                                  ? "orange"
-                                                  : status === "Hold"
-                                                  ? "yellow"
-                                                  : status === "Fixed"
-                                                  ? "#9c9ad6"
-                                                  : status === "Not Fixed"
-                                                  ? "red"
-                                                  : "inherit",
-                                            }}
+                                            label={status}                                           
                                           >
                                             {status}
                                           </Option>
@@ -1229,7 +1198,7 @@ ${name.trim()}`;
                                   <div
                                     className="clear-task-circle"
                                     onClick={() =>
-                                      clearSubtask(index, subIndex)
+                                      clearSubtask(index, subIndex) // Use parentIndex and subtaskIndex to remove the subtask
                                     }
                                     title="Delete Subtask"
                                   >
