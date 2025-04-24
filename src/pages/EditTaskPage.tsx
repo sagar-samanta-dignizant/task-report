@@ -2,6 +2,7 @@
 
 import {
   ALL_AVAILABLE_PROJECTS,
+  ALL_BULLET_TYPES,
   ALL_STATUS_OPTIONS,
 } from "../constant/task.constant";
 import { AddIcon, minusIcon } from "../assets/fontAwesomeIcons";
@@ -10,6 +11,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
 
 import dayjs from "dayjs"; // Replace moment with dayjs
+import { getBullet } from "../utils/icon.utils";
 import { reverseDate } from "../utils/dateUtils";
 
 const { Option } = Select;
@@ -142,7 +144,6 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
     setTasks(updatedTasks);
   };
 
-
   const addTask = () => {
     const newTask: Task = {
       id: tasks.length + 1,
@@ -200,7 +201,9 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
   };
 
   const clearTask = (taskIndex: number) => {
-    setTasks((prevTasks) => prevTasks.filter((_, index) => index !== taskIndex));
+    setTasks((prevTasks) =>
+      prevTasks.filter((_, index) => index !== taskIndex)
+    );
   };
 
   const clearSubtask = (parentIndex: number, subtaskIndex: number) => {
@@ -267,21 +270,6 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       bulletType: string,
       index: number
     ) => {
-      const getBullet = (type: string, index: number) => {
-        switch (type) {
-          case "bullet":
-            return "•";
-          case "number":
-            return `${index + 1}.`;
-          case ">":
-            return ">";
-          case "=>":
-            return "=>";
-          default:
-            return "-";
-        }
-      };
-
       const bullet = getBullet(bulletType, index);
       const indent = "    ".repeat(level); // 4 spaces per level for better visual offset
 
@@ -424,10 +412,11 @@ ${name.trim()}`;
                   onChange={(value) => setBulletType(value as any)}
                   style={{ width: "100%" }}
                 >
-                  <Option value="bullet">•</Option>
-                  <Option value="number">1</Option>
-                  <Option value={">"}>{">"}</Option>
-                  <Option value={"=>"}>{"=>"}</Option>
+                  {ALL_BULLET_TYPES.map((type) => (
+                    <Option key={type} value={type}>
+                      {type}
+                    </Option>
+                  ))}
                 </Select>
               </div>
               <div className="input-group" style={{ width: "120px" }}>
@@ -439,10 +428,11 @@ ${name.trim()}`;
                   onChange={(value) => setSelectedSubIcon(value)}
                   style={{ width: "100%" }}
                 >
-                  <Option value="bullet">•</Option>
-                  <Option value="number">1</Option>
-                  <Option value={">"}>{">"}</Option>
-                  <Option value={"=>"}>{"=>"}</Option>
+                  {ALL_BULLET_TYPES.map((type) => (
+                    <Option key={type} value={type}>
+                      {type}
+                    </Option>
+                  ))}
                 </Select>
               </div>
               <div className="input-group" style={{ flex: "1 1 25%" }}>

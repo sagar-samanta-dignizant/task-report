@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import autoTable from "jspdf-autotable";
 import { fileExportIcon } from "../assets/fontAwesomeIcons";
+import { getBullet } from "../utils/icon.utils";
 import isBetween from "dayjs/plugin/isBetween"; // Import isBetween plugin
 import jsPDF from "jspdf";
 import { reverseDate } from "../utils/dateUtils";
@@ -85,24 +86,7 @@ const ReportsPage: React.FC = () => {
         const closingText = generateSettings.closingText || "Thanks & regards";
 
         const formatLine = (task: any, level = 0, bulletType: string, index: number) => {
-            const getBullet = (type: string, index: number) => {
-                switch (type) {
-                    case "dot":
-                        return "•";
-                    case "number":
-                        return `${index + 1}.`;
-                    case ">":
-                        return ">";
-                    case ">>":
-                        return ">>";
-                    case "=>":
-                        return "=>";
-                    case "bullet":
-                        return "●";
-                    default:
-                        return "-";
-                }
-            };
+           
 
             const bullet = getBullet(bulletType, index);
             const indent = "    ".repeat(level); // 4 spaces per level for better visual offset

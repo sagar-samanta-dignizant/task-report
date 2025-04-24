@@ -3,6 +3,7 @@ import "./app.css";
 import {
   ALERT_DISMISS_TIME,
   ALL_AVAILABLE_PROJECTS,
+  ALL_BULLET_TYPES,
   ALL_STATUS_OPTIONS,
 } from "./constant/task.constant";
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
@@ -40,6 +41,7 @@ import EditTaskPage from "./pages/EditTaskPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import dayjs from "dayjs";
+import { getBullet } from "./utils/icon.utils";
 import { reverseDate } from "./utils/dateUtils";
 
 const { Option } = Select;
@@ -58,17 +60,15 @@ interface Task {
 const App = () => {
   const theme = "light";
   const workingTimeLimit = 8.5;
-  const [tasks, setTasks] = useState<Task[]>(
-    [
-      {
-        id: "",
-        title: "",
-        hours: "",
-        minutes: "",
-        status: "Completed",
-      },
-    ]
-  );
+  const [tasks, setTasks] = useState<Task[]>([
+    {
+      id: "",
+      title: "",
+      hours: "",
+      minutes: "",
+      status: "Completed",
+    },
+  ]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem("selectedProjects") || "[]");
@@ -80,7 +80,7 @@ const App = () => {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [bulletType, setBulletType] = useState<
     "bullet" | "dot" | "number" | ">" | ">>" | "=>"
-  >("bullet");
+  >("dot");
   const [copySuccess, setCopySuccess] = useState(false);
   const [nextTaskValue, setNextTaskValue] = useState("");
   const [settings, setSettings] = useState(() => {
@@ -133,7 +133,7 @@ const App = () => {
   const [editingReport, setEditingReport] = useState<any | null>(null);
   const [selectedSubIcon, setSelectedSubIcon] = useState<
     "bullet" | "dot" | "number" | ">" | ">>" | "=>"
-  >("bullet");
+  >("dot");
   const [copiedPreview, setCopiedPreview] = useState<string | null>(null);
   const taskRefs = useRef<(HTMLInputElement | null)[]>([]);
   const subtaskRefs = useRef<(InputRef | null)[][]>([]);
@@ -327,9 +327,8 @@ const App = () => {
       if (settings.taskSettings.showID && lastTaskRef) {
         lastTaskRef.focus(); // Focus on the ID input if it exists
       } else {
-        const titleInput = document.querySelectorAll<HTMLInputElement>(
-          ".task-title-input"
-        );
+        const titleInput =
+          document.querySelectorAll<HTMLInputElement>(".task-title-input");
         titleInput[titleInput.length - 1]?.focus(); // Focus on the title field if ID is not shown
       }
     }, 0);
@@ -379,15 +378,17 @@ const App = () => {
   };
 
   const clearTask = (taskIndex: number) => {
-    setTasks((prevTasks) => prevTasks.filter((_, index) => index !== taskIndex));
+    setTasks((prevTasks) =>
+      prevTasks.filter((_, index) => index !== taskIndex)
+    );
   };
 
   const clearSubtask = (parentIndex: number, subtaskIndex: number) => {
     setTasks((prevTasks) => {
       const updatedTasks = [...prevTasks];
-      updatedTasks[parentIndex].subtasks = updatedTasks[parentIndex].subtasks?.filter(
-        (_, index) => index !== subtaskIndex
-      );
+      updatedTasks[parentIndex].subtasks = updatedTasks[
+        parentIndex
+      ].subtasks?.filter((_, index) => index !== subtaskIndex);
       return updatedTasks;
     });
   };
@@ -413,9 +414,7 @@ const App = () => {
         line += `ID : ${task.id.trim()} `;
       }
       if (task.icon) {
-        const icon = isSubtask
-          ? getTaskIcon(index, selectedSubIcon)
-          : task.icon;
+        const icon = isSubtask ? getBullet(selectedSubIcon, index) : task.icon;
         line += `  ${icon}`;
       }
       line += task.title.trim();
@@ -446,30 +445,11 @@ const App = () => {
       return line;
     };
 
-    const getTaskIcon = (_: number, type: any) => {
-      switch (type) {
-        case "dot":
-          return "• ";
-        case "number":
-          return `${_ + 1}. `;
-        case ">":
-          return "> ";
-        case ">>":
-          return ">> ";
-        case "=>":
-          return "=> ";
-        case "bullet":
-          return "● ";
-        default:
-          return "- ";
-      }
-    };
-
     const formatTasks = (tasks: Task[], level = 0) =>
       tasks
         .map((task, index) => {
           const indent = "  ".repeat(level);
-          let line = `${indent}${getTaskIcon(index, bulletType)}${formatLine(
+          let line = `${indent}${getBullet(bulletType, index)}${formatLine(
             task,
             index
           )}`;
@@ -777,10 +757,11 @@ ${name.trim()}`;
                             onChange={(value) => setBulletType(value as any)}
                             style={{ width: "100%" }}
                           >
-                            <Option value="bullet">•</Option>
-                            <Option value="number">1</Option>
-                            <Option value={">"}>{">"}</Option>
-                            <Option value={"=>"}>{"=>"}</Option>
+                            {ALL_BULLET_TYPES.map((type) => (
+                              <Option key={type} value={type}>
+                                {type}
+                              </Option>
+                            ))}
                           </Select>
                         </div>
                         <div
@@ -800,10 +781,11 @@ ${name.trim()}`;
                             onChange={(value) => setSelectedSubIcon(value)}
                             style={{ width: "100%" }}
                           >
-                            <Option value="bullet">•</Option>
-                            <Option value="number">1</Option>
-                            <Option value={">"}>{">"}</Option>
-                            <Option value={"=>"}>{"=>"}</Option>
+                            {ALL_BULLET_TYPES.map((type) => (
+                              <Option key={type} value={type}>
+                                {type}
+                              </Option>
+                            ))}
                           </Select>
                         </div>
                         <div
@@ -1177,7 +1159,7 @@ ${name.trim()}`;
                                           )
                                         }
                                         style={{
-                                          width: "100%",                                         
+                                          width: "100%",
                                         }}
                                         optionLabelProp="label"
                                       >
@@ -1187,7 +1169,7 @@ ${name.trim()}`;
                                             value={
                                               status === "None" ? null : status
                                             }
-                                            label={status}                                           
+                                            label={status}
                                           >
                                             {status}
                                           </Option>
@@ -1197,8 +1179,8 @@ ${name.trim()}`;
                                   )}
                                   <div
                                     className="clear-task-circle"
-                                    onClick={() =>
-                                      clearSubtask(index, subIndex) // Use parentIndex and subtaskIndex to remove the subtask
+                                    onClick={
+                                      () => clearSubtask(index, subIndex) // Use parentIndex and subtaskIndex to remove the subtask
                                     }
                                     title="Delete Subtask"
                                   >
