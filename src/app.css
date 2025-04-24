@@ -825,6 +825,14 @@ label .input-field {
  right: 30px ;
 }
 
+.rounded-logo {
+  border-radius: 50%; /* Makes the image circular */
+  width: 50px; /* Adjust size as needed */
+  height: 50px; /* Ensure the image is square for proper rounding */
+  object-fit: cover; /* Ensures the image fits within the circle */
+  border: 2px solid #e0e0e0; /* Optional: Add a border for better visibility */
+}
+
 @media (max-width: 768px) {
   .content {
     flex-direction: column;

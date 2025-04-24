@@ -5,6 +5,7 @@ import {
   ALL_AVAILABLE_PROJECTS,
   ALL_BULLET_TYPES,
   ALL_STATUS_OPTIONS,
+  SMILYS,
 } from "./constant/task.constant";
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
 import {
@@ -60,15 +61,17 @@ interface Task {
 const App = () => {
   const theme = "light";
   const workingTimeLimit = 8.5;
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "",
-      title: "",
-      hours: "",
-      minutes: "",
-      status: "Completed",
-    },
-  ]);
+  const [tasks, setTasks] = useState<Task[]>(
+    [
+      {
+        id: "",
+        title: "",
+        hours: "",
+        minutes: "",
+        status: "Completed",
+      },
+    ]
+  );
   const [selectedProjects, setSelectedProjects] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem("selectedProjects") || "[]");
@@ -142,6 +145,7 @@ const App = () => {
   const [profilePicture, setProfilePicture] = useState(
     localStorage.getItem("profilePicture") || ""
   );
+  const [currentSmileyIndex, setCurrentSmileyIndex] = useState(0);
 
   const TASK_GAP = settings.generateSettings.taskGap || 1; // Default to 1 if not set
   const SUBTASK_GAP = settings.generateSettings.subtaskGap || 1; // Default to 1 if not set
@@ -151,6 +155,13 @@ const App = () => {
       navigate(to);
     }
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSmileyIndex((prevIndex) => (prevIndex + 1) % SMILYS.length);
+    }, 2000); // Change smiley every 2 seconds
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, []);
 
   useEffect(() => {
     if (alertMessage) {
@@ -636,7 +647,12 @@ ${name.trim()}`;
       <Header className="header">
         <div className="header-content">
           <div className="logo" onClick={() => handleNavigation("/")}>
-            <img src={"/test-1.png"} alt="Logo" />
+            <img
+              src={SMILYS[currentSmileyIndex]} // Display the current smiley
+              alt="Logo"
+              className="rounded-logo" // Add class for rounded style
+              style={{ transition: "opacity 0.5s ease" }} // Smooth transition
+            />
           </div>
           <div className="header-title">
             <span>🎉 R3p0rt M@nag3r 🎨</span>
