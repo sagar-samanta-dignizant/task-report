@@ -47,7 +47,7 @@ import { reverseDate } from "./utils/dateUtils";
 
 const { Option } = Select;
 const { Header } = Layout;
-
+const TIME = "6:200 PM"
 interface Task {
   id?: string; // Keep id for its intended purpose
   title: string;
@@ -641,6 +641,52 @@ ${name.trim()}`;
     setNextTaskValue("");
     setEditingReport(null);
   };
+
+  const parseTimeString = (timeString: string): Date | null => {
+    const [time, modifier] = timeString.split(" ");
+    const [hours, minutes] = time.split(":").map(Number);
+
+    if (isNaN(hours) || isNaN(minutes)) return null;
+
+    const date = new Date();
+    date.setHours(modifier === "PM" && hours < 12 ? hours + 12 : hours % 12);
+    date.setMinutes(minutes);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+
+    return date;
+  };
+
+  const scheduleNotification = (timeString: string, message: string) => {
+    const targetTime = parseTimeString(timeString)?.getTime();
+    if (!targetTime) {
+      return;
+    }
+
+    const currentTime = Date.now();
+    const delay = targetTime - currentTime;
+
+    if (delay > 0) {
+      setTimeout(() => {
+        if (Notification.permission === "granted") {
+          new Notification("Reminder", { body: message });
+        } else {
+        }
+      }, delay);
+    } else {
+    }
+  };
+
+  useEffect(() => {
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+    
+    const notificationTime = settings.generateSettings.notificationTime;
+    if (notificationTime) {
+        scheduleNotification(notificationTime, "Time to check your tasks!");
+    }
+}, [settings.generateSettings.notificationTime]);
 
   return (
     <Layout className={`app-container ${theme}`}>

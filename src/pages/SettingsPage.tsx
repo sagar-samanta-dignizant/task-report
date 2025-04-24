@@ -1,7 +1,10 @@
 import "./SettingsPage.css"; // Import custom CSS for the settings page
-import { Input, Upload, Button, Avatar, message } from "antd"; // Import Ant Design Input, Upload, Button, Avatar, and message components
-import { UploadOutlined } from "@ant-design/icons"; // Import Upload icon
+
+import { Avatar, Button, Input, TimePicker, Upload, message } from "antd"; // Import Ant Design Input, Upload, Button, Avatar, and message components
+
 import React from "react";
+import { UploadOutlined } from "@ant-design/icons"; // Import Upload icon
+import dayjs from "dayjs"; // Import dayjs for date manipulation
 
 const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) => (
     <div
@@ -15,6 +18,19 @@ const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (chec
 const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
     const [uploadedImage, setUploadedImage] = React.useState<string | null>(null); // State for uploaded image preview
     const generateSettings = JSON.parse(localStorage.getItem("generateSettings") || "{}");
+
+    // Ensure default notification time is set to 6:00 PM if not already set
+    React.useEffect(() => {
+        if (!generateSettings.notificationTime) {
+            toggleSetting("generateSettings", "notificationTime", "06:00 PM");
+        }
+    }, [generateSettings.notificationTime, toggleSetting]);
+
+    const handleTimeChange = (time: dayjs.Dayjs | null) => {
+        if (time) {
+            toggleSetting("generateSettings", "notificationTime", time.format("hh:mm A")); // Save time in "hh:mm AM/PM" format
+        }
+    };
 
     return (
         <div className="settings-page">
@@ -411,6 +427,24 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                 style={{ marginTop: "10px", border: "1px solid #4caf50" }}
                             />
                         )}
+                    </div>
+                    <div className="settings-option">
+                        <label>
+                            Notification Time
+                            <TimePicker
+                                format="hh:mm A" // Display time in AM/PM format
+                                value={
+                                    generateSettings.notificationTime
+                                        ? dayjs(generateSettings.notificationTime, "hh:mm A") // Parse stored time
+                                        : dayjs("06:00 PM", "hh:mm A") // Default to 6:00 PM
+                                }
+                                onChange={handleTimeChange}
+                                use12Hours
+                                minuteStep={1} // Allow minute selection in increments of 1
+                                className="time-picker"
+                                showNow={true} // Show "Now" button for quick selection
+                            />
+                        </label>
                     </div>
                 </div>
             </div>
