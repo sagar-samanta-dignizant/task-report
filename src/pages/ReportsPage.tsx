@@ -2,15 +2,15 @@ import "./ReportsPage.css"
 
 import { Button, DatePicker, Dropdown, Menu, Tooltip } from "antd";
 import { CheckOutlined, CopyOutlined, DeleteOutlined, EditOutlined, FileExcelOutlined, FilePdfOutlined, FileTextOutlined } from "@ant-design/icons";
+import dayjs, { Dayjs } from "dayjs";
+import { useEffect, useState } from "react";
 
 import autoTable from "jspdf-autotable";
-import dayjs from "dayjs"; // Import dayjs
 import { fileExportIcon } from "../assets/fontAwesomeIcons";
 import isBetween from "dayjs/plugin/isBetween"; // Import isBetween plugin
 import jsPDF from "jspdf";
 import { reverseDate } from "../utils/dateUtils";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 
 dayjs.extend(isBetween); // Extend dayjs with isBetween plugin
 
@@ -370,6 +370,27 @@ ${name?.trim()}`;
         />
     );
 
+    const presetRanges = [
+        {
+            label: "This Month",
+            value: [dayjs().startOf("month"), dayjs().endOf("month")] as [Dayjs, Dayjs],
+        },
+        {
+            label: "Last Month",
+            value: [
+                dayjs().subtract(1, "month").startOf("month"),
+                dayjs().subtract(1, "month").endOf("month"),
+            ] as [Dayjs, Dayjs],
+        },
+    ];
+
+    useEffect(() => {
+        const defaultStart = dayjs().startOf("month").format("DD-MM-YYYY");
+        const defaultEnd = dayjs().endOf("month").format("DD-MM-YYYY");
+        setSelectedDateRange([defaultStart, defaultEnd]); // Set the default date range
+        handleDateRangeChange(null, [defaultStart, defaultEnd]); // Trigger filtering with default range
+    }, []);
+
     return (
         <div className="reports-page">
             <div className="reports-header sticky-header">
@@ -378,6 +399,8 @@ ${name?.trim()}`;
                     <RangePicker
                         onChange={handleDateRangeChange}
                         format="DD-MM-YYYY" // Display date in DD-MM-YYYY format
+                        presets={presetRanges} // Add predefined ranges
+                        defaultValue={[dayjs().startOf("month"), dayjs().endOf("month")]} // Default to current month
                     />
                     <Dropdown overlay={exportMenu} trigger={['click']}>
                         <Button
