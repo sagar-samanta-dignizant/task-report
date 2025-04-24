@@ -5,5 +5,8 @@ export const ALL_STATUS_OPTIONS = [
   "Completed",
   "Fixed",
   "Not Fixed",
+  "Reported Issue",
+  "-"
+
 ];
 export const ALERT_DISMISS_TIME = 4000;
