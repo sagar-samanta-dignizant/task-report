@@ -360,7 +360,7 @@ ${name?.trim()}`;
             value: [dayjs().startOf("month"), dayjs().endOf("month")] as [Dayjs, Dayjs],
         },
         {
-            label: "Last Month",
+            label: "Prev Month",
             value: [
                 dayjs().subtract(1, "month").startOf("month"),
                 dayjs().subtract(1, "month").endOf("month"),

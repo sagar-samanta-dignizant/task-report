@@ -47,7 +47,6 @@ import { reverseDate } from "./utils/dateUtils";
 
 const { Option } = Select;
 const { Header } = Layout;
-const TIME = "6:200 PM"
 interface Task {
   id?: string; // Keep id for its intended purpose
   title: string;
@@ -57,6 +56,8 @@ interface Task {
   icon?: string;
   subtasks?: Omit<Task, "subtasks">[];
 }
+// Define a static notification time
+const NOTIFICATION_TIME = "09:56 AM";
 
 const App = () => {
   const theme = "light";
@@ -660,6 +661,7 @@ ${name.trim()}`;
   const scheduleNotification = (timeString: string, message: string) => {
     const targetTime = parseTimeString(timeString)?.getTime();
     if (!targetTime) {
+      console.error("Invalid time string:", timeString);
       return;
     }
 
@@ -667,26 +669,29 @@ ${name.trim()}`;
     const delay = targetTime - currentTime;
 
     if (delay > 0) {
+      console.log(`Notification scheduled in ${delay / 1000} seconds`);
       setTimeout(() => {
         if (Notification.permission === "granted") {
           new Notification("Reminder", { body: message });
         } else {
+          console.warn("Notification permission not granted.");
         }
       }, delay);
     } else {
+      console.warn("Notification time has already passed.");
     }
   };
 
   useEffect(() => {
     if (Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-    
-    const notificationTime = settings.generateSettings.notificationTime;
-    if (notificationTime) {
-        scheduleNotification(notificationTime, "Time to check your tasks!");
-    }
-}, [settings.generateSettings.notificationTime]);
+      Notification.requestPermission().then((permission) => {
+        if (permission !== "granted") {
+          console.warn("Notification permission denied.");
+        }
+      });
+    }    
+    scheduleNotification(NOTIFICATION_TIME, "Hey time to prepare your task!");
+  }, []); // Run only once on component mount
 
   return (
     <Layout className={`app-container ${theme}`}>

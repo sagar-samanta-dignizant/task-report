@@ -1,10 +1,9 @@
 import "./SettingsPage.css"; // Import custom CSS for the settings page
 
-import { Avatar, Button, Input, TimePicker, Upload, message } from "antd"; // Import Ant Design Input, Upload, Button, Avatar, and message components
+import { Avatar, Button, Input, Upload, message } from "antd"; // Import Ant Design Input, Upload, Button, Avatar, and message components
 
 import React from "react";
 import { UploadOutlined } from "@ant-design/icons"; // Import Upload icon
-import dayjs from "dayjs"; // Import dayjs for date manipulation
 
 const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) => (
     <div
@@ -14,6 +13,70 @@ const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (chec
         <div className="switch-handle" />
     </div>
 );
+
+const CustomTimePicker = ({ value, onChange }: { value: string; onChange: (time: string) => void }) => {
+    const [hour, setHour] = React.useState<string>("06");
+    const [minute, setMinute] = React.useState<string>("00");
+    const [period, setPeriod] = React.useState<string>("PM");
+
+    React.useEffect(() => {
+        const [time, ampm] = value.split(" ");
+        const [h, m] = time.split(":");
+        setHour(h);
+        setMinute(m);
+        setPeriod(ampm);
+    }, [value]);
+
+    const handleTimeChange = () => {
+        const newTime = `${hour}:${minute} ${period}`;
+        onChange(newTime);
+    };
+
+    return (
+        <div className="custom-time-picker">
+            <select
+                className="time-picker-dropdown"
+                value={hour}
+                onChange={(e) => {
+                    setHour(e.target.value);
+                    handleTimeChange();
+                }}
+            >
+                {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
+                    <option key={h} value={h}>
+                        {h}
+                    </option>
+                ))}
+            </select>
+            :
+            <select
+                className="time-picker-dropdown"
+                value={minute}
+                onChange={(e) => {
+                    setMinute(e.target.value);
+                    handleTimeChange();
+                }}
+            >
+                {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0")).map((m) => (
+                    <option key={m} value={m}>
+                        {m}
+                    </option>
+                ))}
+            </select>
+            <select
+                className="time-picker-dropdown"
+                value={period}
+                onChange={(e) => {
+                    setPeriod(e.target.value);
+                    handleTimeChange();
+                }}
+            >
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+            </select>
+        </div>
+    );
+};
 
 const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
     const [uploadedImage, setUploadedImage] = React.useState<string | null>(null); // State for uploaded image preview
@@ -25,12 +88,6 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
             toggleSetting("generateSettings", "notificationTime", "06:00 PM");
         }
     }, [generateSettings.notificationTime, toggleSetting]);
-
-    const handleTimeChange = (time: dayjs.Dayjs | null) => {
-        if (time) {
-            toggleSetting("generateSettings", "notificationTime", time.format("hh:mm A")); // Save time in "hh:mm AM/PM" format
-        }
-    };
 
     return (
         <div className="settings-page">
@@ -427,24 +484,6 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                 style={{ marginTop: "10px", border: "1px solid #4caf50" }}
                             />
                         )}
-                    </div>
-                    <div className="settings-option">
-                        <label>
-                            Notification Time
-                            <TimePicker
-                                format="hh:mm A" // Display time in AM/PM format
-                                value={
-                                    generateSettings.notificationTime
-                                        ? dayjs(generateSettings.notificationTime, "hh:mm A") // Parse stored time
-                                        : dayjs("06:00 PM", "hh:mm A") // Default to 6:00 PM
-                                }
-                                onChange={handleTimeChange}
-                                use12Hours
-                                minuteStep={1} // Allow minute selection in increments of 1
-                                className="time-picker"
-                                showNow={true} // Show "Now" button for quick selection
-                            />
-                        </label>
                     </div>
                 </div>
             </div>

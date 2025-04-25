@@ -112,3 +112,34 @@
     border-color: #4caf50;
     outline: none;
 }
+
+.custom-time-picker {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.time-picker-dropdown {
+    padding: 5px;
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    appearance: none; /* Remove default dropdown styling */
+    cursor: pointer;
+    overflow-y: auto; /* Enable vertical scrolling */
+}
+
+/* Custom scrollbar styles */
+.time-picker-dropdown::-webkit-scrollbar {
+    width: 6px; /* Thin scrollbar width */
+}
+
+.time-picker-dropdown::-webkit-scrollbar-thumb {
+    background-color: #4caf50; /* Green scrollbar thumb */
+    border-radius: 3px; /* Rounded scrollbar thumb */
+}
+
+.time-picker-dropdown::-webkit-scrollbar-track {
+    background-color: #333; /* Dark scrollbar track */
+}
