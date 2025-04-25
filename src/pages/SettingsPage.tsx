@@ -403,8 +403,17 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                     const reader = new FileReader();
                                     reader.onload = () => {
                                         const result = reader.result as string;
-                                        setUploadedImage(result); // Set preview image
-                                        setProfilePicture(result); // Update profile picture
+                                        try {
+                                            localStorage.setItem("profilePicture", result); // Attempt to store the image
+                                            setUploadedImage(result); // Set preview image
+                                            setProfilePicture(result); // Update profile picture
+                                        } catch (error) {
+                                            if (error instanceof DOMException && error.name === "QuotaExceededError") {
+                                                message.error("Image is too large to store in localStorage.");
+                                            } else {
+                                                console.error("Failed to store image:", error);
+                                            }
+                                        }
                                     };
                                     reader.readAsDataURL(file);
                                     return false; // Prevent automatic upload

@@ -143,9 +143,14 @@ const App = () => {
   const subtaskRefs = useRef<(InputRef | null)[][]>([]);
   const location = useLocation();
   const navigate = useNavigate();
-  const [profilePicture, setProfilePicture] = useState(
-    localStorage.getItem("profilePicture") || ""
-  );
+  const [profilePicture, setProfilePicture] = useState(() => {
+    try {
+        return localStorage.getItem("profilePicture") || "";
+    } catch (error) {
+        console.error("Failed to retrieve profile picture from localStorage:", error);
+        return ""; // Fallback to an empty string
+    }
+});
   const [currentSmileyIndex, setCurrentSmileyIndex] = useState(0);
 
   const TASK_GAP = settings.generateSettings.taskGap || 1; // Default to 1 if not set
@@ -193,8 +198,16 @@ const App = () => {
   }, [settings]);
 
   useEffect(() => {
-    localStorage.setItem("profilePicture", profilePicture);
-  }, [profilePicture]);
+    try {
+        localStorage.setItem("profilePicture", profilePicture);
+    } catch (error) {
+        if (error instanceof DOMException && error.name === "QuotaExceededError") {
+            console.warn("Profile picture is too large to store in localStorage.");
+        } else {
+            console.error("Failed to store profile picture:", error);
+        }
+    }
+}, [profilePicture]);
 
   const calculateRemainingTime = () => {
     const totalTaskTime = tasks.reduce((sum, task) => {
