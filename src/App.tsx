@@ -57,7 +57,7 @@ interface Task {
   subtasks?: Omit<Task, "subtasks">[];
 }
 // Define a static notification time
-const NOTIFICATION_TIME = "09:56 AM";
+const NOTIFICATION_TIME = "06:00 PM";
 
 const App = () => {
   const theme = "light";
