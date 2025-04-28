@@ -62,7 +62,12 @@ const ReportsPage: React.FC = () => {
     };
 
     const handleEdit = (report: any) => {
-        navigate(`/edit-task`, { state: { report } });
+        
+        navigate(`/edit-task`, { state: { 
+            report, 
+            bulletType: report.data.bulletType, 
+            subIcon: report.data.subIcon 
+        } });
     };
 
     const formatTaskTime = (hours: string | number, minutes: string | number) => {

@@ -30,22 +30,24 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const report = location.state?.report;
-
+  const {
+    bulletType: taskIcon,
+    selectedProjects: projects,
+    subIcon,
+    date: selectedDate,
+  } = report?.data;
   const [tasks, setTasks] = useState<Task[]>(report?.data.tasks || []);
   const [selectedProjects, setSelectedProjects] = useState<string[]>(
-    report?.data.selectedProjects || []
+    projects || []
   );
+
   const [name, setName] = useState(report?.data.name || "");
-  const [date, setDate] = useState(report?.date || "");
-  const [bulletType, setBulletType] = useState<
-    "bullet" | "number" | ">" | "=>"
-  >("bullet");
+  const [date, setDate] = useState(selectedDate || "");
+  const [bulletType, setBulletType] = useState(taskIcon);
   const [nextTaskValue, setNextTaskValue] = useState(
     report?.data.nextTask || ""
   );
-  const [selectedSubIcon, setSelectedSubIcon] = useState<
-    "bullet" | "number" | ">" | "=>"
-  >("bullet");
+  const [selectedSubIcon, setSelectedSubIcon] = useState(subIcon);
   const [alertMessage, setAlertMessage] = useState<string | null>(null); // Add state for alert messages
   const [isDateConflict, setIsDateConflict] = useState(false); // Track if the selected date conflicts with an existing record
 
@@ -250,6 +252,7 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       name,
       bulletType,
       nextTask: nextTaskValue,
+      subIcon: selectedSubIcon,
     };
 
     // Remove the old record if the date has changed
