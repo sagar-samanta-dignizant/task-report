@@ -85,29 +85,40 @@ const ReportsPage: React.FC = () => {
         const generateSettings = JSON.parse(localStorage.getItem("generateSettings") || "{}");
         const previewSettings = JSON.parse(localStorage.getItem("previewSettings") || "{}");
 
-        const TASK_GAP = generateSettings.taskGap || 1; // Default to 1 if not set
-        const SUBTASK_GAP = generateSettings.subtaskGap || 1; // Default to 1 if not set
+        const TASK_GAP = generateSettings.taskGap || 1;
+        const SUBTASK_GAP = generateSettings.subtaskGap || 1;
         const workUpdateText = generateSettings.workUpdateText || "Today's work update -";
         const closingText = generateSettings.closingText || "Thanks & regards";
 
-        const formatLine = (task: any, level = 0, bulletType: string, index: number) => {
-           
+        const lineAfterWorkUpdate = previewSettings.allowLineAfterWorkUpdate
+            ? "-".repeat(previewSettings.lineAfterWorkUpdate || 3)
+            : "";
+        const lineAfterProject = previewSettings.allowLineAfterProject
+            ? "-".repeat(previewSettings.lineAfterProject || 3)
+            : "";
+        const lineAfterNextTask = previewSettings.allowLineAfterNextTask
+            ? "-".repeat(previewSettings.lineAfterNextTask || 3)
+            : "";
+        const lineBeforeClosingText = previewSettings.allowLineBeforeClosingText
+            ? "-".repeat(previewSettings.lineBeforeClosingText || 3)
+            : "";
 
+        const formatLine = (task: any, level = 0, bulletType: string, index: number) => {
             const bullet = getBullet(bulletType, index);
-            const indent = "    ".repeat(level); // 4 spaces per level for better visual offset
+            const indent = "    ".repeat(level);
 
             let line = `${indent}${bullet} `;
             if (previewSettings.showID && task.taskId) line += `ID: ${task.taskId.toString().trim()} - `;
             line += task.title.trim();
             if (
                 previewSettings.showStatus &&
-                !(previewSettings.hideParentTaskStatus && task.subtasks?.length > 0) // Hide parent task status if setting is enabled and subtasks exist
+                !(previewSettings.hideParentTaskStatus && task.subtasks?.length > 0)
             ) {
                 line += task?.status ? ` (${task?.status?.trim()})` : "";
             }
             if (
                 previewSettings.showHours &&
-                !(previewSettings.hideParentTaskTime && task.subtasks?.length > 0) // Hide parent task time if setting is enabled and subtasks exist
+                !(previewSettings.hideParentTaskTime && task.subtasks?.length > 0)
             ) {
                 const taskTime = formatTaskTime(task.hours, task.minutes);
                 if (taskTime) line += ` (${taskTime})`;
@@ -127,18 +138,21 @@ const ReportsPage: React.FC = () => {
                 .join("\n".repeat(level === 0 ? TASK_GAP : SUBTASK_GAP));
 
         return `${workUpdateText} ${previewSettings.showDate ? reverseDate(date) : ""}
+${lineAfterWorkUpdate}
 
 ${previewSettings.showProject && selectedProjects.length > 0
                 ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
                 : ""
-            } 
-----------------------------------------
+            }
+${lineAfterProject}
+
 ${formatTasks(tasks, 0, bulletType, subIcon)}
 ${previewSettings.showNextTask && nextTask && nextTask.trim()
-                ? `\nNext's Tasks\n---------------------\n=> ${nextTask.trim()}`
+                ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTask.trim()}`
                 : ""
             }
 
+${lineBeforeClosingText}
 ${closingText}
 ${name?.trim()}`;
     };

@@ -434,109 +434,99 @@ const App = () => {
     const allTasks = tasks.filter((task) => task.title.trim());
 
     const formatLine = (task: Task, index: number, isSubtask = false) => {
-      let line = "";
-      if (settings.previewSettings.showID && task.id) {
-        line += `ID : ${task.id.trim()} `;
-      }
-      if (task.icon) {
-        const icon = isSubtask ? getBullet(selectedSubIcon, index) : task.icon;
-        line += `  ${icon}`;
-      }
-      line += task.title.trim();
-      if (
-        settings.previewSettings.showStatus &&
-        task?.status.trim() && // Only add status if it exists
-        !(
-          settings.previewSettings.hideParentTaskStatus &&
-          (task.subtasks?.length ?? 0) > 0
-        ) // Hide parent task status if setting is enabled and subtasks exist
-      ) {
-        line += ` (${task?.status.trim()})`;
-      }
-      if (
-        settings.previewSettings.showHours &&
-        !(
-          settings.previewSettings.hideParentTaskTime &&
-          (task.subtasks?.length ?? 0) > 0
-        ) // Hide parent task time if setting is enabled and subtasks exist
-      ) {
-        const taskTime = formatTaskTime(
-          task.hours,
-          task.minutes,
-          task.subtasks
-        );
-        if (taskTime) line += ` (${taskTime})`;
-      }
-      return line;
+        let line = "";
+        if (settings.previewSettings.showID && task.id) {
+            line += `ID : ${task.id.trim()} `;
+        }
+        if (task.icon) {
+            const icon = isSubtask ? getBullet(selectedSubIcon, index) : task.icon;
+            line += `  ${icon}`;
+        }
+        line += task.title.trim();
+        if (
+            settings.previewSettings.showStatus &&
+            task?.status.trim() &&
+            !(
+                settings.previewSettings.hideParentTaskStatus &&
+                (task.subtasks?.length ?? 0) > 0
+            )
+        ) {
+            line += ` (${task?.status.trim()})`;
+        }
+        if (
+            settings.previewSettings.showHours &&
+            !(
+                settings.previewSettings.hideParentTaskTime &&
+                (task.subtasks?.length ?? 0) > 0
+            )
+        ) {
+            const taskTime = formatTaskTime(task.hours, task.minutes, task.subtasks);
+            if (taskTime) line += ` (${taskTime})`;
+        }
+        return line;
     };
 
     const formatTasks = (tasks: Task[], level = 0) =>
-      tasks
-        .map((task, index) => {
-          const indent = "  ".repeat(level);
-          let line = `${indent}${getBullet(bulletType, index)}${formatLine(
-            task,
-            index
-          )}`;
-          if (
-            settings.previewSettings.allowSubtask &&
-            task.subtasks &&
-            task.subtasks.length > 0
-          ) {
-            const filteredSubtasks = task.subtasks.filter((subtask) =>
-              subtask.title.trim()
-            );
-            if (filteredSubtasks.length > 0) {
-              line += `\n${filteredSubtasks
-                .map(
-                  (subtask, subIndex) =>
-                    `${formatLine(subtask, subIndex, true)}`
-                )
-                .join("\n".repeat(SUBTASK_GAP))}`;
-            }
-          }
-          return line;
-        })
-        .join("\n".repeat(TASK_GAP));
+        tasks
+            .map((task, index) => {
+                const indent = "  ".repeat(level);
+                let line = `${indent}${getBullet(bulletType, index)}${formatLine(task, index)}`;
+                if (
+                    settings.previewSettings.allowSubtask &&
+                    task.subtasks &&
+                    task.subtasks.length > 0
+                ) {
+                    const filteredSubtasks = task.subtasks.filter((subtask) =>
+                        subtask.title.trim()
+                    );
+                    if (filteredSubtasks.length > 0) {
+                        line += `\n${filteredSubtasks
+                            .map((subtask, subIndex) =>
+                                `${formatLine(subtask, subIndex, true)}`
+                            )
+                            .join("\n".repeat(SUBTASK_GAP))}`;
+                    }
+                }
+                return line;
+            })
+            .join("\n".repeat(TASK_GAP));
 
     const workUpdateText =
-      settings.generateSettings.workUpdateText || "Today's work update -";
+        settings.generateSettings.workUpdateText || "Today's work update -";
     const closingText =
-      settings.generateSettings.closingText || "Thanks & regards";
+        settings.generateSettings.closingText || "Thanks & regards";
 
-    const lineAfterWorkUpdate = settings.previewSettings
-      .allowLineAfterWorkUpdate
-      ? "-".repeat(settings.previewSettings.lineAfterWorkUpdate || 3)
-      : "";
+    const lineAfterWorkUpdate = settings.previewSettings.allowLineAfterWorkUpdate
+        ? "-".repeat(settings.previewSettings.lineAfterWorkUpdate || 3)
+        : "";
     const lineAfterProject = settings.previewSettings.allowLineAfterProject
-      ? "-".repeat(settings.previewSettings.lineAfterProject || 3)
-      : "";
+        ? "-".repeat(settings.previewSettings.lineAfterProject || 3)
+        : "";
     const lineAfterNextTask = settings.previewSettings.allowLineAfterNextTask
-      ? "-".repeat(settings.previewSettings.lineAfterNextTask || 3)
-      : "";
-    const lineBeforeClosingText = settings.previewSettings
-      .allowLineBeforeClosingText
-      ? "-".repeat(settings.previewSettings.lineBeforeClosingText || 3)
-      : "";
+        ? "-".repeat(settings.previewSettings.lineAfterNextTask || 3)
+        : "";
+    const lineBeforeClosingText = settings.previewSettings.allowLineBeforeClosingText
+        ? "-".repeat(settings.previewSettings.lineBeforeClosingText || 3)
+        : "";
 
     return `${workUpdateText} ${
-      settings.previewSettings.showDate ? reverseDate(date) : ""
+        settings.previewSettings.showDate ? reverseDate(date) : ""
     }
 ${lineAfterWorkUpdate}
 
 ${
-  settings.previewSettings.showProject
-    ? `Project : ${
-        selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
-      }`
-    : ""
-}
+        settings.previewSettings.showProject
+            ? `Project : ${
+                  selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
+              }`
+            : ""
+    }
 ${lineAfterProject}
 
 ${formatTasks(allTasks)}${
-      settings.previewSettings.showNextTask && nextTaskValue.trim()
-        ? `\n\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
-        : ""
+        settings.previewSettings.showNextTask && nextTaskValue.trim()
+            ? `\n\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
+            : ""
     }
 
 ${lineBeforeClosingText}
