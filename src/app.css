@@ -690,7 +690,7 @@ header {
    display: flex;
     position: absolute;
     right: 0;
-    width: 50%;
+    width: 47%;
     gap: 15px;
 }
 .edit-add-task{

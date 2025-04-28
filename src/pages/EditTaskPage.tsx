@@ -513,7 +513,7 @@ ${name.trim()}`;
                     onClick={addTask}
                     className="add-task-btn"
                   >
-                    Add Task 
+                    Add Task
                   </Button>
                 </Tooltip>
               </div>
@@ -779,24 +779,7 @@ ${name.trim()}`;
           </pre>
         </div>
       </div>
-      <div
-        className="edit-button-group button-group"        
-      >
-        <Tooltip title="Save changes (Ctrl+S)">
-          <Button
-            type="default"
-            icon={<SaveOutlined />}
-            onClick={handleSave}
-            className="save-btn"
-            style={{
-              border: "1px solid #43a047",
-              color: "#43a047",
-              backgroundColor: "transparent",
-            }}
-          >
-            Save
-          </Button>
-        </Tooltip>
+      <div className="edit-button-group button-group">
         <Tooltip title="Cancel editing (Ctrl+X)">
           <Button
             type="default"
@@ -810,6 +793,21 @@ ${name.trim()}`;
             }}
           >
             Cancel
+          </Button>
+        </Tooltip>
+        <Tooltip title="Save changes (Ctrl+S)">
+          <Button
+            type="default"
+            icon={<SaveOutlined />}
+            onClick={handleSave}
+            className="save-btn"
+            style={{
+              border: "1px solid #43a047",
+              color: "#43a047",
+              backgroundColor: "transparent",
+            }}
+          >
+            Save
           </Button>
         </Tooltip>
       </div>
