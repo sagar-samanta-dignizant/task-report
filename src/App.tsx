@@ -709,7 +709,9 @@ ${name.trim()}`;
             />
           </div>
           <div className="header-title">
-            <span>🎉 R3p0rt M@nag3r 🎨</span>
+            <span className="title-icon">🎉</span> {/* Left static icon */}
+            <span className="title-text">R3p0rt M@nag3r</span> {/* Animated title text */}
+            <span className="title-icon">🎨</span> {/* Right static icon */}
           </div>
           <div className="nav-links">
             <NavLink

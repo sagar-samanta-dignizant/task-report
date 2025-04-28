@@ -336,11 +336,37 @@ header {
 .header-title {
   flex: 1;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center-align text and icons */
+  gap: 10px; /* Space between icons and text */
+}
+
+.header-title span.title-text {
   font-size: 28px; /* Larger font size */
   font-weight: bold;
-  color: #ff9800; /* Fun orange color */
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  font-family: "Comic Sans MS", cursive, sans-serif; /* Fun font */
+  background: linear-gradient(90deg, #4caf50, #1e88e5, #ff9800, #ff5722, #9c27b0, #03a9f4, #8bc34a);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textFlow 8s infinite ease-in-out;
+}
+
+.header-title .title-icon {
+  font-size: 32px; /* Adjust icon size */
+  color: inherit; /* Keep static color */
+}
+
+@keyframes textFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .menu-container {
