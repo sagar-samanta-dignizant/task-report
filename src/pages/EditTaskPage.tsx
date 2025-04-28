@@ -7,8 +7,9 @@ import {
 } from "../constant/task.constant";
 import { AddIcon, minusIcon } from "../assets/fontAwesomeIcons";
 import { Button, DatePicker, Input, Select, Tooltip } from "antd";
+import { CloseOutlined, SaveOutlined } from "@ant-design/icons";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useRef, useState } from "react";
 
 import dayjs from "dayjs"; // Replace moment with dayjs
 import { getBullet } from "../utils/icon.utils";
@@ -266,6 +267,10 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
     navigate("/reports"); // Navigate back to the reports page after saving
   };
 
+  const handleCancel = () => {
+    navigate("/reports"); // Navigate back to the reports page
+  };
+
   const getFormattedPreview = () => {
     const formatLine = (
       task: Task,
@@ -360,12 +365,36 @@ ${closingText}
 ${name.trim()}`;
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === "n") {
+        e.preventDefault(); // Prevent default browser behavior
+        addTask(); // Add a new task
+      } else if (e.ctrlKey && e.key === "Enter") {
+        e.preventDefault(); // Prevent default browser behavior
+        addTask(); // Add a new task
+      } else if (e.ctrlKey && e.key.toLowerCase() === "s") {
+        e.preventDefault(); // Prevent default browser behavior
+        handleSave(); // Trigger save functionality
+      } else if (e.ctrlKey && e.key.toLowerCase() === "x") {
+        e.preventDefault(); // Prevent default browser behavior
+        handleCancel(); // Trigger cancel functionality
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [addTask, handleSave, handleCancel]);
+
   if (!report) {
     return <p>Report not found!</p>;
   }
 
   return (
-    <div className="edit-task-page">
+    <div className="edit-task-container">
       {alertMessage && (
         <div
           style={{
@@ -476,16 +505,15 @@ ${name.trim()}`;
                   </span>
                 </p>
               </div>
-              <div className="button-group">
-                <Tooltip title="Add a new task">
+              <div className="button-group edit-add-task">
+                <Tooltip title="Add a new task (Ctrl+N)">
                   <Button
                     type="default"
                     icon={AddIcon}
                     onClick={addTask}
-                    title="Add Task"
                     className="add-task-btn"
                   >
-                    Add Task
+                    Add Task 
                   </Button>
                 </Tooltip>
               </div>
@@ -752,41 +780,38 @@ ${name.trim()}`;
         </div>
       </div>
       <div
-        className="button-group"
-        style={{
-          marginTop: "20px",
-          display: "flex",
-          width: "65%",
-          justifyContent: "flex-end",
-          gap: "20px",
-        }}
+        className="edit-button-group button-group"        
       >
-        <Button
-          type="default"
-          onClick={handleSave}
-          style={{
-            borderColor: "#4caf50",
-            color: "#4caf50",
-            padding: "10px 20px",
-            fontSize: "16px",
-            borderRadius: "5px",
-          }}
-        >
-          Save
-        </Button>
-        <Button
-          type="default"
-          onClick={() => navigate("/reports")}
-          style={{
-            borderColor: "#f44336",
-            color: "#f44336",
-            padding: "10px 20px",
-            fontSize: "16px",
-            borderRadius: "5px",
-          }}
-        >
-          Cancel
-        </Button>
+        <Tooltip title="Save changes (Ctrl+S)">
+          <Button
+            type="default"
+            icon={<SaveOutlined />}
+            onClick={handleSave}
+            className="save-btn"
+            style={{
+              border: "1px solid #43a047",
+              color: "#43a047",
+              backgroundColor: "transparent",
+            }}
+          >
+            Save
+          </Button>
+        </Tooltip>
+        <Tooltip title="Cancel editing (Ctrl+X)">
+          <Button
+            type="default"
+            icon={<CloseOutlined />}
+            onClick={handleCancel}
+            className="cancel-btn"
+            style={{
+              border: "1px solid #e53935",
+              color: "#e53935",
+              backgroundColor: "transparent",
+            }}
+          >
+            Cancel
+          </Button>
+        </Tooltip>
       </div>
     </div>
   );

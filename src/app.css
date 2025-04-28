@@ -685,7 +685,17 @@ header {
 .task-row.subtask-row .id-field {
   display: block; /* Show ID field */
 }
-
+.edit-button-group{
+  margin-top: 10px;
+   display: flex;
+    position: absolute;
+    right: 0;
+    width: 50%;
+    gap: 15px;
+}
+.edit-add-task{
+  margin-right: 10px;
+}
 .button-group button {
   transition: all 0.3s ease;
 }

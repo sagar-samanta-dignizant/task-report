@@ -545,6 +545,11 @@ ${name.trim()}`;
     }, 2000);
   };
 
+  const handleCopyAndSavePreview = () => {
+    handleCopy(); // First copy the preview
+    savePreview(); // Then save the preview
+};
+
   const savePreview = () => {
     const missingFields: string[] = [];
 
@@ -585,7 +590,6 @@ ${name.trim()}`;
       setTimeout(() => setAlertMessage(null), ALERT_DISMISS_TIME);
       return;
     }
-    console.log(filteredTasks);
 
     const previewData = {
       date,
@@ -627,10 +631,17 @@ ${name.trim()}`;
 
     savedReports[date] = previewData;
     localStorage.setItem("reports", JSON.stringify(savedReports));
+
+    // Copy preview to clipboard
+    const preview = getFormattedPreview();
+    navigator.clipboard.writeText(preview);
+    setCopiedPreview(preview);
+    setCopySuccess(true);
+
     setAlertMessage(
       editingReport
-        ? "Record updated successfully!"
-        : "Record saved successfully!"
+        ? "Record updated and copied successfully!"
+        : "Record saved and copied successfully!"
     );
 
     setTasks([
@@ -644,6 +655,11 @@ ${name.trim()}`;
     ]);
     setNextTaskValue("");
     setEditingReport(null);
+
+    setTimeout(() => {
+      setCopySuccess(false);
+      setCopiedPreview(null);
+    }, 2000);
   };
 
   const parseTimeString = (timeString: string): Date | null => {
@@ -695,6 +711,33 @@ ${name.trim()}`;
     }    
     scheduleNotification(NOTIFICATION_TIME, "Hey time to prepare your task!");
   }, []); // Run only once on component mount
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === "n") {
+        e.preventDefault(); // Prevent default browser behavior
+        addTask();
+      } else if (e.ctrlKey && e.key === "Enter") {
+        e.preventDefault(); // Prevent default browser behavior
+        addTask(); // Add task on Ctrl+Enter
+      } else if (e.ctrlKey && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        resetForm();
+      } else if (e.ctrlKey && e.key.toLowerCase() === "c") {
+        e.preventDefault();
+        handleCopy();
+      } else if (e.ctrlKey && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        handleCopyAndSavePreview(); // Updated function for Copy & Save Preview
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [addTask, resetForm, handleCopy, handleCopyAndSavePreview]);
 
   return (
     <Layout className={`app-container ${theme}`}>
@@ -914,7 +957,7 @@ ${name.trim()}`;
                           </p>
                         </div>
                         <div className="button-group">
-                          <Tooltip title="Add a new task">
+                          <Tooltip title="Add a new task (Ctrl+N)">
                             <Button
                               type="default"
                               icon={AddIcon}
@@ -925,7 +968,7 @@ ${name.trim()}`;
                               Add Task
                             </Button>
                           </Tooltip>
-                          <Tooltip title="Reset all tasks">
+                          <Tooltip title="Reset all tasks (Ctrl+Z)">
                             <Button
                               type="default"
                               icon={<ReloadOutlined />}
@@ -1294,23 +1337,21 @@ ${name.trim()}`;
                     <div className="task-preview-header">
                       <h3>Preview</h3>
                       <div className="button-group">
-                        <Tooltip title="Copy to Clipboard">
+                        <Tooltip title="Copy to Clipboard (Ctrl+C)">
                           <Button
                             type="default"
-                            icon={
-                              copySuccess ? <CheckOutlined /> : <CopyOutlined />
-                            }
+                            icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
                             onClick={handleCopy}
                             title="Copy"
                             className="copy-btn"
                           />
                         </Tooltip>
-                        <Tooltip title="Save Preview">
+                        <Tooltip title="Copy & Save Preview (Ctrl+S)">
                           <Button
                             type="default"
                             icon={<SaveOutlined />}
-                            onClick={savePreview}
-                            title="Save"
+                            onClick={handleCopyAndSavePreview}
+                            title="Copy & Save"
                             className="save-btn"
                             style={{ marginLeft: "10px" }}
                           />
