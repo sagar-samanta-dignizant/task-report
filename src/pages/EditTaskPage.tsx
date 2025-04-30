@@ -485,7 +485,7 @@ ${name.trim()}`;
                 </p>
               </div>
               <div className="button-group edit-add-task">
-                <Tooltip title="Add a new task (Ctrl+N)">
+                <Tooltip title="Add a new task">
                   <Button
                     type="default"
                     icon={AddIcon}
@@ -759,7 +759,7 @@ ${name.trim()}`;
         </div>
       </div>
       <div className="edit-button-group button-group">
-        <Tooltip title="Cancel editing (Ctrl+X)">
+        <Tooltip title="Cancel editing">
           <Button
             type="default"
             icon={<CloseOutlined />}
@@ -774,7 +774,7 @@ ${name.trim()}`;
             Cancel
           </Button>
         </Tooltip>
-        <Tooltip title="Copy to Clipboard (Ctrl+Shift+C)">
+        <Tooltip title="Save changes">
           <Button
             type="default"
             icon={<SaveOutlined />}
