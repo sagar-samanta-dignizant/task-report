@@ -352,7 +352,6 @@ Project: ${
         : ""
     }
 ${lineAfterProject}
-
 ${formatTasks(tasks, 0, bulletType, selectedSubIcon)}
 ${
   previewSettings.showNextTask && nextTaskValue.trim()
