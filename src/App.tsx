@@ -522,7 +522,6 @@ ${
             : ""
     }
 ${lineAfterProject}
-
 ${formatTasks(allTasks)}${
         settings.previewSettings.showNextTask && nextTaskValue.trim()
             ? `\n\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
