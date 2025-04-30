@@ -394,6 +394,23 @@ ${name?.trim()}`;
         handleDateRangeChange(null, [defaultStart, defaultEnd]); // Trigger filtering with default range
     }, []);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "c") {
+                e.preventDefault(); // Prevent default browser behavior
+                if (reportData.length > 0) {
+                    handleCopy(reportData[0].data, 0); // Copy the first report as an example
+                }
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [reportData]);
+
     return (
         <div className="reports-page">
             <div className="reports-header sticky-header">

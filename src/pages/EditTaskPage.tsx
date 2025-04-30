@@ -366,28 +366,8 @@ ${name.trim()}`;
   };
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key.toLowerCase() === "n") {
-        e.preventDefault(); // Prevent default browser behavior
-        addTask(); // Add a new task
-      } else if (e.ctrlKey && e.key === "Enter") {
-        e.preventDefault(); // Prevent default browser behavior
-        addTask(); // Add a new task
-      } else if (e.ctrlKey && e.key.toLowerCase() === "s") {
-        e.preventDefault(); // Prevent default browser behavior
-        handleSave(); // Trigger save functionality
-      } else if (e.ctrlKey && e.key.toLowerCase() === "x") {
-        e.preventDefault(); // Prevent default browser behavior
-        handleCancel(); // Trigger cancel functionality
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [addTask, handleSave, handleCancel]);
+    // Remove hotkey handling to ensure it only works on the App page
+  }, []);
 
   if (!report) {
     return <p>Report not found!</p>;
@@ -795,7 +775,7 @@ ${name.trim()}`;
             Cancel
           </Button>
         </Tooltip>
-        <Tooltip title="Save changes (Ctrl+S)">
+        <Tooltip title="Copy to Clipboard (Ctrl+Shift+C)">
           <Button
             type="default"
             icon={<SaveOutlined />}

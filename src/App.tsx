@@ -714,21 +714,23 @@ ${name.trim()}`;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key.toLowerCase() === "n") {
+      if (location.pathname !== "/") return; // Ensure hotkeys only work on the App page
+
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "c") {
         e.preventDefault(); // Prevent default browser behavior
+        handleCopy(); // Trigger copy functionality
+      } else if (e.ctrlKey && e.key.toLowerCase() === "n") {
+        e.preventDefault();
         addTask();
       } else if (e.ctrlKey && e.key === "Enter") {
-        e.preventDefault(); // Prevent default browser behavior
-        addTask(); // Add task on Ctrl+Enter
+        e.preventDefault();
+        addTask();
       } else if (e.ctrlKey && e.key.toLowerCase() === "z") {
         e.preventDefault();
         resetForm();
-      } else if (e.ctrlKey && e.key.toLowerCase() === "c") {
-        e.preventDefault();
-        handleCopy();
       } else if (e.ctrlKey && e.key.toLowerCase() === "s") {
         e.preventDefault();
-        handleCopyAndSavePreview(); // Updated function for Copy & Save Preview
+        handleCopyAndSavePreview();
       }
     };
 
@@ -737,7 +739,7 @@ ${name.trim()}`;
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [addTask, resetForm, handleCopy, handleCopyAndSavePreview]);
+  }, [addTask, resetForm, handleCopy, handleCopyAndSavePreview, location.pathname]);
 
   return (
     <Layout className={`app-container ${theme}`}>
@@ -1337,7 +1339,7 @@ ${name.trim()}`;
                     <div className="task-preview-header">
                       <h3>Preview</h3>
                       <div className="button-group">
-                        <Tooltip title="Copy to Clipboard (Ctrl+C)">
+                        <Tooltip title="Copy to Clipboard (Ctrl+Shift+C)">
                           <Button
                             type="default"
                             icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
