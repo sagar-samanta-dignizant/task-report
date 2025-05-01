@@ -62,17 +62,15 @@ const NOTIFICATION_TIME = "06:00 PM";
 const App = () => {
   const theme = "light";
   const workingTimeLimit = 8.5;
-  const [tasks, setTasks] = useState<Task[]>(
-    [
-      {
-        id: "",
-        title: "",
-        hours: "",
-        minutes: "",
-        status: "Completed",
-      },
-    ]
-  );
+  const [tasks, setTasks] = useState<Task[]>([
+    {
+      id: "",
+      title: "",
+      hours: "",
+      minutes: "",
+      status: "Completed",
+    },
+  ]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem("selectedProjects") || "[]");
@@ -145,12 +143,15 @@ const App = () => {
   const navigate = useNavigate();
   const [profilePicture, setProfilePicture] = useState(() => {
     try {
-        return localStorage.getItem("profilePicture") || "";
+      return localStorage.getItem("profilePicture") || "";
     } catch (error) {
-        console.error("Failed to retrieve profile picture from localStorage:", error);
-        return ""; // Fallback to an empty string
+      console.error(
+        "Failed to retrieve profile picture from localStorage:",
+        error
+      );
+      return ""; // Fallback to an empty string
     }
-});
+  });
   const [currentSmileyIndex, setCurrentSmileyIndex] = useState(0);
 
   const TASK_GAP = settings.generateSettings.taskGap || 1; // Default to 1 if not set
@@ -199,15 +200,18 @@ const App = () => {
 
   useEffect(() => {
     try {
-        localStorage.setItem("profilePicture", profilePicture);
+      localStorage.setItem("profilePicture", profilePicture);
     } catch (error) {
-        if (error instanceof DOMException && error.name === "QuotaExceededError") {
-            console.warn("Profile picture is too large to store in localStorage.");
-        } else {
-            console.error("Failed to store profile picture:", error);
-        }
+      if (
+        error instanceof DOMException &&
+        error.name === "QuotaExceededError"
+      ) {
+        console.warn("Profile picture is too large to store in localStorage.");
+      } else {
+        console.error("Failed to store profile picture:", error);
+      }
     }
-}, [profilePicture]);
+  }, [profilePicture]);
 
   const calculateRemainingTime = () => {
     const totalTaskTime = tasks.reduce((sum, task) => {
@@ -434,98 +438,108 @@ const App = () => {
     const allTasks = tasks.filter((task) => task.title.trim());
 
     const formatLine = (task: Task, index: number, isSubtask = false) => {
-        let line = "";
-        if (settings.previewSettings.showID && task.id) {
-            line += `ID : ${task.id.trim()} `;
-        }
-        if (task.icon) {
-            const icon = isSubtask ? getBullet(selectedSubIcon, index) : task.icon;
-            line += `  ${icon}`;
-        }
-        line += task.title.trim();
-        if (
-            settings.previewSettings.showStatus &&
-            task?.status.trim() &&
-            !(
-                settings.previewSettings.hideParentTaskStatus &&
-                (task.subtasks?.length ?? 0) > 0
-            )
-        ) {
-            line += ` (${task?.status.trim()})`;
-        }
-        if (
-            settings.previewSettings.showHours &&
-            !(
-                settings.previewSettings.hideParentTaskTime &&
-                (task.subtasks?.length ?? 0) > 0
-            )
-        ) {
-            const taskTime = formatTaskTime(task.hours, task.minutes, task.subtasks);
-            if (taskTime) line += ` (${taskTime})`;
-        }
-        return line;
+      let line = "";
+      if (settings.previewSettings.showID && task.id) {
+        line += `ID : ${task.id.trim()} `;
+      }
+      if (task.icon) {
+        const icon = isSubtask ? getBullet(selectedSubIcon, index) : task.icon;
+        line += `  ${icon}`;
+      }
+      line += task.title.trim();
+      if (
+        settings.previewSettings.showStatus &&
+        task?.status.trim() &&
+        !(
+          settings.previewSettings.hideParentTaskStatus &&
+          (task.subtasks?.length ?? 0) > 0
+        )
+      ) {
+        line += ` (${task?.status.trim()})`;
+      }
+      if (
+        settings.previewSettings.showHours &&
+        !(
+          settings.previewSettings.hideParentTaskTime &&
+          (task.subtasks?.length ?? 0) > 0
+        )
+      ) {
+        const taskTime = formatTaskTime(
+          task.hours,
+          task.minutes,
+          task.subtasks
+        );
+        if (taskTime) line += ` (${taskTime})`;
+      }
+      return line;
     };
 
     const formatTasks = (tasks: Task[], level = 0) =>
-        tasks
-            .map((task, index) => {
-                const indent = "  ".repeat(level);
-                let line = `${indent}${getBullet(bulletType, index)}${formatLine(task, index)}`;
-                if (
-                    settings.previewSettings.allowSubtask &&
-                    task.subtasks &&
-                    task.subtasks.length > 0
-                ) {
-                    const filteredSubtasks = task.subtasks.filter((subtask) =>
-                        subtask.title.trim()
-                    );
-                    if (filteredSubtasks.length > 0) {
-                        line += `\n${filteredSubtasks
-                            .map((subtask, subIndex) =>
-                                `${formatLine(subtask, subIndex, true)}`
-                            )
-                            .join("\n".repeat(SUBTASK_GAP))}`;
-                    }
-                }
-                return line;
-            })
-            .join("\n".repeat(TASK_GAP));
+      tasks
+        .map((task, index) => {
+          const indent = "  ".repeat(level);
+          let line = `${indent}${getBullet(bulletType, index)}${formatLine(
+            task,
+            index
+          )}`;
+          if (
+            settings.previewSettings.allowSubtask &&
+            task.subtasks &&
+            task.subtasks.length > 0
+          ) {
+            const filteredSubtasks = task.subtasks.filter((subtask) =>
+              subtask.title.trim()
+            );
+            if (filteredSubtasks.length > 0) {
+              line += `\n${filteredSubtasks
+                .map(
+                  (subtask, subIndex) =>
+                    `${formatLine(subtask, subIndex, true)}`
+                )
+                .join("\n".repeat(SUBTASK_GAP))}`;
+            }
+          }
+          return line;
+        })
+        .join("\n".repeat(TASK_GAP));
 
     const workUpdateText =
-        settings.generateSettings.workUpdateText || "Today's work update -";
+      settings.generateSettings.workUpdateText || "Today's work update -";
     const closingText =
-        settings.generateSettings.closingText || "Thanks & regards";
+      settings.generateSettings.closingText || "Thanks & regards";
 
-    const lineAfterWorkUpdate = settings.previewSettings.allowLineAfterWorkUpdate
-        ? "-".repeat(settings.previewSettings.lineAfterWorkUpdate || 3)
-        : "";
+    const lineAfterWorkUpdate = settings.previewSettings
+      .allowLineAfterWorkUpdate
+      ? "-".repeat(settings.previewSettings.lineAfterWorkUpdate || 3)
+      : "";
     const lineAfterProject = settings.previewSettings.allowLineAfterProject
-        ? "-".repeat(settings.previewSettings.lineAfterProject || 3)
-        : "";
+      ? "-".repeat(settings.previewSettings.lineAfterProject || 3)
+      : "";
     const lineAfterNextTask = settings.previewSettings.allowLineAfterNextTask
-        ? "-".repeat(settings.previewSettings.lineAfterNextTask || 3)
-        : "";
-    const lineBeforeClosingText = settings.previewSettings.allowLineBeforeClosingText
-        ? "-".repeat(settings.previewSettings.lineBeforeClosingText || 3)
-        : "";
+      ? "-".repeat(settings.previewSettings.lineAfterNextTask || 3)
+      : "";
+    const lineBeforeClosingText = settings.previewSettings
+      .allowLineBeforeClosingText
+      ? "-".repeat(settings.previewSettings.lineBeforeClosingText || 3)
+      : "";
 
     return `${workUpdateText} ${
-        settings.previewSettings.showDate ? reverseDate(date) : ""
+      settings.previewSettings.showDate ? reverseDate(date) : ""
     }
 ${lineAfterWorkUpdate}
 
 ${
-        settings.previewSettings.showProject
-            ? `Project : ${
-                  selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
-              }`
-            : ""
-    }
+  settings.previewSettings.showProject
+    ? `Project : ${
+        selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
+      }`
+    : ""
+}
 ${lineAfterProject}
 ${formatTasks(allTasks)}${
-        settings.previewSettings.showNextTask && nextTaskValue.trim()
-            ? `\n\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
-            : ""
+      settings.previewSettings.showNextTask && nextTaskValue.trim()
+        ? `\n\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
+        : ""
     }
 
 ${lineBeforeClosingText}
@@ -547,7 +561,7 @@ ${name.trim()}`;
   const handleCopyAndSavePreview = () => {
     handleCopy(); // First copy the preview
     savePreview(); // Then save the preview
-};
+  };
 
   const savePreview = () => {
     const missingFields: string[] = [];
@@ -707,7 +721,7 @@ ${name.trim()}`;
           console.warn("Notification permission denied.");
         }
       });
-    }    
+    }
     scheduleNotification(NOTIFICATION_TIME, "Hey time to prepare your task!");
   }, []); // Run only once on component mount
 
@@ -738,7 +752,13 @@ ${name.trim()}`;
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [addTask, resetForm, handleCopy, handleCopyAndSavePreview, location.pathname]);
+  }, [
+    addTask,
+    resetForm,
+    handleCopy,
+    handleCopyAndSavePreview,
+    location.pathname,
+  ]);
 
   return (
     <Layout className={`app-container ${theme}`}>
@@ -754,7 +774,8 @@ ${name.trim()}`;
           </div>
           <div className="header-title">
             <span className="title-icon">🎉</span> {/* Left static icon */}
-            <span className="title-text">R3p0rt M@nag3r</span> {/* Animated title text */}
+            <span className="title-text">R3p0rt M@nag3r</span>{" "}
+            {/* Animated title text */}
             <span className="title-icon">🎨</span> {/* Right static icon */}
           </div>
           <div className="nav-links">
@@ -958,7 +979,7 @@ ${name.trim()}`;
                           </p>
                         </div>
                         <div className="button-group">
-                          <Tooltip title="Add a new task (Ctrl+N)">
+                          <Tooltip placement="bottom" title="Add a new task (Ctrl+N)">
                             <Button
                               type="default"
                               icon={AddIcon}
@@ -969,7 +990,7 @@ ${name.trim()}`;
                               Add Task
                             </Button>
                           </Tooltip>
-                          <Tooltip title="Reset all tasks (Ctrl+Z)">
+                          <Tooltip title="Reset all tasks (Ctrl+Z)" placement="bottom">
                             <Button
                               type="default"
                               icon={<ReloadOutlined />}
@@ -1333,15 +1354,31 @@ ${name.trim()}`;
                         </div>
                       )}
                     </div>
+                    <div
+                      style={{ display: "flex", justifyContent: "flex-end" }}
+                    >
+                      <Tooltip placement="bottom" title="Copy & Save Preview (Ctrl+S)">
+                        <Button
+                          onClick={handleCopyAndSavePreview}
+                          type="default"
+                          icon={<SaveOutlined />}
+                          className="save-task-btn"
+                        >
+                         Copy & Save 
+                        </Button>
+                      </Tooltip>
+                    </div>
                   </div>
                   <div className="task-preview-container">
                     <div className="task-preview-header">
                       <h3>Preview</h3>
                       <div className="button-group">
-                        <Tooltip title="Copy to Clipboard (Ctrl+Shift+C)">
+                        <Tooltip title="Copy to Clipboard (Ctrl+Shift+C)" placement="bottom">
                           <Button
                             type="default"
-                            icon={copySuccess ? <CheckOutlined /> : <CopyOutlined />}
+                            icon={
+                              copySuccess ? <CheckOutlined /> : <CopyOutlined />
+                            }
                             onClick={handleCopy}
                             title="Copy"
                             className="copy-btn"

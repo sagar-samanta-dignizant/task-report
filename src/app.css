@@ -69,6 +69,21 @@ body {
   cursor: pointer;
   transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
 }
+.save-task-btn {
+  border: 1px solid #277409; /* Blue border for Add Task button */
+  color: #277409;
+  background-color: transparent;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+}
+
+.save-task-btn:hover {
+  background-color: #277409; /* Blue background on hover */
+  color: white; /* White text on hover */
+}
 
 .add-task-btn:hover {
   background-color: #1e88e5; /* Blue background on hover */
