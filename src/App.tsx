@@ -541,7 +541,6 @@ ${formatTasks(allTasks)}${
         ? `\n\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
         : ""
     }
-
 ${lineBeforeClosingText}
 ${closingText}
 ${name.trim()}`;
