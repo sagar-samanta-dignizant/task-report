@@ -48,7 +48,7 @@ import { reverseDate } from "./utils/dateUtils";
 const { Option } = Select;
 const { Header } = Layout;
 interface Task {
-  id?: string; // Keep id for its intended purpose
+  taskId?: string; // Renamed from id to taskId for consistency
   title: string;
   hours: string | number;
   minutes: string | number;
@@ -64,7 +64,7 @@ const App = () => {
   const workingTimeLimit = 8.5;
   const [tasks, setTasks] = useState<Task[]>([
     {
-      id: "",
+      taskId: "",
       title: "",
       hours: "",
       minutes: "",
@@ -340,7 +340,7 @@ const App = () => {
 
   const addTask = () => {
     const newTask: Task = {
-      id: "", // Keep id field for its purpose
+      taskId: "", // Renamed from id
       title: "",
       hours: "",
       minutes: "",
@@ -365,7 +365,7 @@ const App = () => {
 
   const addSubtask = (parentIndex: number) => {
     const newSubtask: Task = {
-      id: "", // Keep id field for its purpose
+      taskId: "", // Renamed from id
       title: "",
       hours: "",
       minutes: "",
@@ -395,7 +395,7 @@ const App = () => {
   const resetForm = () => {
     setTasks([
       {
-        id: "",
+        taskId: "",
         title: "",
         hours: "",
         minutes: "",
@@ -439,8 +439,8 @@ const App = () => {
 
     const formatLine = (task: Task, index: number, isSubtask = false) => {
       let line = "";
-      if (settings.previewSettings.showID && task.id) {
-        line += `ID : ${task.id.trim()} `;
+      if (settings.previewSettings.showID && task.taskId) {
+        line += `ID : ${task.taskId.trim()} `;
       }
       if (task.icon) {
         const icon = isSubtask ? getBullet(selectedSubIcon, index) : task.icon;
@@ -607,7 +607,7 @@ ${name.trim()}`;
     const previewData = {
       date,
       tasks: filteredTasks.map((task) => ({
-        id: settings.taskSettings.showID ? task.id?.trim() : undefined,
+        taskId: settings.taskSettings.showID ? task.taskId?.trim() : undefined,
         title: task.title.trim(),
         hours: settings.taskSettings.showHours ? task.hours : undefined,
         minutes: settings.taskSettings.showHours ? task.minutes : undefined,
@@ -618,7 +618,7 @@ ${name.trim()}`;
         subtasks: task.subtasks
           ?.filter((subtask) => subtask.title.trim())
           .map((subtask) => ({
-            id: settings.taskSettings.showID ? subtask.id?.trim() : undefined,
+            taskId: settings.taskSettings.showID ? subtask.taskId?.trim() : undefined,
             title: subtask.title.trim(),
             hours: settings.taskSettings.showHours ? subtask.hours : undefined,
             minutes: settings.taskSettings.showHours
@@ -659,7 +659,7 @@ ${name.trim()}`;
 
     setTasks([
       {
-        id: "",
+        taskId: "",
         title: "",
         hours: "",
         minutes: "",
@@ -1028,11 +1028,11 @@ ${name.trim()}`;
                                     }}
                                     className="task-id-input"
                                     placeholder="Task ID"
-                                    value={task.id || ""}
+                                    value={task.taskId || ""}
                                     onChange={(e) =>
                                       handleTaskChange(
                                         index,
-                                        "id",
+                                        "taskId",
                                         e.target.value
                                       )
                                     }
@@ -1194,12 +1194,12 @@ ${name.trim()}`;
                                         }}
                                         className="task-id-input"
                                         placeholder="Subtask ID"
-                                        value={subtask.id || ""}
+                                        value={subtask.taskId || ""}
                                         onChange={(e) =>
                                           handleSubtaskChange(
                                             index,
                                             subIndex,
-                                            "id",
+                                            "taskId",
                                             e.target.value
                                           )
                                         }
