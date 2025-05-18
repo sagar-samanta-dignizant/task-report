@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import './VersionChecker.css';
 
 const VersionChecker = () => {
   const [showUpdateNotice, setShowUpdateNotice] = useState(false);
@@ -29,10 +30,13 @@ const VersionChecker = () => {
   if (!showUpdateNotice) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 bg-yellow-200 border border-yellow-500 text-yellow-800 px-4 py-2 rounded shadow">
-      🔄 New version available.{' '}
+    <div className="version-checker-notice">
+      <span className="version-checker-icon" role="img" aria-label="update">🔄</span>
+      <span className="version-checker-text">
+        New version available.
+      </span>
       <button
-        className="underline font-semibold"
+        className="version-checker-reload"
         onClick={() => window.location.reload()}
       >
         Reload
