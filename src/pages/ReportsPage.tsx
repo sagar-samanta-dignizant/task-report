@@ -137,21 +137,26 @@ const ReportsPage: React.FC = () => {
                 })
                 .join("\n".repeat(level === 0 ? TASK_GAP : SUBTASK_GAP));
 
-        return `${workUpdateText} ${previewSettings.showDate ? reverseDate(date) : ""}
-${lineAfterWorkUpdate}
-${previewSettings.showProject && selectedProjects.length > 0
+        // Build preview lines conditionally, skipping empty lines
+        const previewLines = [
+            `${workUpdateText}${previewSettings.showDate ? " " + reverseDate(date) : ""}`,
+            lineAfterWorkUpdate,
+            previewSettings.showProject && selectedProjects.length > 0
                 ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
-                : ""
-            }
-${lineAfterProject}
-${formatTasks(tasks, 0, bulletType, subIcon)}
-${previewSettings.showNextTask && nextTask && nextTask.trim()
+                : "",
+            lineAfterProject,
+            formatTasks(tasks, 0, bulletType, subIcon),
+            previewSettings.showNextTask && nextTask && nextTask.trim()
                 ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTask.trim()}`
-                : ""
-            }
-${lineBeforeClosingText}
-${closingText}
-${name?.trim()}`;
+                : "",
+            lineBeforeClosingText,
+            closingText,
+            name?.trim(),
+        ]
+            .filter((line) => line && line.trim() !== "") // Remove empty lines
+            .join("\n");
+
+        return previewLines;
     };
 
     const handleExport = (key: string) => {

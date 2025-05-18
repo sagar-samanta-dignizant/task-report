@@ -525,26 +525,26 @@ const App = () => {
       ? "-".repeat(settings.previewSettings.lineBeforeClosingText || 3)
       : "";
 
-    return `${workUpdateText} ${
-      settings.previewSettings.showDate ? reverseDate(date) : ""
-    }
-${lineAfterWorkUpdate}
-${
-  settings.previewSettings.showProject
-    ? `Project : ${
-        selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
-      }`
-    : ""
-}
-${lineAfterProject}
-${formatTasks(allTasks)}${
+    // Build preview lines conditionally, skipping empty lines
+    const previewLines = [
+      `${workUpdateText}${settings.previewSettings.showDate ? " " + reverseDate(date) : ""}`,
+      lineAfterWorkUpdate,
+      settings.previewSettings.showProject
+        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"}`
+        : "",
+      lineAfterProject,
+      formatTasks(allTasks),
       settings.previewSettings.showNextTask && nextTaskValue.trim()
-        ? `\n\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
-        : ""
-    }
-${lineBeforeClosingText}
-${closingText}
-${name.trim()}`;
+        ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
+        : "",
+      lineBeforeClosingText,
+      closingText,
+      name.trim(),
+    ]
+      .filter((line) => line && line.trim() !== "") // Remove empty lines
+      .join("\n");
+
+    return previewLines;
   };
 
   const handleCopy = () => {

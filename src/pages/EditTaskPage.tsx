@@ -343,25 +343,26 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       ? "-".repeat(previewSettings.lineBeforeClosingText || 3)
       : "";
 
-    return `${workUpdateText} ${
-      previewSettings.showDate ? reverseDate(date) : ""
-    }
-${lineAfterWorkUpdate}
-Project: ${
+    // Build preview lines conditionally, skipping empty lines
+    const previewLines = [
+      `${workUpdateText}${previewSettings.showDate ? " " + reverseDate(date) : ""}`,
+      lineAfterWorkUpdate,
       previewSettings.showProject
-        ? selectedProjects.join(" & ") || "Not Selected"
-        : ""
-    }
-${lineAfterProject}
-${formatTasks(tasks, 0, bulletType, selectedSubIcon)}
-${
-  previewSettings.showNextTask && nextTaskValue.trim()
-    ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
-    : ""
-}
-${lineBeforeClosingText}
-${closingText}
-${name.trim()}`;
+        ? `Project : ${selectedProjects.join(" & ") || "Not Selected"}`
+        : "",
+      lineAfterProject,
+      formatTasks(tasks, 0, bulletType, selectedSubIcon),
+      previewSettings.showNextTask && nextTaskValue.trim()
+        ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
+        : "",
+      lineBeforeClosingText,
+      closingText,
+      name.trim(),
+    ]
+      .filter((line) => line && line.trim() !== "") // Remove empty lines
+      .join("\n");
+
+    return previewLines;
   };
 
   useEffect(() => {
