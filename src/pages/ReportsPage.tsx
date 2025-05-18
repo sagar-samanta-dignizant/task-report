@@ -1,6 +1,6 @@
 import "./ReportsPage.css"
 
-import { Button, DatePicker, Dropdown, Menu, Tooltip } from "antd";
+import { Button, DatePicker, Dropdown, Menu, Select, Tooltip } from "antd";
 import { CheckOutlined, CopyOutlined, DeleteOutlined, EditOutlined, FileExcelOutlined, FilePdfOutlined, FileTextOutlined } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
@@ -22,12 +22,13 @@ const ReportsPage: React.FC = () => {
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const [copiedPreview, setCopiedPreview] = useState<string | null>(null);
     const [selectedDateRange, setSelectedDateRange] = useState<[string, string] | null>(null);
+    const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
     const navigate = useNavigate();
 
     const handleDateRangeChange = (_: any, dateStrings: [string, string]) => {
         setSelectedDateRange(dateStrings);
         const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
-        const filteredReports = Object.entries(savedReports)
+        let filteredReports = Object.entries(savedReports)
             .filter(([date]) => {
                 const [start, end] = dateStrings;
                 if (!start || !end) return false;
@@ -39,8 +40,28 @@ const ReportsPage: React.FC = () => {
             })
             .map(([date, data]) => ({ date, data }));
 
+        // Sort by date according to sortOrder
+        filteredReports = filteredReports.sort((a, b) =>
+            sortOrder === "desc"
+                ? b.date.localeCompare(a.date)
+                : a.date.localeCompare(b.date)
+        );
+
         setReportData(filteredReports);
     };
+
+    // Add a handler to toggle sort order
+    const toggleSortOrder = () => {
+        setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+    };
+
+    // When sortOrder changes, re-sort the reportData
+    useEffect(() => {
+        if (!selectedDateRange) return;
+        // Re-trigger filtering and sorting
+        handleDateRangeChange(null, selectedDateRange);
+        // eslint-disable-next-line
+    }, [sortOrder]);
 
     const handleCopy = (data: any, index: number) => {
         const preview = formatPreview(data);
@@ -417,12 +438,23 @@ const ReportsPage: React.FC = () => {
         <div className="reports-page">
             <div className="reports-header sticky-header">
                 <h2>Reports</h2>
-                <div className="reports-header-controls">
+                <div className="reports-header-controls" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {/* Sort Order Dropdown */}
+                    <Select
+                        value={sortOrder}
+                        style={{ width: 150, marginRight: 8 }}
+                        onChange={(val) => setSortOrder(val)}
+                        placeholder="Sort Order"
+                        options={[
+                            { value: "desc", label: "Ascending" },
+                            { value: "asc", label: "Descending" },
+                        ]}
+                    />
                     <RangePicker
                         onChange={handleDateRangeChange}
-                        format="DD-MM-YYYY" // Display date in DD-MM-YYYY format
-                        presets={presetRanges} // Add predefined ranges
-                        defaultValue={[dayjs().startOf("month"), dayjs().endOf("month")]} // Default to current month
+                        format="DD-MM-YYYY"
+                        presets={presetRanges}
+                        defaultValue={[dayjs().startOf("month"), dayjs().endOf("month")]}
                     />
                     <Dropdown overlay={exportMenu} trigger={['click']}>
                         <Button
@@ -431,8 +463,8 @@ const ReportsPage: React.FC = () => {
                                 display: "flex",
                                 alignItems: "center",
                                 gap: "8px",
-                                border: "1px solid rgb(91 100 99)", // Custom border color
-                                color: "#f39c12", // Custom text color
+                                border: "1px solid rgb(91 100 99)",
+                                color: "#f39c12",
                             }}
                         >
                             <span style={{ color: "#f39c12", fontSize: "18px" }}>{fileExportIcon}</span>
