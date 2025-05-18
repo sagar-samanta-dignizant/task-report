@@ -162,14 +162,16 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       return updatedTasks;
     });
     setTimeout(() => {
-      const lastTaskRef = taskRefs.current[taskRefs.current.length - 1];
-      if (settings.taskSettings.showID && lastTaskRef) {
-        lastTaskRef.focus(); // Focus on the ID input if it exists
+      if (settings.taskSettings.showID) {
+        // Focus on the ID input if it exists
+        const lastTaskRef = taskRefs.current[taskRefs.current.length - 1];
+        lastTaskRef?.focus();
       } else {
-        const titleInput = document.querySelectorAll<HTMLInputElement>(
+        // Focus on the title input if ID is not shown
+        const titleInputs = document.querySelectorAll<HTMLInputElement>(
           ".task-details-inputs .title-field input"
         );
-        titleInput[titleInput.length - 1]?.focus(); // Focus on the title field if ID is not shown
+        titleInputs[titleInputs.length - 1]?.focus();
       }
     }, 0);
   };

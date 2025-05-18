@@ -340,7 +340,7 @@ const App = () => {
 
   const addTask = () => {
     const newTask: Task = {
-      taskId: "", // Renamed from id
+      taskId: "",
       title: "",
       hours: "",
       minutes: "",
@@ -352,13 +352,15 @@ const App = () => {
       return updatedTasks;
     });
     setTimeout(() => {
-      const lastTaskRef = taskRefs.current[taskRefs.current.length - 1];
-      if (settings.taskSettings.showID && lastTaskRef) {
-        lastTaskRef.focus(); // Focus on the ID input if it exists
+      if (settings.taskSettings.showID) {
+        // Focus on the ID input if it exists
+        const lastTaskRef = taskRefs.current[taskRefs.current.length - 1];
+        lastTaskRef?.focus();
       } else {
+        // Focus on the title input if ID is not shown
         const titleInput =
           document.querySelectorAll<HTMLInputElement>(".task-title-input");
-        titleInput[titleInput.length - 1]?.focus(); // Focus on the title field if ID is not shown
+        titleInput[titleInput.length - 1]?.focus();
       }
     }, 0);
   };
@@ -738,7 +740,8 @@ ${name.trim()}`;
       } else if (e.ctrlKey && e.key === "Enter") {
         e.preventDefault();
         addTask();
-      } else if (e.ctrlKey && e.key.toLowerCase() === "z") {
+      } else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "z") {
+        // Changed from Ctrl+Z to Ctrl+Shift+Z
         e.preventDefault();
         resetForm();
       } else if (e.ctrlKey && e.key.toLowerCase() === "s") {
