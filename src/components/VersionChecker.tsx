@@ -22,7 +22,8 @@ const VersionChecker = () => {
           console.error('version.json is not valid JSON:', text);
           return;
         }
-
+        console.log(currentVersion, data.version);
+        
         if (!currentVersion) {
           setCurrentVersion(data.version);
         } else if (data.version !== currentVersion) {
