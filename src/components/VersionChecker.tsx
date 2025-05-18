@@ -9,6 +9,8 @@ const VersionChecker = () => {
     const checkVersion = async () => {
       try {
         const response = await fetch('/version.json', { cache: 'no-cache' });
+        console.log('Checking version.json', response);
+        
         const text = await response.text();
         let data;
         try {
