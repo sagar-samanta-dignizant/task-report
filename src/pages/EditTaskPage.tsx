@@ -797,6 +797,8 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
           </Button>
         </Tooltip>
       </div>
+      {/* Add bottom spacing so buttons are not flush with the bottom */}
+      <div style={{ height: 40 }} />
     </div>
   );
 };
