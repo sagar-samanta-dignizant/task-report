@@ -529,7 +529,6 @@ const App = () => {
       settings.previewSettings.showDate ? reverseDate(date) : ""
     }
 ${lineAfterWorkUpdate}
-
 ${
   settings.previewSettings.showProject
     ? `Project : ${
@@ -543,7 +542,6 @@ ${formatTasks(allTasks)}${
         ? `\n\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
         : ""
     }
-
 ${lineBeforeClosingText}
 ${closingText}
 ${name.trim()}`;
