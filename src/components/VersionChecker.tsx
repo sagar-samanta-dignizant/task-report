@@ -12,6 +12,8 @@ const VersionChecker = () => {
         console.log('Checking version.json', response);
         
         const text = await response.text();
+        console.log('version.json content:', text);
+        
         let data;
         try {
           data = JSON.parse(text);
