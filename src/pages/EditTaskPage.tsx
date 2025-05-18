@@ -347,7 +347,6 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       previewSettings.showDate ? reverseDate(date) : ""
     }
 ${lineAfterWorkUpdate}
-
 Project: ${
       previewSettings.showProject
         ? selectedProjects.join(" & ") || "Not Selected"
@@ -360,7 +359,6 @@ ${
     ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
     : ""
 }
-
 ${lineBeforeClosingText}
 ${closingText}
 ${name.trim()}`;
