@@ -724,7 +724,12 @@ const App = () => {
         }
       });
     }
-    scheduleNotification(NOTIFICATION_TIME, "Hey time to prepare your task!");
+    const userName = localStorage.getItem("name");
+    const message = userName
+      ? `Yo ${userName}, task time! No excuses! 😜`
+      : "Yo, task time! Let's do this! 😆";
+
+    scheduleNotification(NOTIFICATION_TIME, message);
   }, []); // Run only once on component mount
 
   useEffect(() => {
@@ -1052,7 +1057,10 @@ const App = () => {
                               Add Task
                             </Button>
                           </Tooltip>
-                          <Tooltip title="Reset all tasks (Ctrl+Z)" placement="bottom">
+                          <Tooltip
+                            title="Reset all tasks (Ctrl+Z)"
+                            placement="bottom"
+                          >
                             <Button
                               type="default"
                               icon={<ReloadOutlined />}
@@ -1419,7 +1427,10 @@ const App = () => {
                     <div
                       style={{ display: "flex", justifyContent: "flex-end" }}
                     >
-                      <Tooltip placement="bottom" title="Copy & Save Preview (Ctrl+S)">
+                      <Tooltip
+                        placement="bottom"
+                        title="Copy & Save Preview (Ctrl+S)"
+                      >
                         <Button
                           onClick={handleCopyAndSavePreview}
                           type="default"
@@ -1435,7 +1446,10 @@ const App = () => {
                     <div className="task-preview-header">
                       <h3>Preview</h3>
                       <div className="button-group">
-                        <Tooltip title="Copy to Clipboard (Ctrl+Shift+C)" placement="bottom">
+                        <Tooltip
+                          title="Copy to Clipboard (Ctrl+Shift+C)"
+                          placement="bottom"
+                        >
                           <Button
                             type="default"
                             icon={
