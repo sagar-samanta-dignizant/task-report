@@ -49,12 +49,6 @@ const ReportsPage: React.FC = () => {
 
         setReportData(filteredReports);
     };
-
-    // Add a handler to toggle sort order
-    const toggleSortOrder = () => {
-        setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
-    };
-
     // When sortOrder changes, re-sort the reportData
     useEffect(() => {
         if (!selectedDateRange) return;
