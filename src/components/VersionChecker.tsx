@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ReloadOutlined } from '@ant-design/icons';
 import './VersionChecker.css';
 
 const VersionChecker = () => {
@@ -44,7 +45,6 @@ const VersionChecker = () => {
 
   return (
     <div className="version-checker-notice">
-      <span className="version-checker-icon" role="img" aria-label="update">🔄</span>
       <span className="version-checker-text">
         New version available.
       </span>
@@ -52,6 +52,7 @@ const VersionChecker = () => {
         className="version-checker-reload"
         onClick={() => window.location.reload()}
       >
+        <ReloadOutlined style={{ marginRight: 6 }} />
         Reload
       </button>
     </div>

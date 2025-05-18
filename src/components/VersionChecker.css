@@ -2,12 +2,12 @@
   position: fixed;
   bottom: 32px;
   right: 32px;
-  background: linear-gradient(90deg, #fffbe6 60%, #ffe082 100%);
+  background: linear-gradient(90deg, #23272f 60%, #333 100%);
   border: 2px solid #ffd600;
-  color: #795548;
+  color: #ffd600;
   padding: 18px 32px;
   border-radius: 16px;
-  box-shadow: 0 6px 24px 0 #0002;
+  box-shadow: 0 6px 24px 0 #000a;
   display: flex;
   align-items: center;
   gap: 18px;
@@ -24,6 +24,7 @@
 .version-checker-icon {
   font-size: 2rem;
   animation: version-checker-spin 1.2s linear infinite;
+  color: #ffd600;
 }
 
 @keyframes version-checker-spin {
@@ -34,11 +35,12 @@
 .version-checker-text {
   font-weight: 600;
   letter-spacing: 0.5px;
+  color: #ffd600;
 }
 
 .version-checker-reload {
   background: #ffd600;
-  color: #333;
+  color: #23272f;
   border: none;
   border-radius: 8px;
   padding: 8px 18px;
