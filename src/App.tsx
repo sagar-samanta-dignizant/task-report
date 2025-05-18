@@ -16,7 +16,7 @@ import {
   Input,
   InputRef,
   Layout,
-  Select,
+  Select as AntdSelect,
   Tooltip,
 } from "antd";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
@@ -45,7 +45,7 @@ import dayjs from "dayjs";
 import { getBullet } from "./utils/icon.utils";
 import { reverseDate } from "./utils/dateUtils";
 
-const { Option } = Select;
+const { Option } = AntdSelect;
 const { Header } = Layout;
 interface Task {
   taskId?: string; // Renamed from id to taskId for consistency
@@ -62,15 +62,17 @@ const NOTIFICATION_TIME = "06:00 PM";
 const App = () => {
   const theme = "light";
   const workingTimeLimit = 8.5;
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      taskId: "",
-      title: "",
-      hours: "",
-      minutes: "",
-      status: "Completed",
-    },
-  ]);
+  const [tasks, setTasks] = useState<Task[]>(
+    [
+      {
+        taskId: "",
+        title: "",
+        hours: "",
+        minutes: "",
+        status: "Completed",
+      },
+    ]
+  );
   const [selectedProjects, setSelectedProjects] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem("selectedProjects") || "[]");
@@ -388,7 +390,7 @@ const App = () => {
     setTimeout(() => {
       const subtaskRef =
         subtaskRefs.current[parentIndex]?.[
-          subtaskRefs.current[parentIndex].length - 1
+        subtaskRefs.current[parentIndex].length - 1
         ];
       subtaskRef?.focus();
     }, 0);
@@ -761,6 +763,52 @@ const App = () => {
     location.pathname,
   ]);
 
+  // State for selected date to copy tasks from
+  const [copyFromDate, setCopyFromDate] = useState<string>();
+  const [allReportDates, setAllReportDates] = useState<string[]>([]);
+
+  // Fetch all report dates on mount
+  useEffect(() => {
+    const reports = JSON.parse(localStorage.getItem("reports") || "{}");
+    const dates = Object.keys(reports).sort((a, b) => b.localeCompare(a)); // Descending order
+    setAllReportDates(dates);
+  }, []);
+
+  // Handle copy from selected date
+  const handleCopyFromDate = (date: string) => {
+    setCopyFromDate(date);
+    if (date === "none") {
+      // Reset to default/empty state when "None" is selected
+      setTasks([
+        {
+          taskId: "",
+          title: "",
+          hours: "",
+          minutes: "",
+          status: "Completed",
+        },
+      ]);
+      setSelectedProjects([]);
+      setName(localStorage.getItem("name") || "");
+      setBulletType("dot");
+      setNextTaskValue("");
+      setSelectedSubIcon("dot");
+      setDate(new Date().toISOString().split("T")[0]);
+      return;
+    }
+    const reports = JSON.parse(localStorage.getItem("reports") || "{}");
+    const report = reports[date];
+    if (report) {
+      setTasks(report.tasks || []);
+      setSelectedProjects(report.selectedProjects || []);
+      setName(report.name || "");
+      setBulletType(report.bulletType || "dot");
+      setNextTaskValue(report.nextTask || "");
+      setSelectedSubIcon(report.subIcon || "dot");
+      setDate(new Date().toISOString().split("T")[0]); // Set to today
+    }
+  };
+
   return (
     <Layout className={`app-container ${theme}`}>
       <Header className="header">
@@ -889,7 +937,7 @@ const App = () => {
 
                         <div className="input-group" style={{ width: "120px" }}>
                           <label htmlFor="bulletType">Task Icon</label>
-                          <Select
+                          <AntdSelect
                             id="bulletType"
                             value={bulletType}
                             onChange={(value) => setBulletType(value as any)}
@@ -900,7 +948,7 @@ const App = () => {
                                 {type}
                               </Option>
                             ))}
-                          </Select>
+                          </AntdSelect>
                         </div>
                         <div
                           className="input-group"
@@ -912,7 +960,7 @@ const App = () => {
                           }}
                         >
                           <label htmlFor="icon">Sub Icon</label>
-                          <Select
+                          <AntdSelect
                             id="icon"
                             placeholder="Select icon"
                             value={selectedSubIcon}
@@ -924,7 +972,7 @@ const App = () => {
                                 {type}
                               </Option>
                             ))}
-                          </Select>
+                          </AntdSelect>
                         </div>
                         <div
                           className="input-group"
@@ -936,7 +984,7 @@ const App = () => {
                           }}
                         >
                           <label htmlFor="project">Project</label>
-                          <Select
+                          <AntdSelect
                             id="project"
                             mode="multiple"
                             placeholder="Select project(s)"
@@ -952,14 +1000,14 @@ const App = () => {
                                 {project}
                               </Option>
                             ))}
-                          </Select>
+                          </AntdSelect>
                         </div>
                       </div>
                     </div>
 
                     <div className="task-details-section">
-                      <div className="task-details-header">
-                        <h4>Task Details</h4>
+                      <div className="task-details-header" style={{ display: "flex", alignItems: "center" }}>
+                        <h4 style={{ margin: 0, flex: 1 }}>Task Details</h4>
                         <div className="time-info">
                           <p className="total-time">
                             Total : <span>8h 30min</span>
@@ -971,15 +1019,28 @@ const App = () => {
                                 remainingTime < 0
                                   ? "time-exceeded"
                                   : remainingTime === 0
-                                  ? "time-matched"
-                                  : "time-in-limit"
+                                    ? "time-matched"
+                                    : "time-in-limit"
                               }
                             >
                               {formatRemainingTime(remainingTime)}
                             </span>
                           </p>
                         </div>
-                        <div className="button-group">
+                        <div className="button-group" style={{marginLeft:"20px"}}>
+                          <AntdSelect
+                            style={{ width: 180, marginRight: 12 }}
+                            value={copyFromDate}
+                            onChange={handleCopyFromDate}
+                            placeholder="Copy tasks from"
+                          >
+                            <AntdSelect.Option value="none">None</AntdSelect.Option>
+                            {allReportDates.map((d) => (
+                              <AntdSelect.Option key={d} value={d}>
+                                {dayjs(d, "YYYY-MM-DD").format("DD-MM-YYYY")}
+                              </AntdSelect.Option>
+                            ))}
+                          </AntdSelect>
                           <Tooltip placement="bottom" title="Add a new task (Ctrl+N)">
                             <Button
                               type="default"
@@ -1119,7 +1180,7 @@ const App = () => {
                               )}
                               {settings.taskSettings.showStatus && (
                                 <div className="input-group">
-                                  <Select
+                                  <AntdSelect
                                     placeholder="Select status"
                                     value={task?.status || undefined} // Allow empty value
                                     onChange={(value) =>
@@ -1142,7 +1203,7 @@ const App = () => {
                                         {status}
                                       </Option>
                                     ))}
-                                  </Select>
+                                  </AntdSelect>
                                 </div>
                               )}
                               <div
@@ -1285,7 +1346,7 @@ const App = () => {
                                   )}
                                   {settings.taskSettings.showStatus && (
                                     <div className="input-group">
-                                      <Select
+                                      <AntdSelect
                                         placeholder="Select status"
                                         value={subtask?.status}
                                         onChange={(value) =>
@@ -1312,7 +1373,7 @@ const App = () => {
                                             {status}
                                           </Option>
                                         ))}
-                                      </Select>
+                                      </AntdSelect>
                                     </div>
                                   )}
                                   <div
@@ -1365,7 +1426,7 @@ const App = () => {
                           icon={<SaveOutlined />}
                           className="save-task-btn"
                         >
-                         Copy & Save 
+                          Copy & Save
                         </Button>
                       </Tooltip>
                     </div>
