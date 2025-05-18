@@ -74,8 +74,8 @@ const ReportsPage: React.FC = () => {
         const h = parseInt(hours as string) || 0;
         const m = parseInt(minutes as string) || 0;
         let timeString = "";
-        if (h > 0) timeString += `${h} h`;
-        if (m > 0) timeString += ` ${m} min`;
+        if (h > 0) timeString += `${h}h`;
+        if (m > 0) timeString += ` ${m}m`;
         return timeString.trim();
     };
 
@@ -545,7 +545,7 @@ const ReportsPage: React.FC = () => {
                                 </pre>
                             </div>
                         ))
-                    )}
+                   ) }
                 </div>
             </div>
 

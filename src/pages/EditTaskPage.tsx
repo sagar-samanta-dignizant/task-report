@@ -289,21 +289,27 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       line += task.title.trim();
       if (
         previewSettings.showStatus &&
-        task?.status?.trim() && // Only add status if it exists
+        task?.status?.trim() &&
         !(
           previewSettings.hideParentTaskStatus &&
           (task.subtasks?.length ?? 0) > 0
-        ) // Hide parent task status if setting is enabled and subtasks exist
+        )
       ) {
-        line += task?.status ? ` (${task?.status.trim()})` : ""; // Add status in parentheses
+        line += task?.status ? ` (${task?.status.trim()})` : "";
       }
       if (
         previewSettings.showHours &&
         !(
           previewSettings.hideParentTaskTime && (task.subtasks?.length ?? 0) > 0
-        ) // Hide parent task time if setting is enabled and subtasks exist
+        )
       ) {
-        const taskTime = `${task.hours || 0}h ${task.minutes || 0}m`.trim();
+        // Only show non-zero hours/minutes, use "m" instead of "min"
+        const h = parseInt(task.hours as string) || 0;
+        const m = parseInt(task.minutes as string) || 0;
+        const timeParts = [];
+        if (h > 0) timeParts.push(`${h}h`);
+        if (m > 0) timeParts.push(`${m}m`);
+        const taskTime = timeParts.join(" ");
         if (taskTime) line += ` (${taskTime})`;
       }
       return line;

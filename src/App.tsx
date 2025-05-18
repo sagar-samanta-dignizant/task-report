@@ -269,7 +269,7 @@ const App = () => {
 
       const timeParts = [];
       if (totalHours > 0) timeParts.push(`${totalHours}h`);
-      if (totalMinutes > 0) timeParts.push(`${totalMinutes}min`);
+      if (totalMinutes > 0) timeParts.push(`${totalMinutes}m`);
       return timeParts.join(" ").trim();
     }
 
@@ -277,7 +277,7 @@ const App = () => {
     const m = parseInt(minutes as string) || 0;
     const timeParts = [];
     if (h > 0) timeParts.push(`${h}h`);
-    if (m > 0) timeParts.push(`${m}min`);
+    if (m > 0) timeParts.push(`${m}m`);
     return timeParts.join(" ").trim();
   };
 
