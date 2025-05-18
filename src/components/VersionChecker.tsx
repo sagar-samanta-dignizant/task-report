@@ -5,6 +5,7 @@ import './VersionChecker.css';
 const VersionChecker = () => {
   const [showUpdateNotice, setShowUpdateNotice] = useState(false);
   const [currentVersion, setCurrentVersion] = useState<string | null>(null);
+  const [newVersion, setNewVersion] = useState<string | null>(null);
 
   useEffect(() => {
     const checkVersion = async () => {
@@ -29,6 +30,7 @@ const VersionChecker = () => {
           setCurrentVersion(data.version);
         } else if (data.version !== currentVersion) {
           setShowUpdateNotice(true);
+          setNewVersion(data.version);
         }
       } catch (err) {
         console.error('Error checking version:', err);
@@ -46,7 +48,12 @@ const VersionChecker = () => {
   return (
     <div className="version-checker-notice">
       <span className="version-checker-text">
-        New version available.
+        New version available :
+        {newVersion && (
+          <span style={{ color: "#43a047", fontWeight: 700, marginLeft: 8 }}>
+            {newVersion}
+          </span>
+        )}
       </span>
       <button
         className="version-checker-reload"
