@@ -139,19 +139,16 @@ const ReportsPage: React.FC = () => {
 
         return `${workUpdateText} ${previewSettings.showDate ? reverseDate(date) : ""}
 ${lineAfterWorkUpdate}
-
 ${previewSettings.showProject && selectedProjects.length > 0
                 ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
                 : ""
             }
 ${lineAfterProject}
-
 ${formatTasks(tasks, 0, bulletType, subIcon)}
 ${previewSettings.showNextTask && nextTask && nextTask.trim()
                 ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTask.trim()}`
                 : ""
             }
-
 ${lineBeforeClosingText}
 ${closingText}
 ${name?.trim()}`;
