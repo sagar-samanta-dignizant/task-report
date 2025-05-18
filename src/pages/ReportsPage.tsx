@@ -22,7 +22,10 @@ const ReportsPage: React.FC = () => {
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const [copiedPreview, setCopiedPreview] = useState<string | null>(null);
     const [selectedDateRange, setSelectedDateRange] = useState<[string, string] | null>(null);
-    const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+    const [sortOrder, setSortOrderState] = useState<"desc" | "asc">(() => {
+        // Load from localStorage or default to "desc"
+        return (localStorage.getItem("reportSortOrder") as "desc" | "asc") || "desc";
+    });
     const navigate = useNavigate();
 
     const handleDateRangeChange = (_: any, dateStrings: [string, string]) => {
@@ -428,6 +431,16 @@ const ReportsPage: React.FC = () => {
         };
     }, [reportData]);
 
+    // Save sortOrder to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem("reportSortOrder", sortOrder);
+    }, [sortOrder]);
+
+    // Use this setter to update sortOrder
+    const setSortOrder = (val: "desc" | "asc") => {
+        setSortOrderState(val);
+    };
+
     return (
         <div className="reports-page">
             <div className="reports-header sticky-header">
@@ -437,7 +450,7 @@ const ReportsPage: React.FC = () => {
                     <Select
                         value={sortOrder}
                         style={{ width: 150, marginRight: 8 }}
-                        onChange={(val) => setSortOrder(val)}
+                        onChange={setSortOrder}
                         placeholder="Sort Order"
                         options={[
                             { value: "desc", label: "Ascending" },
