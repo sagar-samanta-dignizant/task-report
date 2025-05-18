@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const customVersion = "0.0.1";
+const customVersion = "0.0.2";
 const version = customVersion || Date.now();
 
 const filePath = path.resolve(__dirname, 'public', 'version.json');
