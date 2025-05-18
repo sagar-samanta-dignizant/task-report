@@ -9,7 +9,15 @@ const VersionChecker = () => {
     const checkVersion = async () => {
       try {
         const response = await fetch('/version.json', { cache: 'no-cache' });
-        const data = await response.json();
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (jsonErr) {
+          // If not JSON, probably got an HTML error page (e.g., 404)
+          console.error('version.json is not valid JSON:', text);
+          return;
+        }
 
         if (!currentVersion) {
           setCurrentVersion(data.version);
