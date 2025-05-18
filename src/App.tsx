@@ -1032,7 +1032,7 @@ const App = () => {
                             </span>
                           </p>
                         </div>
-                        <div className="button-group" style={{marginLeft:"20px"}}>
+                        <div className="button-group" style={{ marginLeft: "20px" }}>
                           <AntdSelect
                             style={{ width: 180, marginRight: 12 }}
                             value={copyFromDate}
@@ -1046,7 +1046,7 @@ const App = () => {
                               </AntdSelect.Option>
                             ))}
                           </AntdSelect>
-                          <Tooltip placement="bottom" title="Add a new task (Ctrl+N)">
+                          <Tooltip placement="bottom" title="Add a new task (Ctrl+ Enter)">
                             <Button
                               type="default"
                               icon={AddIcon}
@@ -1055,21 +1055,6 @@ const App = () => {
                               className="add-task-btn"
                             >
                               Add Task
-                            </Button>
-                          </Tooltip>
-                          <Tooltip
-                            title="Reset all tasks (Ctrl+Z)"
-                            placement="bottom"
-                          >
-                            <Button
-                              type="default"
-                              icon={<ReloadOutlined />}
-                              onClick={resetForm}
-                              title="Reset Form"
-                              className="reset-btn"
-                              style={{ marginLeft: "10px" }}
-                            >
-                              Reset
                             </Button>
                           </Tooltip>
                         </div>
@@ -1425,8 +1410,23 @@ const App = () => {
                       )}
                     </div>
                     <div
-                      style={{ display: "flex", justifyContent: "flex-end" }}
+                      style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}
                     >
+                      <Tooltip
+                        title="Reset all tasks (Ctrl+Z)"
+                        placement="bottom"
+                      >
+                        <Button
+                          type="default"
+                          icon={<ReloadOutlined />}
+                          onClick={resetForm}
+                          title="Reset Form"
+                          className="reset-btn"
+                          style={{ marginLeft: "10px" }}
+                        >
+                          Reset
+                        </Button>
+                      </Tooltip>
                       <Tooltip
                         placement="bottom"
                         title="Copy & Save Preview (Ctrl+S)"
