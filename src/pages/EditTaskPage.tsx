@@ -744,7 +744,7 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
             <div className="input-group" style={{ marginTop: "20px" }}>
               <Input
                 id="nextTask"
-                placeholder="Enter next task"
+                placeholder="Enter next day's task"
                 value={nextTaskValue}
                 onChange={(e) => setNextTaskValue(e.target.value)}
                 spellCheck={true} // Enable spell checking
