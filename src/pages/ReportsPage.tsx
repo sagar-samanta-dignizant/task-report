@@ -160,9 +160,12 @@ const ReportsPage: React.FC = () => {
             `${workUpdateText}${previewSettings.showDate ? " " + reverseDate(date) : ""}`,
             lineAfterWorkUpdate,
             previewSettings.showProject && selectedProjects.length > 0
-                ? `Project: ${selectedProjects.map((p: any) => p.trim()).join(" & ")}`
+                ? `Project: ${(selectedProjects as string[]).map((p: string) => p.trim()).join(" & ")}`
                 : "",
-            lineAfterProject,
+            previewSettings.allowLineAfterProject
+                ? lineAfterProject
+                : "",
+            !previewSettings.allowLineAfterProject ? "" : "", // Add one empty line if not visible
             formatTasks(tasks, 0, bulletType, subIcon),
             previewSettings.showNextTask && nextTask && nextTask.trim()
                 ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTask.trim()}`
@@ -171,7 +174,10 @@ const ReportsPage: React.FC = () => {
             closingText,
             name?.trim(),
         ]
-            .filter((line) => line && line.trim() !== "") // Remove empty lines
+            .filter((line, idx) => {
+                if (idx === 4 && !previewSettings.allowLineAfterProject) return true;
+                return line && line.trim() !== "";
+            })
             .join("\n");
 
         return previewLines;

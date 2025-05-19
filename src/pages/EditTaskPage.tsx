@@ -351,21 +351,31 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
 
     // Build preview lines conditionally, skipping empty lines
     const previewLines = [
-      `${workUpdateText}${previewSettings.showDate ? " " + reverseDate(date) : ""}`,
+      `${workUpdateText}${
+        settings.previewSettings.showDate ? " " + reverseDate(date) : ""
+      }`,
       lineAfterWorkUpdate,
-      previewSettings.showProject
-        ? `Project : ${selectedProjects.join(" & ") || "Not Selected"}`
+      settings.previewSettings.showProject
+        ? `Project : ${
+            selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
+          }`
         : "",
-      lineAfterProject,
+      settings.previewSettings.allowLineAfterProject
+        ? lineAfterProject
+        : "",
+      !settings.previewSettings.allowLineAfterProject ? "" : "", // Add one empty line if not visible
       formatTasks(tasks, 0, bulletType, selectedSubIcon),
-      previewSettings.showNextTask && nextTaskValue.trim()
+      settings.previewSettings.showNextTask && nextTaskValue.trim()
         ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
         : "",
       lineBeforeClosingText,
       closingText,
       name.trim(),
     ]
-      .filter((line) => line && line.trim() !== "") // Remove empty lines
+      .filter((line, idx) => {
+        if (idx === 4 && !settings.previewSettings.allowLineAfterProject) return true;
+        return line && line.trim() !== "";
+      })
       .join("\n");
 
     return previewLines;

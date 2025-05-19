@@ -62,17 +62,15 @@ const NOTIFICATION_TIME = "06:00 PM";
 const App = () => {
   const theme = "light";
   const workingTimeLimit = 8.5;
-  const [tasks, setTasks] = useState<Task[]>(
-    [
-      {
-        taskId: "",
-        title: "",
-        hours: "",
-        minutes: "",
-        status: "Completed",
-      },
-    ]
-  );
+  const [tasks, setTasks] = useState<Task[]>([
+    {
+      taskId: "",
+      title: "",
+      hours: "",
+      minutes: "",
+      status: "Completed",
+    },
+  ]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem("selectedProjects") || "[]");
@@ -197,8 +195,8 @@ const App = () => {
         section,
         JSON.stringify(settings[section as keyof typeof settings])
       );
-    });
-  }, [settings]);
+    }, [settings]);
+  });
 
   useEffect(() => {
     try {
@@ -390,7 +388,7 @@ const App = () => {
     setTimeout(() => {
       const subtaskRef =
         subtaskRefs.current[parentIndex]?.[
-        subtaskRefs.current[parentIndex].length - 1
+          subtaskRefs.current[parentIndex].length - 1
         ];
       subtaskRef?.focus();
     }, 0);
@@ -527,14 +525,20 @@ const App = () => {
       ? "-".repeat(settings.previewSettings.lineBeforeClosingText || 3)
       : "";
 
-    // Build preview lines conditionally, skipping empty lines
     const previewLines = [
-      `${workUpdateText}${settings.previewSettings.showDate ? " " + reverseDate(date) : ""}`,
+      `${workUpdateText}${
+        settings.previewSettings.showDate ? " " + reverseDate(date) : ""
+      }`,
       lineAfterWorkUpdate,
       settings.previewSettings.showProject
-        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"}`
+        ? `Project : ${
+            selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
+          }`
         : "",
-      lineAfterProject,
+      settings.previewSettings.allowLineAfterProject
+        ? lineAfterProject
+        : "",
+      !settings.previewSettings.allowLineAfterProject ? "" : "", 
       formatTasks(allTasks),
       settings.previewSettings.showNextTask && nextTaskValue.trim()
         ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
@@ -543,7 +547,10 @@ const App = () => {
       closingText,
       name.trim(),
     ]
-      .filter((line) => line && line.trim() !== "") // Remove empty lines
+      .filter((line, idx) => {
+        if (idx === 4 && !settings.previewSettings.allowLineAfterProject) return true;
+        return line && line.trim() !== "";
+      })
       .join("\n");
 
     return previewLines;
@@ -620,7 +627,9 @@ const App = () => {
         subtasks: task.subtasks
           ?.filter((subtask) => subtask.title.trim())
           .map((subtask) => ({
-            taskId: settings.taskSettings.showID ? subtask.taskId?.trim() : undefined,
+            taskId: settings.taskSettings.showID
+              ? subtask.taskId?.trim()
+              : undefined,
             title: subtask.title.trim(),
             hours: settings.taskSettings.showHours ? subtask.hours : undefined,
             minutes: settings.taskSettings.showHours
@@ -1011,7 +1020,10 @@ const App = () => {
                     </div>
 
                     <div className="task-details-section">
-                      <div className="task-details-header" style={{ display: "flex", alignItems: "center" }}>
+                      <div
+                        className="task-details-header"
+                        style={{ display: "flex", alignItems: "center" }}
+                      >
                         <h4 style={{ margin: 0, flex: 1 }}>Task Details</h4>
                         <div className="time-info">
                           <p className="total-time">
@@ -1024,29 +1036,37 @@ const App = () => {
                                 remainingTime < 0
                                   ? "time-exceeded"
                                   : remainingTime === 0
-                                    ? "time-matched"
-                                    : "time-in-limit"
+                                  ? "time-matched"
+                                  : "time-in-limit"
                               }
                             >
                               {formatRemainingTime(remainingTime)}
                             </span>
                           </p>
                         </div>
-                        <div className="button-group" style={{ marginLeft: "20px" }}>
+                        <div
+                          className="button-group"
+                          style={{ marginLeft: "20px" }}
+                        >
                           <AntdSelect
                             style={{ width: 180, marginRight: 12 }}
                             value={copyFromDate}
                             onChange={handleCopyFromDate}
                             placeholder="Copy tasks from"
                           >
-                            <AntdSelect.Option value="none">None</AntdSelect.Option>
+                            <AntdSelect.Option value="none">
+                              None
+                            </AntdSelect.Option>
                             {allReportDates.map((d) => (
                               <AntdSelect.Option key={d} value={d}>
                                 {dayjs(d, "YYYY-MM-DD").format("DD-MM-YYYY")}
                               </AntdSelect.Option>
                             ))}
                           </AntdSelect>
-                          <Tooltip placement="bottom" title="Add a new task (Ctrl+ Enter)">
+                          <Tooltip
+                            placement="bottom"
+                            title="Add a new task (Ctrl+ Enter)"
+                          >
                             <Button
                               type="default"
                               icon={AddIcon}
@@ -1410,7 +1430,11 @@ const App = () => {
                       )}
                     </div>
                     <div
-                      style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}
+                      style={{
+                        display: "flex",
+                        gap: "10px",
+                        justifyContent: "flex-end",
+                      }}
                     >
                       <Tooltip
                         title="Reset all tasks (Ctrl+Z)"
