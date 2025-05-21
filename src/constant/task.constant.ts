@@ -1,4 +1,4 @@
-export const ALL_AVAILABLE_PROJECTS = ["Rukkor", "Geometra", "Deviaq"];
+export const ALL_AVAILABLE_PROJECTS = ["Rukkor", "Geometra", "Deviaq","Rukkor website"];
 export const ALL_STATUS_OPTIONS = [
   "None",
   "In Progress",
