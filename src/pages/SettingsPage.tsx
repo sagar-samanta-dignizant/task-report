@@ -60,78 +60,8 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
         <div className="settings-page">
             <h2 className="settings-title">Settings</h2>
             <div className="settings-container">
-                <Tabs defaultActiveKey="projects" type="card" size="large" className="settings-tabs">
-                    <Tabs.TabPane tab="Project Options" key="projects">
-                        {/* Project Management Section */}
-                        <div className="settings-section">
-                            <h3 className="settings-section-title">Project Options</h3>
-                            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                                <Input
-                                    placeholder="Add new project"
-                                    value={projectInput}
-                                    onChange={e => setProjectInput(e.target.value)}
-                                    onPressEnter={handleAddProject}
-                                    style={{ maxWidth: 220 }}
-                                />
-                                <Button
-                                    type="primary"
-                                    icon={<PlusOutlined />}
-                                    onClick={handleAddProject}
-                                >
-                                    Add
-                                </Button>
-                            </div>
-                            <List
-                                grid={{ gutter: 16, column: 2 }}
-                                bordered={false}
-                                dataSource={projects}
-                                renderItem={item => (
-                                    <List.Item style={{ background: 'linear-gradient(135deg, #23272f 60%, #181b20 100%)', borderRadius: 10, margin: 6, boxShadow: '0 2px 12px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', border: '1px solid #23272f' }}>
-                                        <span style={{
-                                            fontWeight: DEFAULT_PROJECTS.includes(item) ? 700 : 400,
-                                            color: DEFAULT_PROJECTS.includes(item) ? "#43a047" : "#e0e0e0",
-                                            fontSize: 16
-                                        }}>
-                                            {item}
-                                            {DEFAULT_PROJECTS.includes(item) && <span style={{ fontSize: 12, color: "#888", marginLeft: 6 }}>(default)</span>}
-                                        </span>
-                                        {!DEFAULT_PROJECTS.includes(item) && (
-                                            <Popconfirm
-                                                title="Remove this project?"
-                                                onConfirm={() => handleRemoveProject(item)}
-                                                okText="Yes"
-                                                cancelText="No"
-                                            >
-                                                <Button
-                                                    type="primary"
-                                                    icon={<DeleteOutlined style={{ transition: 'color 0.2s' }} />}
-                                                    danger
-                                                    size="small"
-                                                    style={{
-                                                        marginLeft: 8,
-                                                        background: 'linear-gradient(135deg, #23272f 60%, #181b20 100%)',
-                                                        color: '#ff5252',
-                                                        border: '1px solid #444',
-                                                        boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
-                                                        transition: 'color 0.2s, background 0.2s',
-                                                    }}
-                                                    onMouseEnter={e => {
-                                                        e.currentTarget.style.color = '#fff';
-                                                        e.currentTarget.style.background = '#ff5252';
-                                                    }}
-                                                    onMouseLeave={e => {
-                                                        e.currentTarget.style.color = '#ff5252';
-                                                        e.currentTarget.style.background = 'linear-gradient(135deg, #23272f 60%, #181b20 100%)';
-                                                    }}
-                                                />
-                                            </Popconfirm>
-                                        )}
-                                    </List.Item>
-                                )}
-                                style={{ maxWidth: 700, width: '100%', background: 'transparent', color: '#fff', marginTop: 8 }}
-                            />
-                        </div>
-                    </Tabs.TabPane>
+                <Tabs defaultActiveKey="task" type="card" size="large" className="settings-tabs">
+
                     <Tabs.TabPane tab="Task Settings" key="task">
                         {/* Task Settings Section */}
                         <div className="settings-section">
@@ -372,6 +302,77 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                             </div>
                         </div>
                     </Tabs.TabPane>
+                    <Tabs.TabPane tab="Project Options" key="projects">
+                        {/* Project Management Section */}
+                        <div className="settings-section">
+                            <h3 className="settings-section-title">Project Options</h3>
+                            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                                <Input
+                                    placeholder="Add new project"
+                                    value={projectInput}
+                                    onChange={e => setProjectInput(e.target.value)}
+                                    onPressEnter={handleAddProject}
+                                    style={{ maxWidth: 220 }}
+                                />
+                                <Button
+                                    type="primary"
+                                    icon={<PlusOutlined />}
+                                    onClick={handleAddProject}
+                                >
+                                    Add
+                                </Button>
+                            </div>
+                            <List
+                                grid={{ gutter: 16, column: 2 }}
+                                bordered={false}
+                                dataSource={projects}
+                                renderItem={item => (
+                                    <List.Item style={{ background: 'linear-gradient(135deg, #23272f 60%, #181b20 100%)', borderRadius: 10, margin: 6, boxShadow: '0 2px 12px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', border: '1px solid #23272f' }}>
+                                        <span style={{
+                                            fontWeight: DEFAULT_PROJECTS.includes(item) ? 700 : 400,
+                                            color: DEFAULT_PROJECTS.includes(item) ? "#43a047" : "#e0e0e0",
+                                            fontSize: 16
+                                        }}>
+                                            {item}
+                                            {DEFAULT_PROJECTS.includes(item) && <span style={{ fontSize: 12, color: "#888", marginLeft: 6 }}>(default)</span>}
+                                        </span>
+                                        {!DEFAULT_PROJECTS.includes(item) && (
+                                            <Popconfirm
+                                                title="Remove this project?"
+                                                onConfirm={() => handleRemoveProject(item)}
+                                                okText="Yes"
+                                                cancelText="No"
+                                            >
+                                                <Button
+                                                    type="primary"
+                                                    icon={<DeleteOutlined style={{ transition: 'color 0.2s' }} />}
+                                                    danger
+                                                    size="small"
+                                                    style={{
+                                                        marginLeft: 8,
+                                                        background: 'linear-gradient(135deg, #23272f 60%, #181b20 100%)',
+                                                        color: '#ff5252',
+                                                        border: '1px solid #444',
+                                                        boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+                                                        transition: 'color 0.2s, background 0.2s',
+                                                    }}
+                                                    onMouseEnter={e => {
+                                                        e.currentTarget.style.color = '#fff';
+                                                        e.currentTarget.style.background = '#ff5252';
+                                                    }}
+                                                    onMouseLeave={e => {
+                                                        e.currentTarget.style.color = '#ff5252';
+                                                        e.currentTarget.style.background = 'linear-gradient(135deg, #23272f 60%, #181b20 100%)';
+                                                    }}
+                                                />
+                                            </Popconfirm>
+                                        )}
+                                    </List.Item>
+                                )}
+                                style={{ maxWidth: 700, width: '100%', background: 'transparent', color: '#fff', marginTop: 8 }}
+                            />
+                        </div>
+                    </Tabs.TabPane>
                     <Tabs.TabPane tab="Export Settings" key="export">
                         {/* Export Settings Section */}
                         <div className="settings-section">
@@ -441,10 +442,11 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                             </div>
                         </div>
                     </Tabs.TabPane>
-                    <Tabs.TabPane tab="Generate Settings" key="generate">
+
+                    <Tabs.TabPane tab="General Settings" key="general">
                         {/* Generate Settings Section */}
                         <div className="settings-section">
-                            <h3 className="settings-section-title">Generate Settings</h3>
+                            <h3 className="settings-section-title">General Settings</h3>
                             <div className="settings-option">
                                 <label>
                                     Task Gap
@@ -538,10 +540,74 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                             </div>
                         </div>
                     </Tabs.TabPane>
+                    <Tabs.TabPane tab="Backup & Restore" key="backup">
+                        {/* General Settings Section (with import/export) */}
+                        <div className="settings-section">
+                            <h3 className="settings-section-title">Backup</h3>
+                            <div className="settings-option">
+                                <Button
+                                    type="primary"
+                                    style={{ background: '#23272f', color: '#4caf50', border: '1px solid #333', marginRight: 12 }}
+                                    onClick={() => {
+                                        const exportData = {
+                                            __taskReportBackup: true, // Unique identifier
+                                            allProjects: localStorage.getItem("allProjects"),
+                                            generateSettings: localStorage.getItem("generateSettings"),
+                                            // Add more keys as needed
+                                        };
+                                        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                                        const url = URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `task-report-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                                        a.click();
+                                        URL.revokeObjectURL(url);
+                                    }}
+                                >
+                                    Export Data
+                                </Button>
+                                <input
+                                    type="file"
+                                    accept="application/json"
+                                    style={{ display: 'none' }}
+                                    id="import-backup-input"
+                                    onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        try {
+                                            const text = await file.text();
+                                            const data = JSON.parse(text);
+                                            if (!data.__taskReportBackup) {
+                                                message.error("File format not supported. Please select a valid Task Report backup file.");
+                                                return;
+                                            }
+                                            if (data.allProjects) localStorage.setItem("allProjects", data.allProjects);
+                                            if (data.generateSettings) localStorage.setItem("generateSettings", data.generateSettings);
+                                            // Add more keys as needed
+                                            message.success("Backup imported successfully! Please refresh the page.");
+                                        } catch {
+                                            message.error("Failed to import backup. File may be corrupted or invalid.");
+                                        }
+                                    }}
+                                />
+                                <Button
+                                    type="primary"
+                                    style={{ background: '#23272f', color: '#4caf50', border: '1px solid #333' }}
+                                    onClick={() => document.getElementById('import-backup-input')?.click()}
+                                >
+                                    Import Data
+                                </Button>
+                            </div>
+                            <div style={{ color: '#888', fontSize: 13, marginTop: 8 }}>
+                                Export your data as a backup JSON file. Import it on another device to restore your projects and settings.<br />
+                                Only files exported from this app are supported.
+                            </div>
+                        </div>
+                    </Tabs.TabPane>
                 </Tabs>
             </div>
         </div>
-    );  
+    );
 };
 
 export default SettingsPage;
