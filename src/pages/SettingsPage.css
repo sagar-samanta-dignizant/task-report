@@ -16,19 +16,38 @@
 }
 
 .settings-container {
-    display: flex;
-    flex-wrap: nowrap; /* Prevent wrapping */
-    gap: 20px; /* Space between sections */
-    justify-content: space-between; /* Distribute sections evenly */
-    overflow-x: auto; /* Allow horizontal scrolling if needed */
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: none;
+    display: block;
+    box-shadow: none;
+}
+
+.settings-tabs {
+    width: 100%;
+    max-width: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+}
+
+.ant-tabs-nav {
+    width: 100%;
+    border-radius: 0;
+    margin: 0 0 24px 0 !important;
 }
 
 .settings-section {
-    flex: 1 1 25%; /* Ensure all sections take equal width */
-    background-color: #2a2a2a; /* Slightly lighter background */
-    padding: 0px 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: none;
+    border-radius: 0 0 12px 12px;
+    padding: 40px 32px 40px 32px;
+    margin-bottom: 0;
+    min-height: 480px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    background: #2a2a2a; /* Modern dark gradient */
     display: flex;
     flex-direction: column; /* Stack items vertically */
 }
@@ -142,4 +161,10 @@
 
 .time-picker-dropdown::-webkit-scrollbar-track {
     background-color: #333; /* Dark scrollbar track */
+}
+
+@media (max-width: 900px) {
+  .settings-section {
+    padding: 24px 4px;
+  }
 }
