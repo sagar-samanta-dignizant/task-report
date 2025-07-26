@@ -661,6 +661,7 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
                       className="add-task-circle"
                       onClick={() => addSubtask(index)}
                       title="Add Subtask"
+                      style={{ marginLeft: "-10px" }}
                     >
                       {AddIcon}
                     </div>
