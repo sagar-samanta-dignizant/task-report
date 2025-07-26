@@ -16,6 +16,9 @@ const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (chec
 
 const DEFAULT_PROJECTS = ["Rukkor", "Geometra"];
 
+
+import { useLocation, useNavigate } from "react-router-dom";
+
 const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
     const [uploadedImage, setUploadedImage] = React.useState<string | null>(null); // State for uploaded image preview
     const [projectInput, setProjectInput] = React.useState("");
@@ -34,6 +37,34 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
     const [selectedImportKeys, setSelectedImportKeys] = React.useState<string[]>([]);
     const [existingKeys, setExistingKeys] = React.useState<string[]>([]);
     const generateSettings = JSON.parse(localStorage.getItem("generateSettings") || "{}");
+
+    // --- Tab state with URL query ---
+    const location = useLocation();
+    const navigate = useNavigate();
+    function getTabFromQuery() {
+        const params = new URLSearchParams(location.search);
+        return params.get("section");
+    }
+    // On mount, if no tab in query, set it to default (task)
+    React.useEffect(() => {
+        const tab = getTabFromQuery();
+        if (!tab) {
+            const params = new URLSearchParams(location.search);
+            params.set("section", "task");
+            navigate({ search: params.toString() }, { replace: true });
+        }
+    }, []);
+    const [activeTab, setActiveTab] = React.useState(() => getTabFromQuery() || "task");
+    React.useEffect(() => {
+        setActiveTab(getTabFromQuery() || "task");
+        // eslint-disable-next-line
+    }, [location.search]);
+    const handleTabChange = (key: string) => {
+        setActiveTab(key);
+        const params = new URLSearchParams(location.search);
+        params.set("section", key);
+        navigate({ search: params.toString() }, { replace: true });
+    };
 
     // Ensure default notification time is set to 6:00 PM if not already set
     React.useEffect(() => {
@@ -87,7 +118,13 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
     return (
         <div className="settings-page">
             <div className="settings-container">
-                <Tabs defaultActiveKey="task" type="card" size="large" className="settings-tabs">
+                <Tabs
+                    activeKey={activeTab}
+                    onChange={handleTabChange}
+                    type="card"
+                    size="large"
+                    className="settings-tabs"
+                >
 
                     <Tabs.TabPane tab="Task Settings" key="task">
                         {/* Task Settings Section */}

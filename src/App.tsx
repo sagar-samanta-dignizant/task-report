@@ -20,7 +20,6 @@ import {
   Menu,
   Tooltip
 } from "antd";
-import { CSSTransition, TransitionGroup } from "react-transition-group";
 import {
   CheckOutlined,
   CopyOutlined,
@@ -971,8 +970,7 @@ const App = () => {
           </div>
         </div>
       </Header>
-      <TransitionGroup>
-        <CSSTransition key={location.key} classNames="page" timeout={300}>
+        <div key={location.key} >
           <Routes location={location}>
             <Route
               path="/"
@@ -1660,8 +1658,7 @@ const App = () => {
             />
             <Route path="/reports" element={<ReportsPage />} />
           </Routes>
-        </CSSTransition>
-      </TransitionGroup>
+        </div>
       {copiedPreview && (
         <div
           style={{
