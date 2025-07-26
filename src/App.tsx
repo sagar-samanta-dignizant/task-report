@@ -4,7 +4,6 @@ import {
   ALERT_DISMISS_TIME,
   ALL_BULLET_TYPES,
   ALL_STATUS_OPTIONS,
-  SMILYS,
   ALL_AVAILABLE_PROJECTS,
 } from "./constant/task.constant";
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
@@ -171,7 +170,7 @@ const App = () => {
       return ""; // Fallback to an empty string
     }
   });
-  const [currentSmileyIndex, setCurrentSmileyIndex] = useState(0);
+  // const [currentSmileyIndex, setCurrentSmileyIndex] = useState(0);
 
   const TASK_GAP = settings.generateSettings.taskGap || 1; // Default to 1 if not set
   const SUBTASK_GAP = settings.generateSettings.subtaskGap || 1; // Default to 1 if not set
@@ -193,12 +192,12 @@ const App = () => {
     setIsLoggedIn(false);
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSmileyIndex((prevIndex) => (prevIndex + 1) % SMILYS.length);
-    }, 2000); // Change smiley every 2 seconds
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, []);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     // setCurrentSmileyIndex((prevIndex) => (prevIndex + 1) % SMILYS.length);
+  //   }, 2000); // Change smiley every 2 seconds
+  //   return () => clearInterval(interval); // Cleanup on unmount
+  // }, []);
 
   useEffect(() => {
     if (alertMessage) {

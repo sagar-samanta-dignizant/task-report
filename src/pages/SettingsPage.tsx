@@ -1,6 +1,6 @@
 import "./SettingsPage.css"; // Import custom CSS for the settings page
 
-import { Avatar, Button, Input, Upload, message, List, Popconfirm, Tabs, Modal, Progress, Checkbox } from "antd"; // Import Ant Design Input, Upload, Button, Avatar, message, List, Popconfirm, Tabs, Modal, Progress, and Checkbox components
+import { Avatar, Button, Input, Upload, message,  Popconfirm, Tabs, Modal, Progress, Checkbox } from "antd"; // Import Ant Design Input, Upload, Button, Avatar, message, List, Popconfirm, Tabs, Modal, Progress, and Checkbox components
 
 import React from "react";
 import { UploadOutlined, PlusOutlined, DeleteOutlined, ExportOutlined, ImportOutlined, ExclamationCircleOutlined } from "@ant-design/icons"; // Import Upload, Plus, Delete, Export, Import, and Exclamation Circle icons
