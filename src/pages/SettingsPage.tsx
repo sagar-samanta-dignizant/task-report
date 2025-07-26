@@ -1,9 +1,9 @@
 import "./SettingsPage.css"; // Import custom CSS for the settings page
 
-import { Avatar, Button, Input, Upload, message } from "antd"; // Import Ant Design Input, Upload, Button, Avatar, and message components
+import { Avatar, Button, Input, Upload, message, List, Popconfirm } from "antd"; // Import Ant Design Input, Upload, Button, Avatar, message, List, and Popconfirm components
 
 import React from "react";
-import { UploadOutlined } from "@ant-design/icons"; // Import Upload icon
+import { UploadOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons"; // Import Upload, Plus, and Delete icons
 
 const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) => (
     <div
@@ -14,8 +14,15 @@ const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (chec
     </div>
 );
 
+const DEFAULT_PROJECTS = ["Rukkor", "Geometra", "Deviaq", "Rukkor website"];
+
 const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
     const [uploadedImage, setUploadedImage] = React.useState<string | null>(null); // State for uploaded image preview
+    const [projectInput, setProjectInput] = React.useState("");
+    const [projects, setProjects] = React.useState<string[]>(() => {
+        const stored = localStorage.getItem("allProjects");
+        return stored ? JSON.parse(stored) : DEFAULT_PROJECTS;
+    });
     const generateSettings = JSON.parse(localStorage.getItem("generateSettings") || "{}");
 
     // Ensure default notification time is set to 6:00 PM if not already set
@@ -25,10 +32,89 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
         }
     }, [generateSettings.notificationTime, toggleSetting]);
 
+    const updateProjects = (newProjects: string[]) => {
+        setProjects(newProjects);
+        localStorage.setItem("allProjects", JSON.stringify(newProjects));
+    };
+
+    const handleAddProject = () => {
+        const trimmed = projectInput.trim();
+        if (!trimmed) return;
+        if (projects.includes(trimmed)) {
+            message.warning("Project already exists.");
+            return;
+        }
+        updateProjects([...projects, trimmed]);
+        setProjectInput("");
+    };
+
+    const handleRemoveProject = (project: string) => {
+        if (DEFAULT_PROJECTS.includes(project)) {
+            message.error("Default projects cannot be removed.");
+            return;
+        }
+        updateProjects(projects.filter((p) => p !== project));
+    };
+
     return (
         <div className="settings-page">
             <h2 className="settings-title">Settings</h2>
-            <div className="settings-container">              
+            <div className="settings-container">
+                {/* Project Management Section */}
+                <div className="settings-section">
+                    <h3 className="settings-section-title">Project Options</h3>
+                    <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                        <Input
+                            placeholder="Add new project"
+                            value={projectInput}
+                            onChange={e => setProjectInput(e.target.value)}
+                            onPressEnter={handleAddProject}
+                            style={{ maxWidth: 220 }}
+                        />
+                        <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            onClick={handleAddProject}
+                        >
+                            Add
+                        </Button>
+                    </div>
+                    <List
+                        bordered
+                        size="small"
+                        dataSource={projects}
+                        renderItem={item => (
+                            <List.Item
+                                actions={[
+                                    !DEFAULT_PROJECTS.includes(item) && (
+                                        <Popconfirm
+                                            title="Remove this project?"
+                                            onConfirm={() => handleRemoveProject(item)}
+                                            okText="Yes"
+                                            cancelText="No"
+                                        >
+                                            <Button
+                                                type="link"
+                                                icon={<DeleteOutlined />}
+                                                danger
+                                                size="small"
+                                            />
+                                        </Popconfirm>
+                                    ),
+                                ]}
+                            >
+                                <span style={{
+                                    fontWeight: DEFAULT_PROJECTS.includes(item) ? 700 : 400,
+                                    color: DEFAULT_PROJECTS.includes(item) ? "#43a047" : undefined
+                            }}>
+                                    {item}
+                                    {DEFAULT_PROJECTS.includes(item) && <span style={{ fontSize: 12, color: "#888", marginLeft: 6 }}>(default)</span>}
+                                </span>
+                            </List.Item>
+                        )}
+                        style={{ maxWidth: 350, background: "#23272f", color: "#fff" }}
+                    />
+                </div>
 
                 {/* Task Settings Section */}
                 <div className="settings-section">

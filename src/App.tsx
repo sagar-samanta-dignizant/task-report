@@ -2,10 +2,10 @@ import "./app.css";
 
 import {
   ALERT_DISMISS_TIME,
-  ALL_AVAILABLE_PROJECTS,
   ALL_BULLET_TYPES,
   ALL_STATUS_OPTIONS,
   SMILYS,
+  ALL_AVAILABLE_PROJECTS,
 } from "./constant/task.constant";
 import { AddIcon, minusIcon } from "./assets/fontAwesomeIcons";
 import {
@@ -58,6 +58,17 @@ interface Task {
 }
 // Define a static notification time
 const NOTIFICATION_TIME = "06:00 PM";
+
+const getProjectsFromStorage = () => {
+  const stored = localStorage.getItem("allProjects");
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {}
+  }
+  return ALL_AVAILABLE_PROJECTS;
+};
 
 const App = () => {
   const theme = "light";
@@ -823,6 +834,23 @@ const App = () => {
     }
   };
 
+  const [projects, setProjects] = useState<string[]>(getProjectsFromStorage);
+
+  useEffect(() => {
+    const handleProjectsChange = () => {
+      setProjects(getProjectsFromStorage());
+    };
+    const storageListener = (e: StorageEvent) => {
+      if (e.key === "allProjects") handleProjectsChange();
+    };
+    window.addEventListener("storage", storageListener);
+    window.addEventListener("projectsUpdated", handleProjectsChange);
+    return () => {
+      window.removeEventListener("storage", storageListener);
+      window.removeEventListener("projectsUpdated", handleProjectsChange);
+    };
+  }, []);
+
   return (
     <Layout className={`app-container ${theme}`}>
       <Header className="header">
@@ -1009,7 +1037,7 @@ const App = () => {
                               triggerNode.parentNode
                             }
                           >
-                            {ALL_AVAILABLE_PROJECTS.map((project) => (
+                            {projects.map((project: string) => (
                               <Option key={project} value={project}>
                                 {project}
                               </Option>
