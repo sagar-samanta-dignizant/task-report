@@ -1131,9 +1131,34 @@ const App = () => {
                             <div
                               className="task-row"
                               style={{
-                                gridTemplateColumns: settings.taskSettings.showID
-                                  ? "1fr 3fr 1fr 1fr 1fr auto auto auto"
-                                  : "3fr 1fr 1fr 1fr auto auto auto",
+                                gridTemplateColumns: (() => {
+                                  const showID = settings.taskSettings.showID;
+                                  const showStatus = settings.taskSettings.showStatus;
+                                  const showHours = settings.taskSettings.showHours;
+                                  // Count how many fields are visible
+                                  let cols = [];
+                                  if (showID) cols.push('1fr');
+                                  cols.push('title');
+                                  if (showHours) {
+                                    cols.push('1fr', '1fr'); // hours, minutes
+                                  }
+                                  if (showStatus) cols.push('1fr');
+                                  // Always add the action columns
+                                  cols.push('auto', 'auto', 'auto');
+                                  // Now, set the title column width based on how many fields are visible
+                                  let titleColWidth = '3fr';
+                                  const visibleFields = (showID ? 1 : 0) + (showHours ? 2 : 0) + (showStatus ? 1 : 0);
+                                  switch (visibleFields) {
+                                    case 0: titleColWidth = '6fr'; break;
+                                    case 1: titleColWidth = '5fr'; break;
+                                    case 2: titleColWidth = '4fr'; break;
+                                    case 3: titleColWidth = '3fr'; break;
+                                    case 4: titleColWidth = '2fr'; break;
+                                    default: titleColWidth = '3fr';
+                                  }
+                                  cols = cols.map(col => col === 'title' ? titleColWidth : col);
+                                  return cols.join(' ');
+                                })(),
                               }}
                             >
                               {settings.taskSettings.showID && (
@@ -1298,9 +1323,31 @@ const App = () => {
                                   className="task-row subtask-row"
                                   key={`subtask-${index}-${subIndex}`}
                                   style={{
-                                    gridTemplateColumns: settings.taskSettings.showID
-                                      ? "1fr 3fr 1fr 1fr 1fr auto auto auto"
-                                      : "3fr 1fr 1fr 1fr auto auto auto",
+                                    gridTemplateColumns: (() => {
+                                      const showID = settings.taskSettings.showID;
+                                      const showStatus = settings.taskSettings.showStatus;
+                                      const showHours = settings.taskSettings.showHours;
+                                      let cols = [];
+                                      if (showID) cols.push('1fr');
+                                      cols.push('title');
+                                      if (showHours) {
+                                        cols.push('1fr', '1fr');
+                                      }
+                                      if (showStatus) cols.push('1fr');
+                                      cols.push('auto', 'auto', 'auto');
+                                      let titleColWidth = '3fr';
+                                      const visibleFields = (showID ? 1 : 0) + (showHours ? 2 : 0) + (showStatus ? 1 : 0);
+                                      switch (visibleFields) {
+                                        case 0: titleColWidth = '6fr'; break;
+                                        case 1: titleColWidth = '5fr'; break;
+                                        case 2: titleColWidth = '4fr'; break;
+                                        case 3: titleColWidth = '3fr'; break;
+                                        case 4: titleColWidth = '2fr'; break;
+                                        default: titleColWidth = '3fr';
+                                      }
+                                      cols = cols.map(col => col === 'title' ? titleColWidth : col);
+                                      return cols.join(' ');
+                                    })(),
                                   }}
                                 >
                                   {settings.taskSettings.showID && (
