@@ -3,7 +3,7 @@ import "./SettingsPage.css"; // Import custom CSS for the settings page
 import { Avatar, Button, Input, Upload, message, List, Popconfirm, Tabs, Modal, Progress, Checkbox } from "antd"; // Import Ant Design Input, Upload, Button, Avatar, message, List, Popconfirm, Tabs, Modal, Progress, and Checkbox components
 
 import React from "react";
-import { UploadOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons"; // Import Upload, Plus, and Delete icons
+import { UploadOutlined, PlusOutlined, DeleteOutlined, ExportOutlined, ImportOutlined, ExclamationCircleOutlined } from "@ant-design/icons"; // Import Upload, Plus, Delete, Export, Import, and Exclamation Circle icons
 
 const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) => (
     <div
@@ -575,6 +575,7 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                             <div className="settings-option">
                                 <Button
                                     type="primary"
+                                    icon={<ExportOutlined />}
                                     style={{ background: '#23272f', color: '#4caf50', border: '1px solid #333', marginRight: 12 }}
                                     onClick={async () => {
                                         setExportModalVisible(true);
@@ -636,6 +637,7 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                 />
                                 <Button
                                     type="primary"
+                                    icon={<ImportOutlined />}
                                     style={{ background: '#23272f', color: '#4caf50', border: '1px solid #333' }}
                                     onClick={() => document.getElementById('import-backup-input')?.click()}
                                 >
@@ -651,6 +653,7 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                 <Button
                                     danger
                                     type="primary"
+                                    icon={<ExclamationCircleOutlined />}
                                     style={{ background: '#b71c1c', border: '1px solid #b71c1c', color: '#fff', }}
                                     onClick={() => {
                                         Modal.confirm({
@@ -672,8 +675,7 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                             centered: true,
                                             onOk: () => {
                                                 localStorage.clear();
-                                                message.success('All app data cleared. The app will now reload.');
-                                                setTimeout(() => window.location.reload(), 1200);
+                                                window.location.replace(window.location.pathname);
                                             },
                                         });
                                     }}
@@ -681,7 +683,7 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                     Reset APP
                                 </Button>
                                 <div style={{ color: '#e53935', fontSize: 13, marginBottom: 12, fontWeight: 500 }}>
-                                    Reset will permanently delete all your saved projects, settings, reports, profile picture, and any other data stored in your browser for this app. This cannot be undone.
+                                    Reset will permanently delete all (Except deafult) your saved projects, settings, reports, profile picture, and any other data stored in your browser for this app. This cannot be undone.
                                 </div>
                             </div>
                         </div>
