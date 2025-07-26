@@ -82,39 +82,53 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                 </Button>
                             </div>
                             <List
-                                bordered
-                                size="small"
+                                grid={{ gutter: 16, column: 2 }}
+                                bordered={false}
                                 dataSource={projects}
                                 renderItem={item => (
-                                    <List.Item
-                                        actions={[
-                                            !DEFAULT_PROJECTS.includes(item) && (
-                                                <Popconfirm
-                                                    title="Remove this project?"
-                                                    onConfirm={() => handleRemoveProject(item)}
-                                                    okText="Yes"
-                                                    cancelText="No"
-                                                >
-                                                    <Button
-                                                        type="link"
-                                                        icon={<DeleteOutlined />}
-                                                        danger
-                                                        size="small"
-                                                    />
-                                                </Popconfirm>
-                                            ),
-                                        ]}
-                                    >
+                                    <List.Item style={{ background: 'linear-gradient(135deg, #23272f 60%, #181b20 100%)', borderRadius: 10, margin: 6, boxShadow: '0 2px 12px rgba(0,0,0,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', border: '1px solid #23272f' }}>
                                         <span style={{
                                             fontWeight: DEFAULT_PROJECTS.includes(item) ? 700 : 400,
-                                            color: DEFAULT_PROJECTS.includes(item) ? "#43a047" : undefined
-                                    }}>
+                                            color: DEFAULT_PROJECTS.includes(item) ? "#43a047" : "#e0e0e0",
+                                            fontSize: 16
+                                        }}>
                                             {item}
                                             {DEFAULT_PROJECTS.includes(item) && <span style={{ fontSize: 12, color: "#888", marginLeft: 6 }}>(default)</span>}
                                         </span>
+                                        {!DEFAULT_PROJECTS.includes(item) && (
+                                            <Popconfirm
+                                                title="Remove this project?"
+                                                onConfirm={() => handleRemoveProject(item)}
+                                                okText="Yes"
+                                                cancelText="No"
+                                            >
+                                                <Button
+                                                    type="primary"
+                                                    icon={<DeleteOutlined style={{ transition: 'color 0.2s' }} />}
+                                                    danger
+                                                    size="small"
+                                                    style={{
+                                                        marginLeft: 8,
+                                                        background: 'linear-gradient(135deg, #23272f 60%, #181b20 100%)',
+                                                        color: '#ff5252',
+                                                        border: '1px solid #444',
+                                                        boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+                                                        transition: 'color 0.2s, background 0.2s',
+                                                    }}
+                                                    onMouseEnter={e => {
+                                                        e.currentTarget.style.color = '#fff';
+                                                        e.currentTarget.style.background = '#ff5252';
+                                                    }}
+                                                    onMouseLeave={e => {
+                                                        e.currentTarget.style.color = '#ff5252';
+                                                        e.currentTarget.style.background = 'linear-gradient(135deg, #23272f 60%, #181b20 100%)';
+                                                    }}
+                                                />
+                                            </Popconfirm>
+                                        )}
                                     </List.Item>
                                 )}
-                                style={{ maxWidth: 350, background: "transparent", color: "#fff" }} // changed background to transparent for dark mode
+                                style={{ maxWidth: 700, width: '100%', background: 'transparent', color: '#fff', marginTop: 8 }}
                             />
                         </div>
                     </Tabs.TabPane>
