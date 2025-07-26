@@ -7,7 +7,7 @@ import {
 } from "../constant/task.constant";
 import { AddIcon, minusIcon } from "../assets/fontAwesomeIcons";
 import { Button, DatePicker, Input, Select, Tooltip } from "antd";
-import { CloseOutlined, SaveOutlined } from "@ant-design/icons";
+import { CloseOutlined, SaveOutlined, EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -24,7 +24,8 @@ interface Task {
   hours: string | number;
   minutes: string | number;
   status: string;
-  subtasks?: Omit<Task, "subtasks">[]; // Add subtasks property
+  subtasks?: Omit<Task, "subtasks">[];
+  view?: boolean; // Add view property for show/hide in preview
 }
 
 const EditTaskPage = ({ settings }: { settings: any }) => {
@@ -37,7 +38,9 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
     subIcon,
     date: selectedDate,
   } = report?.data;
-  const [tasks, setTasks] = useState<Task[]>(report?.data.tasks || []);
+  const [tasks, setTasks] = useState<Task[]>(
+    (report?.data.tasks || []).map((t: any) => ({ ...t, view: t.view !== false }))
+  );
   const [selectedProjects, setSelectedProjects] = useState<string[]>(
     projects || []
   );
@@ -155,6 +158,7 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       hours: "",
       minutes: "",
       status: "Completed",
+      view: true,
     };
     setTasks((prevTasks) => {
       const updatedTasks = [...prevTasks, newTask]; // Add new task at the bottom
@@ -184,6 +188,7 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       hours: "",
       minutes: "",
       status: "Completed",
+      view: true,
     };
 
     setTasks((prevTasks) => {
@@ -199,7 +204,7 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
     setTimeout(() => {
       const subtaskRef =
         subtaskRefs.current[parentIndex]?.[
-          subtaskRefs.current[parentIndex].length - 1
+        subtaskRefs.current[parentIndex].length - 1
         ];
       subtaskRef?.focus(); // Focus on the Title input of the new subtask
     }, 0);
@@ -322,11 +327,17 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       subIcon: string
     ): string =>
       tasks
+        .filter((task) => task.view !== false)
         .map((task, index) => {
           const taskLine = `${formatLine(task, level, bulletType, index)}`;
           const subtaskLines =
             previewSettings.allowSubtask && task.subtasks
-              ? formatTasks(task.subtasks, level + 1, subIcon, subIcon)
+              ? formatTasks(
+                task.subtasks.filter((subtask) => subtask.view !== false),
+                level + 1,
+                subIcon,
+                subIcon
+              )
               : "";
           return `${taskLine}${subtaskLines ? `\n${subtaskLines}` : ""}`;
         })
@@ -351,14 +362,12 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
 
     // Build preview lines conditionally, skipping empty lines
     const previewLines = [
-      `${workUpdateText}${
-        settings.previewSettings.showDate ? " " + reverseDate(date) : ""
+      `${workUpdateText}${settings.previewSettings.showDate ? " " + reverseDate(date) : ""
       }`,
       lineAfterWorkUpdate,
       settings.previewSettings.showProject
-        ? `Project : ${
-            selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
-          }`
+        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
+        }`
         : "",
       settings.previewSettings.allowLineAfterProject
         ? lineAfterProject
@@ -384,6 +393,30 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
   useEffect(() => {
     // Remove hotkey handling to ensure it only works on the App page
   }, []);
+
+  const toggleTaskView = (taskIndex: number) => {
+    setTasks((prevTasks) => {
+      const updatedTasks = [...prevTasks];
+      updatedTasks[taskIndex] = {
+        ...updatedTasks[taskIndex],
+        view: updatedTasks[taskIndex].view === false ? true : false,
+      };
+      return updatedTasks;
+    });
+  };
+
+  const toggleSubtaskView = (parentIndex: number, subtaskIndex: number) => {
+    setTasks((prevTasks) => {
+      const updatedTasks = [...prevTasks];
+      if (updatedTasks[parentIndex].subtasks) {
+        updatedTasks[parentIndex].subtasks[subtaskIndex] = {
+          ...updatedTasks[parentIndex].subtasks[subtaskIndex],
+          view: updatedTasks[parentIndex].subtasks[subtaskIndex].view === false ? true : false,
+        };
+      }
+      return updatedTasks;
+    });
+  };
 
   if (!report) {
     return <p>Report not found!</p>;
@@ -527,9 +560,12 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
                   <div
                     className="task-row"
                     style={{
+                      display: 'grid',
+                      alignItems: 'center',
                       gridTemplateColumns: settings.taskSettings.showID
-                        ? "1fr 3fr 1fr 1fr 1fr auto auto" // With ID field
-                        : "3fr 1fr 1fr 1fr auto auto", // Without ID field
+                        ? "1fr 3fr 1fr 1fr 1fr 40px 40px 40px" // Set fixed width for action buttons
+                        : "3fr 1fr 1fr 1fr 40px 40px 40px",
+                      gap: '8px', // Add gap between columns
                     }}
                   >
                     {settings.taskSettings.showID && (
@@ -607,6 +643,14 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
                       )}
                     </div>
                     <div
+                      className="toggle-view-circle"
+                      onClick={() => toggleTaskView(index)}
+                      title={task.view === false ? "Show in Preview" : "Hide from Preview"}
+                      style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                    >
+                      {task.view === false ? <EyeInvisibleOutlined style={{ color: '#ff9800', fontSize: 18 }} /> : <EyeOutlined style={{ color: '#4caf50', fontSize: 18 }} />}
+                    </div>
+                    <div
                       className="clear-task-circle"
                       onClick={() => clearTask(index)} // Use index to remove the task
                       title="Delete Task"
@@ -620,6 +664,7 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
                     >
                       {AddIcon}
                     </div>
+
                   </div>
                   {task.subtasks &&
                     task.subtasks.map((subtask, subIndex) => (
@@ -627,26 +672,17 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
                         className="task-row subtask-row"
                         key={`subtask-${index}-${subIndex}`}
                         style={{
+                          display: 'grid',
+                          alignItems: 'center',
                           gridTemplateColumns: settings.taskSettings.showID
-                            ? "1fr 3fr 1fr 1fr 1fr auto auto" // With ID field
-                            : "3fr 1fr 1fr 1fr auto auto", // Without ID field
+                            ? "1fr 3fr 1fr 1fr 1fr 40px 40px 40px" // Match task row columns for alignment
+                            : "3fr 1fr 1fr 1fr 40px 40px 40px",
+                          gap: '8px',
                         }}
                       >
                         {settings.taskSettings.showID && (
                           <div className="input-group id-field">
-                            <Input
-                              style={{ visibility: "hidden" }} // Hide subtask ID field
-                              placeholder="Subtask ID"
-                              value={subtask.taskId}
-                              onChange={(e) =>
-                                handleSubtaskChange(
-                                  index,
-                                  subIndex,
-                                  "taskId",
-                                  e.target.value
-                                )
-                              }
-                            />
+                            {/* Empty cell for subtask to align with task ID column */}
                           </div>
                         )}
                         <div className="input-group title-field">
@@ -656,7 +692,7 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
                                 subtaskRefs.current[index] = [];
                               }
                               subtaskRefs.current[index][subIndex] =
-                                el?.input || null; // Assign ref to the Title input
+                                el?.input || null;
                             }}
                             placeholder="Subtask Title"
                             value={subtask.title}
@@ -734,18 +770,23 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
                           )}
                         </div>
                         <div
+                          className="toggle-view-circle"
+                          onClick={() => toggleSubtaskView(index, subIndex)}
+                          title={subtask.view === false ? "Show in Preview" : "Hide from Preview"}
+                          style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        >
+                          {subtask.view === false ? <EyeInvisibleOutlined style={{ color: '#ff9800', fontSize: 18 }} /> : <EyeOutlined style={{ color: '#4caf50', fontSize: 18 }} />}
+                        </div>
+                        <div
                           className="clear-task-circle"
-                          onClick={() => clearSubtask(index, subIndex)} // Use parentIndex and subtaskIndex to remove the subtask
+                          onClick={() => clearSubtask(index, subIndex)}
                           title="Delete Subtask"
                         >
                           {minusIcon}
                         </div>
                         <div
-                          className="add-task-circle"
-                          style={{ visibility: "hidden" }}
-                        >
-                          {AddIcon}
-                        </div>
+                          style={{ width: 40 }}
+                        />
                       </div>
                     ))}
                 </div>
