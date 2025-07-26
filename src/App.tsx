@@ -17,7 +17,9 @@ import {
   InputRef,
   Layout,
   Select as AntdSelect,
-  Tooltip,
+  Dropdown,
+  Menu,
+  Tooltip
 } from "antd";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 import {
@@ -30,6 +32,7 @@ import {
   SettingOutlined,
   EyeOutlined,
   EyeInvisibleOutlined,
+  LogoutOutlined
 } from "@ant-design/icons";
 import {
   NavLink,
@@ -46,6 +49,7 @@ import SettingsPage from "./pages/SettingsPage";
 import dayjs from "dayjs";
 import { getBullet } from "./utils/icon.utils";
 import { reverseDate } from "./utils/dateUtils";
+import LoginPage from "./components/LoginPage";
 
 const { Option } = AntdSelect;
 const { Header } = Layout;
@@ -176,6 +180,17 @@ const App = () => {
     if (location.pathname !== to) {
       navigate(to);
     }
+  };
+
+  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem("isLoggedIn") === "true");
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    setIsLoggedIn(false);
   };
 
   useEffect(() => {
@@ -862,7 +877,13 @@ const App = () => {
       return updatedTasks;
     });
   };
-
+  if (!isLoggedIn) {
+    if (location.pathname !== "/") {
+      navigate("/", { replace: true });
+      return null;
+    }
+    return <LoginPage onLogin={handleLogin} />;
+  }
   return (
     <Layout className={`app-container ${theme}`}>
       <Header className="header">
@@ -923,17 +944,31 @@ const App = () => {
             </NavLink>
           </div>
           <div className="profile-avatar">
-            <Avatar
-              src={profilePicture || undefined} // Show nothing if no image is uploaded
-              size="large"
-              style={{
-                cursor: "pointer",
-                backgroundColor: profilePicture ? "transparent" : "#f56a00",
-              }}
+            <Dropdown
+              overlay={
+                <Menu>
+                  <Menu.Item key="logout" onClick={handleLogout}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <LogoutOutlined style={{ fontSize: 16 }} /> Logout
+                    </span>
+                  </Menu.Item>
+                </Menu>
+              }
+              placement="bottomRight"
+              trigger={["click"]}
             >
-              {!profilePicture && name ? name[0].toUpperCase() : null}{" "}
-              {/* Show initial if no image */}
-            </Avatar>
+              <Avatar
+                src={profilePicture || undefined}
+                size="large"
+                style={{
+                  cursor: "pointer",
+                  backgroundColor: profilePicture ? "transparent" : "#f56a00",
+                }}
+                
+              >
+                {!profilePicture && name ? name[0].toUpperCase() : null}
+              </Avatar>
+            </Dropdown>
           </div>
         </div>
       </Header>
