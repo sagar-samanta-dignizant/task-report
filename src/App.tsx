@@ -28,6 +28,8 @@ import {
   ReloadOutlined,
   SaveOutlined,
   SettingOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
 } from "@ant-design/icons";
 import {
   NavLink,
@@ -48,13 +50,14 @@ import { reverseDate } from "./utils/dateUtils";
 const { Option } = AntdSelect;
 const { Header } = Layout;
 interface Task {
-  taskId?: string; // Renamed from id to taskId for consistency
+  taskId?: string;
   title: string;
   hours: string | number;
   minutes: string | number;
   status: string;
   icon?: string;
   subtasks?: Omit<Task, "subtasks">[];
+  view?: boolean; // New: controls visibility in preview
 }
 // Define a static notification time
 const NOTIFICATION_TIME = "06:00 PM";
@@ -65,7 +68,7 @@ const getProjectsFromStorage = () => {
     try {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) return parsed;
-    } catch {}
+    } catch { }
   }
   return ALL_AVAILABLE_PROJECTS;
 };
@@ -80,6 +83,7 @@ const App = () => {
       hours: "",
       minutes: "",
       status: "Completed",
+      view: true, // Default to true
     },
   ]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>(() => {
@@ -356,19 +360,18 @@ const App = () => {
       hours: "",
       minutes: "",
       status: "Completed",
+      view: true, // Default to true
     };
     setTasks((prevTasks) => {
       const updatedTasks = [...prevTasks, newTask];
-      taskRefs.current.push(null); // Adjust the refs array
+      taskRefs.current.push(null);
       return updatedTasks;
     });
     setTimeout(() => {
       if (settings.taskSettings.showID) {
-        // Focus on the ID input if it exists
         const lastTaskRef = taskRefs.current[taskRefs.current.length - 1];
         lastTaskRef?.focus();
       } else {
-        // Focus on the title input if ID is not shown
         const titleInput =
           document.querySelectorAll<HTMLInputElement>(".task-title-input");
         titleInput[titleInput.length - 1]?.focus();
@@ -378,14 +381,14 @@ const App = () => {
 
   const addSubtask = (parentIndex: number) => {
     const newSubtask: Task = {
-      taskId: "", // Renamed from id
+      taskId: "",
       title: "",
       hours: "",
       minutes: "",
       status: "Completed",
       icon: selectedSubIcon,
+      view: true, // Default to true
     };
-
     setTasks((prevTasks) => {
       const updatedTasks = [...prevTasks];
       if (!updatedTasks[parentIndex].subtasks) {
@@ -399,7 +402,7 @@ const App = () => {
     setTimeout(() => {
       const subtaskRef =
         subtaskRefs.current[parentIndex]?.[
-          subtaskRefs.current[parentIndex].length - 1
+        subtaskRefs.current[parentIndex].length - 1
         ];
       subtaskRef?.focus();
     }, 0);
@@ -448,7 +451,7 @@ const App = () => {
   };
 
   const getFormattedPreview = () => {
-    const allTasks = tasks.filter((task) => task.title.trim());
+    const allTasks = tasks.filter((task) => task.title.trim() && (task.view !== false));
 
     const formatLine = (task: Task, index: number, isSubtask = false) => {
       let line = "";
@@ -489,6 +492,7 @@ const App = () => {
 
     const formatTasks = (tasks: Task[], level = 0) =>
       tasks
+        .filter((task) => task.view !== false)
         .map((task, index) => {
           const indent = "  ".repeat(level);
           let line = `${indent}${getBullet(bulletType, index)}${formatLine(
@@ -500,9 +504,7 @@ const App = () => {
             task.subtasks &&
             task.subtasks.length > 0
           ) {
-            const filteredSubtasks = task.subtasks.filter((subtask) =>
-              subtask.title.trim()
-            );
+            const filteredSubtasks = task.subtasks.filter((subtask) => subtask.title.trim() && (subtask.view !== false));
             if (filteredSubtasks.length > 0) {
               line += `\n${filteredSubtasks
                 .map(
@@ -537,19 +539,17 @@ const App = () => {
       : "";
 
     const previewLines = [
-      `${workUpdateText}${
-        settings.previewSettings.showDate ? " " + reverseDate(date) : ""
+      `${workUpdateText}${settings.previewSettings.showDate ? " " + reverseDate(date) : ""
       }`,
       lineAfterWorkUpdate,
       settings.previewSettings.showProject
-        ? `Project : ${
-            selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
-          }`
+        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
+        }`
         : "",
       settings.previewSettings.allowLineAfterProject
         ? lineAfterProject
         : "",
-      !settings.previewSettings.allowLineAfterProject ? "" : "", 
+      !settings.previewSettings.allowLineAfterProject ? "" : "",
       formatTasks(allTasks),
       settings.previewSettings.showNextTask && nextTaskValue.trim()
         ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
@@ -851,6 +851,30 @@ const App = () => {
     };
   }, []);
 
+  const toggleTaskView = (taskIndex: number) => {
+    setTasks((prevTasks) => {
+      const updatedTasks = [...prevTasks];
+      updatedTasks[taskIndex] = {
+        ...updatedTasks[taskIndex],
+        view: updatedTasks[taskIndex].view === false ? true : false,
+      };
+      return updatedTasks;
+    });
+  };
+
+  const toggleSubtaskView = (parentIndex: number, subtaskIndex: number) => {
+    setTasks((prevTasks) => {
+      const updatedTasks = [...prevTasks];
+      if (updatedTasks[parentIndex].subtasks) {
+        updatedTasks[parentIndex].subtasks[subtaskIndex] = {
+          ...updatedTasks[parentIndex].subtasks[subtaskIndex],
+          view: updatedTasks[parentIndex].subtasks[subtaskIndex].view === false ? true : false,
+        };
+      }
+      return updatedTasks;
+    });
+  };
+
   return (
     <Layout className={`app-container ${theme}`}>
       <Header className="header">
@@ -1064,8 +1088,8 @@ const App = () => {
                                 remainingTime < 0
                                   ? "time-exceeded"
                                   : remainingTime === 0
-                                  ? "time-matched"
-                                  : "time-in-limit"
+                                    ? "time-matched"
+                                    : "time-in-limit"
                               }
                             >
                               {formatRemainingTime(remainingTime)}
@@ -1116,10 +1140,9 @@ const App = () => {
                             <div
                               className="task-row"
                               style={{
-                                gridTemplateColumns: settings.taskSettings
-                                  .showID
-                                  ? "1fr 3fr 1fr 1fr 1fr auto auto"
-                                  : "3fr 1fr 1fr 1fr auto auto",
+                                gridTemplateColumns: settings.taskSettings.showID
+                                  ? "1fr 3fr 1fr 1fr 1fr auto auto auto"
+                                  : "3fr 1fr 1fr 1fr auto auto auto",
                               }}
                             >
                               {settings.taskSettings.showID && (
@@ -1248,6 +1271,13 @@ const App = () => {
                                 </div>
                               )}
                               <div
+                                className="toggle-view-circle"
+                                onClick={() => toggleTaskView(index)}
+                                title={task.view === false ? "Show in Preview" : "Hide from Preview"}
+                              >
+                                {task.view === false ? <EyeInvisibleOutlined style={{ color: '#ff9800', fontSize: 18 }} /> : <EyeOutlined style={{ color: '#4caf50', fontSize: 18 }} />}
+                              </div>
+                              <div
                                 className="clear-task-circle"
                                 onClick={() => clearTask(index)} // Use index to remove the task
                                 title="Delete Task"
@@ -1269,6 +1299,7 @@ const App = () => {
                               >
                                 {AddIcon}
                               </div>
+
                             </div>
                             {task.subtasks &&
                               task.subtasks.map((subtask, subIndex) => (
@@ -1276,10 +1307,9 @@ const App = () => {
                                   className="task-row subtask-row"
                                   key={`subtask-${index}-${subIndex}`}
                                   style={{
-                                    gridTemplateColumns: settings.taskSettings
-                                      .showID
-                                      ? "1fr 3fr 1fr 1fr 1fr auto auto"
-                                      : "3fr 1fr 1fr 1fr auto auto",
+                                    gridTemplateColumns: settings.taskSettings.showID
+                                      ? "1fr 3fr 1fr 1fr 1fr auto auto auto"
+                                      : "3fr 1fr 1fr 1fr auto auto auto",
                                   }}
                                 >
                                   {settings.taskSettings.showID && (
@@ -1418,6 +1448,13 @@ const App = () => {
                                     </div>
                                   )}
                                   <div
+                                    className="toggle-view-circle"
+                                    onClick={() => toggleSubtaskView(index, subIndex)}
+                                    title={subtask.view === false ? "Show in Preview" : "Hide from Preview"}
+                                  >
+                                    {subtask.view === false ? <EyeInvisibleOutlined style={{ color: '#ff9800', fontSize: 18 }} /> : <EyeOutlined style={{ color: '#4caf50', fontSize: 18 }} />}
+                                  </div>
+                                  <div
                                     className="clear-task-circle"
                                     onClick={
                                       () => clearSubtask(index, subIndex) // Use parentIndex and subtaskIndex to remove the subtask
@@ -1437,6 +1474,7 @@ const App = () => {
                                   >
                                     {AddIcon}
                                   </div>
+
                                 </div>
                               ))}
                           </div>

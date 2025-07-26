@@ -158,6 +158,14 @@ body {
   transition: border-color 0.3s ease, transform 0.2s ease;
   color: #4caf50; /* Green icon color */
 }
+.toggle-view-circle {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.3s ease, transform 0.2s ease;
+}
 
 .add-task-circle:hover {
   border-color: #388e3c; /* Darker green on hover */
@@ -360,7 +368,16 @@ header {
 .header-title span.title-text {
   font-size: 28px; /* Larger font size */
   font-weight: bold;
-  background: linear-gradient(90deg, #4caf50, #1e88e5, #ff9800, #ff5722, #9c27b0, #03a9f4, #8bc34a);
+  background: linear-gradient(
+    90deg,
+    #4caf50,
+    #1e88e5,
+    #ff9800,
+    #ff5722,
+    #9c27b0,
+    #03a9f4,
+    #8bc34a
+  );
   background-size: 400% 400%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -700,15 +717,15 @@ header {
 .task-row.subtask-row .id-field {
   display: block; /* Show ID field */
 }
-.edit-button-group{
+.edit-button-group {
   margin-top: 10px;
-   display: flex;
-    position: absolute;
-    right: 0;
-    width: 47%;
-    gap: 15px;
+  display: flex;
+  position: absolute;
+  right: 0;
+  width: 47%;
+  gap: 15px;
 }
-.edit-add-task{
+.edit-add-task {
   margin-right: 10px;
 }
 .button-group button {
@@ -872,8 +889,8 @@ label .input-field {
 }
 
 .profile-avatar {
- position: absolute;
- right: 30px ;
+  position: absolute;
+  right: 30px;
 }
 
 .rounded-logo {
