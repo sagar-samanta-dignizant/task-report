@@ -749,8 +749,8 @@ const App = () => {
     }
     const userName = localStorage.getItem("name");
     const message = userName
-      ? `Yo ${userName}, task time! No excuses! 😜`
-      : "Yo, task time! Let's do this! 😆";
+      ? `Hey ${userName}, Netflix can wait. Work can't. 😬`
+      : "Netflix can wait. Time to slay some tasks! 🎯";
 
     scheduleNotification(NOTIFICATION_TIME, message);
   }, []); // Run only once on component mount

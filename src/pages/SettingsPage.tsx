@@ -86,7 +86,6 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
 
     return (
         <div className="settings-page">
-            <h2 className="settings-title">Settings</h2>
             <div className="settings-container">
                 <Tabs defaultActiveKey="task" type="card" size="large" className="settings-tabs">
 
