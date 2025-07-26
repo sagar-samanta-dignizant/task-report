@@ -27,6 +27,17 @@ interface Task {
   subtasks?: Omit<Task, "subtasks">[];
   view?: boolean; // Add view property for show/hide in preview
 }
+const getProjectsFromStorage = () => {
+  const stored = localStorage.getItem("allProjects");
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return parsed;
+    } catch { }
+  }
+  return ALL_AVAILABLE_PROJECTS;
+};
+
 
 const EditTaskPage = ({ settings }: { settings: any }) => {
   const location = useLocation();
@@ -34,7 +45,7 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
   const report = location.state?.report;
   const {
     bulletType: taskIcon,
-    selectedProjects: projects,
+    selectedProjects: projectsSeleted,
     subIcon,
     date: selectedDate,
   } = report?.data;
@@ -42,7 +53,7 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
     (report?.data.tasks || []).map((t: any) => ({ ...t, view: t.view !== false }))
   );
   const [selectedProjects, setSelectedProjects] = useState<string[]>(
-    projects || []
+    projectsSeleted || []
   );
 
   const [name, setName] = useState(report?.data.name || "");
@@ -54,10 +65,9 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
   const [selectedSubIcon, setSelectedSubIcon] = useState(subIcon);
   const [alertMessage, setAlertMessage] = useState<string | null>(null); // Add state for alert messages
   const [isDateConflict, setIsDateConflict] = useState(false); // Track if the selected date conflicts with an existing record
-
   const taskRefs = useRef<(HTMLInputElement | null)[]>([]);
   const subtaskRefs = useRef<(HTMLInputElement | null)[][]>([]);
-
+  const projects = getProjectsFromStorage()
   const workingTimeLimit = 8.5;
 
   const generateSettings = JSON.parse(
@@ -66,7 +76,6 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
   const previewSettings = JSON.parse(
     localStorage.getItem("previewSettings") || "{}"
   );
-
   const TASK_GAP = generateSettings.taskGap || 1; // Default to 1 if not set
   const SUBTASK_GAP = generateSettings.subtaskGap || 1; // Default to 1 if not set
 
@@ -506,7 +515,7 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
                   onChange={(value) => setSelectedProjects(value)}
                   style={{ width: "100%" }}
                 >
-                  {ALL_AVAILABLE_PROJECTS.map((project) => (
+                  {projects.map((project: string) => (
                     <Option key={project} value={project}>
                       {project}
                     </Option>

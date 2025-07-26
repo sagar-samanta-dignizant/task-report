@@ -204,6 +204,9 @@ const App = () => {
     localStorage.setItem("selectedProjects", JSON.stringify(selectedProjects));
   }, [selectedProjects]);
 
+  const projects = getProjectsFromStorage()
+
+
   useEffect(() => {
     Object.keys(settings).forEach((section) => {
       localStorage.setItem(
@@ -834,22 +837,7 @@ const App = () => {
     }
   };
 
-  const [projects, setProjects] = useState<string[]>(getProjectsFromStorage);
 
-  useEffect(() => {
-    const handleProjectsChange = () => {
-      setProjects(getProjectsFromStorage());
-    };
-    const storageListener = (e: StorageEvent) => {
-      if (e.key === "allProjects") handleProjectsChange();
-    };
-    window.addEventListener("storage", storageListener);
-    window.addEventListener("projectsUpdated", handleProjectsChange);
-    return () => {
-      window.removeEventListener("storage", storageListener);
-      window.removeEventListener("projectsUpdated", handleProjectsChange);
-    };
-  }, []);
 
   const toggleTaskView = (taskIndex: number) => {
     setTasks((prevTasks) => {
