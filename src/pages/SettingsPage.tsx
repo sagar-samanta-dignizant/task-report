@@ -14,7 +14,7 @@ const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (chec
     </div>
 );
 
-const DEFAULT_PROJECTS = ["Rukkor", "Geometra", "Deviaq", "Rukkor website"];
+const DEFAULT_PROJECTS = ["Rukkor", "Geometra"];
 
 const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
     const [uploadedImage, setUploadedImage] = React.useState<string | null>(null); // State for uploaded image preview
@@ -220,7 +220,7 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                             <CustomSwitch checked={settings.previewSettings.allowLineAfterWorkUpdate} onChange={(checked) => toggleSetting("previewSettings", "allowLineAfterWorkUpdate", checked)} />
                                         </label>
                                         {settings.previewSettings.allowLineAfterWorkUpdate && (
-                                            <Input type="number" className="line-input" placeholder="Enter line length" value={settings.previewSettings.lineAfterWorkUpdate || 3} onChange={(e) => toggleSetting("previewSettings", "lineAfterWorkUpdate", parseInt(e.target.value) || 3)} onWheel={(e) => e.currentTarget.blur()} />
+                                            <Input type="number" className="line-input" placeholder="Len" value={settings.previewSettings.lineAfterWorkUpdate || 3} onChange={(e) => toggleSetting("previewSettings", "lineAfterWorkUpdate", parseInt(e.target.value) || 3)} onWheel={(e) => e.currentTarget.blur()} style={{ width: 200 }} />
                                         )}
                                     </div>
                                     <div className="settings-option">
@@ -228,7 +228,7 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                             <CustomSwitch checked={settings.previewSettings.allowLineAfterProject} onChange={(checked) => toggleSetting("previewSettings", "allowLineAfterProject", checked)} />
                                         </label>
                                         {settings.previewSettings.allowLineAfterProject && (
-                                            <Input type="number" className="line-input" placeholder="Enter line length" value={settings.previewSettings.lineAfterProject || 3} onChange={(e) => toggleSetting("previewSettings", "lineAfterProject", parseInt(e.target.value) || 3)} onWheel={(e) => e.currentTarget.blur()} />
+                                            <Input type="number" className="line-input" placeholder="Len" value={settings.previewSettings.lineAfterProject || 3} onChange={(e) => toggleSetting("previewSettings", "lineAfterProject", parseInt(e.target.value) || 3)} onWheel={(e) => e.currentTarget.blur()} style={{ width: 200 }} />
                                         )}
                                     </div>
                                     <div className="settings-option">
@@ -236,7 +236,7 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                             <CustomSwitch checked={settings.previewSettings.allowLineAfterNextTask} onChange={(checked) => toggleSetting("previewSettings", "allowLineAfterNextTask", checked)} />
                                         </label>
                                         {settings.previewSettings.allowLineAfterNextTask && (
-                                            <Input type="number" className="line-input" placeholder="Enter line length" value={settings.previewSettings.lineAfterNextTask || 3} onChange={(e) => toggleSetting("previewSettings", "lineAfterNextTask", parseInt(e.target.value) || 3)} onWheel={(e) => e.currentTarget.blur()} />
+                                            <Input type="number" className="line-input" placeholder="Len" value={settings.previewSettings.lineAfterNextTask || 3} onChange={(e) => toggleSetting("previewSettings", "lineAfterNextTask", parseInt(e.target.value) || 3)} onWheel={(e) => e.currentTarget.blur()} style={{ width: 200 }} />
                                         )}
                                     </div>
                                     <div className="settings-option">
@@ -244,7 +244,7 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                             <CustomSwitch checked={settings.previewSettings.allowLineBeforeClosingText} onChange={(checked) => toggleSetting("previewSettings", "allowLineBeforeClosingText", checked)} />
                                         </label>
                                         {settings.previewSettings.allowLineBeforeClosingText && (
-                                            <Input type="number" className="line-input" placeholder="Enter line length" value={settings.previewSettings.lineBeforeClosingText || 3} onChange={(e) => toggleSetting("previewSettings", "lineBeforeClosingText", parseInt(e.target.value) || 3)} onWheel={(e) => e.currentTarget.blur()} />
+                                            <Input type="number" className="line-input" placeholder="Len" value={settings.previewSettings.lineBeforeClosingText || 3} onChange={(e) => toggleSetting("previewSettings", "lineBeforeClosingText", parseInt(e.target.value) || 3)} onWheel={(e) => e.currentTarget.blur()} style={{ width: 200 }} />
                                         )}
                                     </div>
                                 </div>
@@ -352,70 +352,99 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
                                 </div>
                                 {/* Right column: Add Project and Project List */}
                                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                    <div className="settings-section" style={{ marginTop: 0 }}>
-                                        <h3 className="settings-section-title">Projects</h3>
-                                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16 }}>
-                                            <Input
-                                                placeholder="Add new project"
-                                                value={projectInput}
-                                                onChange={e => setProjectInput(e.target.value)}
-                                                onPressEnter={handleAddProject}
-                                                style={{ maxWidth: 220 }}
-                                            />
-                                            <Button
-                                                type="primary"
-                                                icon={<PlusOutlined />}
-                                                onClick={handleAddProject}
+                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16 }}>
+                                        <Input
+                                            placeholder="Add new project"
+                                            value={projectInput}
+                                            onChange={e => setProjectInput(e.target.value)}
+                                            onPressEnter={handleAddProject}
+                                            style={{ maxWidth: 220 }}
+
+                                        />
+                                        <Button
+                                            type="primary"
+                                            icon={<PlusOutlined />}
+                                            onClick={handleAddProject}
+                                        >
+                                            Add
+                                        </Button>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 280 }}>
+                                        {projects.map((item, idx) => (
+                                            <div
+                                                key={item}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    background: 'linear-gradient(90deg, #23272f 60%, #23272f 100%)',
+                                                    boxShadow: '0 1px 6px 0 rgba(60,70,90,0.08)',
+                                                    borderRadius: 8,
+                                                    padding: '6px 10px',
+                                                    border: '1px solid #23272f',
+                                                    transition: 'box-shadow 0.2s, border 0.2s',
+                                                    position: 'relative',
+                                                    cursor: 'default',
+                                                    minWidth: 0,
+                                                    maxWidth: 260,
+                                                }}
+                                                onMouseOver={e => {
+                                                    (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 10px 0 rgba(76,175,80,0.10)';
+                                                    (e.currentTarget as HTMLDivElement).style.border = '1.5px solid #4caf50';
+                                                }}
+                                                onMouseOut={e => {
+                                                    (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 6px 0 rgba(60,70,90,0.08)';
+                                                    (e.currentTarget as HTMLDivElement).style.border = '1px solid #23272f';
+                                                }}
                                             >
-                                                Add
-                                            </Button>
-                                        </div>
-                                        <List
-                                            dataSource={projects}
-                                            bordered={false}
-                                            style={{ background: 'transparent', color: '#fff', borderRadius: 8, border: '1px solid #23272f', margin: 0, padding: 0, maxWidth: 500 }}
-                                            renderItem={(item, idx) => (
-                                                <List.Item
-                                                    style={{
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                    <span style={{ color: '#bbb', fontWeight: 400, fontSize: 13, minWidth: 18, textAlign: 'right' }}>{idx + 1}.</span>
+                                                    <span style={{
+                                                        color: DEFAULT_PROJECTS.includes(item) ? '#43a047' : '#fff',
+                                                        fontWeight: DEFAULT_PROJECTS.includes(item) ? 700 : 500,
+                                                        fontSize: 15,
+                                                        letterSpacing: 0.1,
                                                         display: 'flex',
                                                         alignItems: 'center',
-                                                        justifyContent: 'space-between',
-                                                        fontWeight: DEFAULT_PROJECTS.includes(item) ? 700 : 400,
-                                                        color: DEFAULT_PROJECTS.includes(item) ? "#43a047" : "#e0e0e0",
-                                                        fontSize: 16,
-                                                        borderBottom: idx === projects.length - 1 ? 'none' : '1px solid #23272f',
-                                                        margin: 0,
-                                                        padding: '12px 20px',
-                                                        background: 'none', // Remove background color
-                                                    }}
-                                                >
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                        <span style={{ color: '#fff', fontWeight: 400, marginRight: 10 }}>{idx + 1}.</span>
-                                                        {item}
-                                                        {DEFAULT_PROJECTS.includes(item) && <span style={{ fontSize: 12, color: "#888", marginLeft: 6 }}>(default)</span>}
+                                                        gap: 6,
+                                                    }}>
+                                                        {item}                                                        
                                                     </span>
-                                                    {!DEFAULT_PROJECTS.includes(item) && (
-                                                        <Popconfirm
-                                                            title="Remove this project?"
-                                                            onConfirm={() => {
-                                                                setProjects(projects.filter((p) => p !== item));
-                                                                localStorage.setItem("allProjects", JSON.stringify(projects.filter((p) => p !== item)));
+                                                </div>
+                                                {!DEFAULT_PROJECTS.includes(item) && (
+                                                    <Popconfirm
+                                                        title="Remove this project?"
+                                                        onConfirm={() => {
+                                                            setProjects(projects.filter((p) => p !== item));
+                                                            localStorage.setItem("allProjects", JSON.stringify(projects.filter((p) => p !== item)));
+                                                        }}
+                                                        okText="Yes"
+                                                        cancelText="No"
+                                                    >
+                                                        <Button
+                                                            type="text"
+                                                            icon={<DeleteOutlined style={{ color: '#ff5252', fontSize: 16 }} />}
+                                                            danger
+                                                            size="small"
+                                                            style={{
+                                                                marginLeft: 6,
+                                                                background: 'rgba(255,82,82,0.08)',
+                                                                border: 'none',
+                                                                boxShadow: 'none',
+                                                                borderRadius: 6,
+                                                                transition: 'background 0.2s',
+                                                                height: 24,
+                                                                width: 24,
+                                                                minWidth: 24,
+                                                                padding: 0,
                                                             }}
-                                                            okText="Yes"
-                                                            cancelText="No"
-                                                        >
-                                                            <Button
-                                                                type="text"
-                                                                icon={<DeleteOutlined style={{ color: '#ff5252', fontSize: 18 }} />}
-                                                                danger
-                                                                size="small"
-                                                                style={{ marginLeft: 8, background: 'none', boxShadow: 'none' }}
-                                                            />
-                                                        </Popconfirm>
-                                                    )}
-                                                </List.Item>
-                                            )}
-                                        />
+                                                            onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,82,82,0.18)')}
+                                                            onMouseOut={e => (e.currentTarget.style.background = 'rgba(255,82,82,0.08)')}
+                                                        />
+                                                    </Popconfirm>
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>

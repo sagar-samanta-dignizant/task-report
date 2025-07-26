@@ -867,19 +867,22 @@ const App = () => {
     <Layout className={`app-container ${theme}`}>
       <Header className="header">
         <div className="header-content">
-          <div className="logo" onClick={() => handleNavigation("/")}>
+          {/* <div className="logo" onClick={() => handleNavigation("/")}>
             <img
               src={SMILYS[currentSmileyIndex]} // Display the current smiley
               alt="Logo"
               className="rounded-logo" // Add class for rounded style
               style={{ transition: "opacity 0.5s ease" }} // Smooth transition
             />
-          </div>
+          </div> */}
           <div className="header-title">
-            <span className="title-icon">🎉</span> {/* Left static icon */}
-            <span className="title-text">R3p0rt M@nag3r</span>{" "}
-            {/* Animated title text */}
-            <span className="title-icon">🎨</span> {/* Right static icon */}
+            <span className="title-icon report">📊</span>
+            <span className="title-text gradient-text bouncy-title">
+              {Array.from('R3p0rt M@nag3r').map((ch, i) => (
+                <span className="bouncy-letter" style={{ '--i': i } as React.CSSProperties} key={i}>{ch === ' ' ? '\u00A0' : ch}</span>
+              ))}
+            </span>
+            <span className="title-icon notebook">📒</span>
           </div>
           <div className="nav-links">
             <NavLink
