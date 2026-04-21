@@ -40,6 +40,7 @@ import PageHeader from "./components/layout/PageHeader";
 import TodayStrip from "./components/home/TodayStrip";
 import TaskCard from "./components/home/TaskCard";
 import ResizableSplit from "./components/home/ResizableSplit";
+import { QuickAddFab, type QuickAddPayload } from "./components/home/QuickAddFab";
 import { formatPreview } from "./utils/previewFormatter";
 import {
   getReport,
@@ -49,7 +50,7 @@ import {
   QuotaError,
 } from "./utils/reportsStore";
 import { newUid } from "./utils/uid";
-import { useHotkeys } from "./hooks/useHotkey";
+import { useHotkey, useHotkeys } from "./hooks/useHotkey";
 import {
   clearDraft,
   isDraftEmpty,
@@ -244,6 +245,7 @@ const App = () => {
   const [templates, setTemplates] = useState<TaskTemplate[]>(() => loadTemplates());
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState("");
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
 
   const handleLogin = useCallback(() => setIsLoggedIn(true), []);
   const handleLogout = useCallback(() => {
@@ -423,6 +425,32 @@ const App = () => {
       }
     }, 0);
   }, [settings.taskSettings.showID]);
+
+  const handleQuickAdd = useCallback(
+    (payload: QuickAddPayload) => {
+      // Replace the initial empty placeholder task if it's still untouched,
+      // otherwise append so the user keeps whatever they were composing.
+      setTasks((prev) => {
+        const next = createTask({
+          title: payload.title,
+          taskId: payload.taskId || "",
+          hours: payload.hours,
+          minutes: payload.minutes,
+          status: payload.status,
+        });
+        if (prev.length === 1 && !prev[0].title.trim() && !(prev[0].subtasks?.length)) {
+          return [next];
+        }
+        return [...prev, next];
+      });
+      message.success(
+        location.pathname === "/"
+          ? "Task added"
+          : "Task added to today — open Home to save"
+      );
+    },
+    [message, location.pathname]
+  );
 
   const addSubtask = useCallback(
     (parentIndex: number) => {
@@ -681,6 +709,9 @@ const App = () => {
     ],
     isLoggedIn && location.pathname === "/"
   );
+
+  // Global: quick-add works on every route when logged in (except login itself)
+  useHotkey("ctrl+shift+a", () => setQuickAddOpen(true), isLoggedIn);
 
   const registerTaskRef = useCallback((uid: string, el: HTMLInputElement | null) => {
     taskRefs.current.set(uid, el);
@@ -1106,6 +1137,19 @@ const App = () => {
           autoFocus
         />
       </Modal>
+
+      <QuickAddFab
+        settings={settings.taskSettings}
+        onAdd={handleQuickAdd}
+        onOpenHome={() => {
+          setQuickAddOpen(false);
+          navigate("/");
+        }}
+        onHome={location.pathname === "/"}
+        showFab={location.pathname !== "/edit-task"}
+        open={quickAddOpen}
+        onOpenChange={setQuickAddOpen}
+      />
     </div>
   );
 };
