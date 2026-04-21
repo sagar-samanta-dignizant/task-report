@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Button, Input, Modal, Select, Tooltip } from "antd";
+import { useEffect, useRef, useState } from "react";
+import { Button, Input, Modal, Select, Tooltip, type InputRef } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import type { Task, TaskSettings } from "../../types/task";
 import { ALL_STATUS_OPTIONS } from "../../constant/task.constant";
@@ -37,6 +37,7 @@ export const QuickAddFab = ({
   const [hours, setHours] = useState("");
   const [minutes, setMinutes] = useState("");
   const [status, setStatus] = useState<string>("Completed");
+  const titleRef = useRef<InputRef>(null);
 
   useEffect(() => {
     if (!open) {
@@ -45,13 +46,23 @@ export const QuickAddFab = ({
       setHours("");
       setMinutes("");
       setStatus("Completed");
+      return;
     }
+    // Antd Modal mounts + animates in; focus after the frame so the cursor
+    // lands inside the title input reliably.
+    const handle = window.setTimeout(() => {
+      titleRef.current?.focus({ cursor: "end" });
+    }, 80);
+    return () => window.clearTimeout(handle);
   }, [open]);
 
   const canSubmit = title.trim().length > 0;
+  const submittingRef = useRef(false);
 
   const submit = () => {
+    if (submittingRef.current) return;
     if (!canSubmit) return;
+    submittingRef.current = true;
     onAdd({
       title: title.trim(),
       taskId: taskId.trim() || undefined,
@@ -60,13 +71,10 @@ export const QuickAddFab = ({
       status,
     });
     onOpenChange(false);
-  };
-
-  const handleKey = (e: React.KeyboardEvent) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-      e.preventDefault();
-      submit();
-    }
+    // Re-enable on next tick so a subsequent modal open can submit again
+    window.setTimeout(() => {
+      submittingRef.current = false;
+    }, 150);
   };
 
   return (
@@ -110,14 +118,20 @@ export const QuickAddFab = ({
           </Button>,
         ]}
       >
-        <div className="quick-add-body" onKeyDown={handleKey}>
+        <div className="quick-add-body">
           <Input
-            autoFocus
+            ref={titleRef}
             size="large"
             placeholder="What did you work on?"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            onPressEnter={submit}
+            onPressEnter={(e) => {
+              // Prevent the event from bubbling — otherwise the Modal's own
+              // key handling (or antd's internal ones) can re-trigger submit.
+              e.preventDefault();
+              e.stopPropagation();
+              submit();
+            }}
             spellCheck
           />
           <div className="quick-add-row">

@@ -36,10 +36,30 @@ export const createEmptyRule = (): NotificationRule => ({
   days: [...WEEKDAYS],
 });
 
+// Default seed for first-time users: 6pm weekdays reminder.
+const createDefaultRule = (): NotificationRule => ({
+  id: newUid(),
+  enabled: true,
+  label: "End of day",
+  message: "Time to wrap up your work update.",
+  time: "18:00",
+  days: [...WEEKDAYS],
+});
+
 export const loadRules = (): NotificationRule[] => {
   try {
     const raw = localStorage.getItem(LIST_KEY);
-    if (!raw) return [];
+    // First-ever load (no key set): seed a default 6pm everyday reminder so
+    // new users get a useful reminder without having to configure one.
+    if (raw === null) {
+      const seeded = [createDefaultRule()];
+      try {
+        localStorage.setItem(LIST_KEY, JSON.stringify(seeded));
+      } catch {
+        // quota — keep returning the in-memory default
+      }
+      return seeded;
+    }
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(
