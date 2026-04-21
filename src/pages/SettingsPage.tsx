@@ -1,812 +1,672 @@
-import "./SettingsPage.css"; // Import custom CSS for the settings page
+import "./SettingsPage.css";
 
-import { Avatar, Button, Input, Upload, message,  Popconfirm, Tabs, Modal, Progress, Checkbox } from "antd"; // Import Ant Design Input, Upload, Button, Avatar, message, List, Popconfirm, Tabs, Modal, Progress, and Checkbox components
-
+import { Avatar, Button, Input, Upload, Popconfirm, Modal, Progress, Checkbox, App as AntdApp } from "antd";
 import React from "react";
-import { UploadOutlined, PlusOutlined, DeleteOutlined, ExportOutlined, ImportOutlined, ExclamationCircleOutlined } from "@ant-design/icons"; // Import Upload, Plus, Delete, Export, Import, and Exclamation Circle icons
+import {
+  UploadOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  ExportOutlined,
+  ImportOutlined,
+  ExclamationCircleOutlined,
+  IdcardOutlined,
+  CalendarOutlined,
+  ProjectOutlined,
+  CheckSquareOutlined,
+  ClockCircleOutlined,
+  ArrowRightOutlined,
+  BranchesOutlined,
+  EyeInvisibleOutlined,
+  MinusSquareOutlined,
+  LineOutlined,
+  FontSizeOutlined,
+  SettingOutlined,
+  AppstoreOutlined,
+  DatabaseOutlined,
+  FileSearchOutlined,
+  BgColorsOutlined,
+  MenuOutlined,
+  CloudSyncOutlined,
+  BellOutlined,
+  ProfileOutlined,
+} from "@ant-design/icons";
+import { useLocation, useNavigate } from "react-router-dom";
+import type { AllSettings } from "../types/task";
+import SettingToggle from "../components/settings/SettingToggle";
+import AccentPicker from "../components/settings/AccentPicker";
+import ColumnOrder from "../components/settings/ColumnOrder";
+import NotificationsSettings from "../components/settings/NotificationsSettings";
+import TemplatesManager from "../components/settings/TemplatesManager";
+import type { ExportColumnKey } from "../utils/exportColumns";
 
-const CustomSwitch = ({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) => (
+const CustomSwitch = ({ checked, onChange }: { checked: boolean | undefined; onChange: (checked: boolean) => void }) => {
+  const isOn = !!checked;
+  return (
     <div
-        className={`custom-switch ${checked ? "checked" : ""}`}
-        onClick={() => onChange(!checked)}
+      className={`custom-switch ${isOn ? "checked" : ""}`}
+      onClick={() => onChange(!isOn)}
+      role="switch"
+      aria-checked={isOn}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onChange(!isOn);
+      }}
     >
-        <div className="switch-handle" />
+      <div className="switch-handle" />
     </div>
-);
+  );
+};
 
 const DEFAULT_PROJECTS = ["Rukkor", "Geometra"];
 
+interface SettingsPageProps {
+  settings: AllSettings;
+  toggleSetting: (section: keyof AllSettings, key: string, value: unknown) => void;
+  setProfilePicture: (url: string) => void;
+}
 
-import { useLocation, useNavigate } from "react-router-dom";
+interface SectionDef {
+  key: string;
+  label: string;
+  icon: React.ReactNode;
+  description: string;
+}
 
-const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: any) => {
-    const [uploadedImage, setUploadedImage] = React.useState<string | null>(null); // State for uploaded image preview
-    const [projectInput, setProjectInput] = React.useState("");
-    const [projects, setProjects] = React.useState<string[]>(() => {
-        const stored = localStorage.getItem("allProjects");
-        return stored ? JSON.parse(stored) : DEFAULT_PROJECTS;
-    });
-    const [exportModalVisible, setExportModalVisible] = React.useState(false);
-    const [importModalVisible, setImportModalVisible] = React.useState(false);
-    const [exportProgress, setExportProgress] = React.useState(0);
-    const [importProgress, setImportProgress] = React.useState(0);
-    const [importDone, setImportDone] = React.useState(false);
-    const [importSelectionModalVisible, setImportSelectionModalVisible] = React.useState(false);
-    const [importKeys, setImportKeys] = React.useState<string[]>([]);
-    const [importData, setImportData] = React.useState<any>({});
-    const [selectedImportKeys, setSelectedImportKeys] = React.useState<string[]>([]);
-    const [existingKeys, setExistingKeys] = React.useState<string[]>([]);
-    const generateSettings = JSON.parse(localStorage.getItem("generateSettings") || "{}");
+const SECTIONS: SectionDef[] = [
+  { key: "task", label: "Task", icon: <AppstoreOutlined />, description: "Which fields show on the form" },
+  { key: "preview", label: "Preview", icon: <FileSearchOutlined />, description: "What the generated report includes" },
+  { key: "general", label: "General", icon: <SettingOutlined />, description: "Defaults, projects, profile" },
+  { key: "templates", label: "Templates", icon: <ProfileOutlined />, description: "Reusable task presets" },
+  { key: "export", label: "Export", icon: <ExportOutlined />, description: "PDF & CSV export options" },
+  { key: "notifications", label: "Reminders", icon: <BellOutlined />, description: "Custom messages and times" },
+  { key: "backup", label: "Data", icon: <DatabaseOutlined />, description: "Backup, import, reset" },
+];
 
-    // --- Tab state with URL query ---
-    const location = useLocation();
-    const navigate = useNavigate();
-    function getTabFromQuery() {
-        const params = new URLSearchParams(location.search);
-        return params.get("section");
+const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: SettingsPageProps) => {
+  const { message } = AntdApp.useApp();
+  const [uploadedImage, setUploadedImage] = React.useState<string | null>(null);
+  const [projectInput, setProjectInput] = React.useState("");
+  const [projects, setProjects] = React.useState<string[]>(() => {
+    const stored = localStorage.getItem("allProjects");
+    return stored ? JSON.parse(stored) : DEFAULT_PROJECTS;
+  });
+  const [exportModalVisible, setExportModalVisible] = React.useState(false);
+  const [importModalVisible, setImportModalVisible] = React.useState(false);
+  const [exportProgress, setExportProgress] = React.useState(0);
+  const [importProgress, setImportProgress] = React.useState(0);
+  const [importDone, setImportDone] = React.useState(false);
+  const [importSelectionModalVisible, setImportSelectionModalVisible] = React.useState(false);
+  const [importKeys, setImportKeys] = React.useState<string[]>([]);
+  const [importData, setImportData] = React.useState<Record<string, unknown>>({});
+  const [selectedImportKeys, setSelectedImportKeys] = React.useState<string[]>([]);
+  const [existingKeys, setExistingKeys] = React.useState<string[]>([]);
+  const generateSettings = JSON.parse(localStorage.getItem("generateSettings") || "{}");
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  function getTabFromQuery() {
+    const params = new URLSearchParams(location.search);
+    return params.get("section");
+  }
+  React.useEffect(() => {
+    const tab = getTabFromQuery();
+    if (!tab) {
+      const params = new URLSearchParams(location.search);
+      params.set("section", "task");
+      navigate({ search: params.toString() }, { replace: true });
     }
-    // On mount, if no tab in query, set it to default (task)
-    React.useEffect(() => {
-        const tab = getTabFromQuery();
-        if (!tab) {
-            const params = new URLSearchParams(location.search);
-            params.set("section", "task");
-            navigate({ search: params.toString() }, { replace: true });
-        }
-    }, []);
-    const [activeTab, setActiveTab] = React.useState(() => getTabFromQuery() || "task");
-    React.useEffect(() => {
-        setActiveTab(getTabFromQuery() || "task");
-        // eslint-disable-next-line
-    }, [location.search]);
-    const handleTabChange = (key: string) => {
-        setActiveTab(key);
-        const params = new URLSearchParams(location.search);
-        params.set("section", key);
-        navigate({ search: params.toString() }, { replace: true });
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const [activeTab, setActiveTab] = React.useState(() => getTabFromQuery() || "task");
+  React.useEffect(() => {
+    setActiveTab(getTabFromQuery() || "task");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+    const params = new URLSearchParams(location.search);
+    params.set("section", key);
+    navigate({ search: params.toString() }, { replace: true });
+  };
 
-    // Ensure default notification time is set to 6:00 PM if not already set
-    React.useEffect(() => {
-        if (!generateSettings.notificationTime) {
-            toggleSetting("generateSettings", "notificationTime", "06:00 PM");
-        }
-    }, [generateSettings.notificationTime, toggleSetting]);
+  React.useEffect(() => {
+    if (!generateSettings.notificationTime) {
+      toggleSetting("generateSettings", "notificationTime", "06:00 PM");
+    }
+  }, [generateSettings.notificationTime, toggleSetting]);
 
-    const updateProjects = (newProjects: string[]) => {
-        setProjects(newProjects);
-        localStorage.setItem("allProjects", JSON.stringify(newProjects));
-    };
+  const updateProjects = (newProjects: string[]) => {
+    setProjects(newProjects);
+    localStorage.setItem("allProjects", JSON.stringify(newProjects));
+  };
 
-    const handleAddProject = () => {
-        const trimmed = projectInput.trim();
-        if (!trimmed) return;
-        if (projects.includes(trimmed)) {
-            message.warning("Project already exists.");
-            return;
-        }
-        updateProjects([...projects, trimmed]);
-        setProjectInput("");
-    };
+  const handleAddProject = () => {
+    const trimmed = projectInput.trim();
+    if (!trimmed) return;
+    if (projects.includes(trimmed)) {
+      message.warning("Project already exists.");
+      return;
+    }
+    updateProjects([...projects, trimmed]);
+    setProjectInput("");
+  };
 
-    // const handleRemoveProject = (project: string) => {
-    //     if (DEFAULT_PROJECTS.includes(project)) {
-    //         message.error("Default projects cannot be removed.");
-    //         return;
-    //     }
-    //     updateProjects(projects.filter((p) => p !== project));
-    // };
+  const getAllLocalStorageData = () => {
+    const data: Record<string, unknown> = { __taskReportBackup: true, timestamp: new Date().toISOString() };
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+      try {
+        const value = localStorage.getItem(key);
+        data[key] = JSON.parse(value!);
+      } catch {
+        data[key] = localStorage.getItem(key);
+      }
+    }
+    return data;
+  };
 
-    // Helper: Get all localStorage keys for backup
-    const getAllLocalStorageData = () => {
-        const data: Record<string, any> = { __taskReportBackup: true, timestamp: new Date().toISOString() };
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key) {
-                try {
-                    // Try to parse JSON, fallback to string
-                    const value = localStorage.getItem(key);
-                    data[key] = JSON.parse(value!);
-                } catch {
-                    data[key!] = localStorage.getItem(key!);
-                }
-            }
-        }
-        return data;
-    };
+  const activeSection = SECTIONS.find((s) => s.key === activeTab) || SECTIONS[0];
 
-    return (
-        <div className="settings-page">
-            <div className="settings-container">
-                <Tabs
-                    activeKey={activeTab}
-                    onChange={handleTabChange}
-                    type="card"
-                    size="large"
-                    className="settings-tabs"
-                >
+  return (
+    <div className="settings-page">
+      <div className="settings-shell">
+        <aside className="settings-sidenav">
+          {SECTIONS.map((s) => (
+            <button
+              key={s.key}
+              type="button"
+              className={`settings-sidenav-item ${activeTab === s.key ? "active" : ""}`}
+              onClick={() => handleTabChange(s.key)}
+            >
+              <span className="settings-sidenav-icon">{s.icon}</span>
+              <span className="settings-sidenav-text">
+                <span className="settings-sidenav-label">{s.label}</span>
+                <span className="settings-sidenav-desc">{s.description}</span>
+              </span>
+            </button>
+          ))}
+        </aside>
 
-                    <Tabs.TabPane tab="Task Settings" key="task">
-                        {/* Task Settings Section */}
-                        <div className="settings-section">
-                            <h3 className="settings-section-title">Task Settings</h3>
-                            <div className="settings-option">
-                                <label>
-                                    Show ID
-                                    <CustomSwitch
-                                        checked={settings.taskSettings.showID}
-                                        onChange={(checked) => toggleSetting("taskSettings", "showID", checked)}
-                                    />
-                                </label>
-                            </div>
-                            <div className="settings-option">
-                                <label>
-                                    Show Date
-                                    <CustomSwitch
-                                        checked={settings.taskSettings.showDate}
-                                        onChange={(checked) => toggleSetting("taskSettings", "showDate", checked)}
-                                    />
-                                </label>
-                            </div>
-                            <div className="settings-option">
-                                <label>
-                                    Show Project
-                                    <CustomSwitch
-                                        checked={settings.taskSettings.showProject}
-                                        onChange={(checked) => toggleSetting("taskSettings", "showProject", checked)}
-                                    />
-                                </label>
-                            </div>
-                            <div className="settings-option">
-                                <label>
-                                    Show Status
-                                    <CustomSwitch
-                                        checked={settings.taskSettings.showStatus}
-                                        onChange={(checked) => toggleSetting("taskSettings", "showStatus", checked)}
-                                    />
-                                </label>
-                            </div>
-                            <div className="settings-option">
-                                <label>
-                                    Show Hrs/min
-                                    <CustomSwitch
-                                        checked={settings.taskSettings.showHours}
-                                        onChange={(checked) => toggleSetting("taskSettings", "showHours", checked)}
-                                    />
-                                </label>
-                            </div>
-                            <div className="settings-option">
-                                <label>
-                                    Show Next Task
-                                    <CustomSwitch
-                                        checked={settings.taskSettings.showNextTask}
-                                        onChange={(checked) => toggleSetting("taskSettings", "showNextTask", checked)}
-                                    />
-                                </label>
-                            </div>
-                            <div className="settings-option">
-                                <label>
-                                    Allow Subtask
-                                    <CustomSwitch
-                                        checked={settings.taskSettings.allowSubtask}
-                                        onChange={(checked) => toggleSetting("taskSettings", "allowSubtask", checked)}
-                                    />
-                                </label>
-                            </div>
-                        </div>
-                    </Tabs.TabPane>
-                    <Tabs.TabPane tab="Preview Settings" key="preview">
-                        {/* Preview Settings Section */}
-                        <div className="settings-section">
-                            <h3 className="settings-section-title">Preview Settings</h3>
-                            <div style={{ display: 'flex', gap: 32 }}>
-                                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                    {/* Left column: first half of options */}
-                                    <div className="settings-option">
-                                        <label>Show ID
-                                            <CustomSwitch checked={settings.previewSettings.showID} onChange={(checked) => toggleSetting("previewSettings", "showID", checked)} />
-                                        </label>
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>Show Date
-                                            <CustomSwitch checked={settings.previewSettings.showDate} onChange={(checked) => toggleSetting("previewSettings", "showDate", checked)} />
-                                        </label>
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>Show Project
-                                            <CustomSwitch checked={settings.previewSettings.showProject} onChange={(checked) => toggleSetting("previewSettings", "showProject", checked)} />
-                                        </label>
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>Show Status
-                                            <CustomSwitch checked={settings.previewSettings.showStatus} onChange={(checked) => toggleSetting("previewSettings", "showStatus", checked)} />
-                                        </label>
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>Show Hours
-                                            <CustomSwitch checked={settings.previewSettings.showHours} onChange={(checked) => toggleSetting("previewSettings", "showHours", checked)} />
-                                        </label>
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>Show Next Task
-                                            <CustomSwitch checked={settings.previewSettings.showNextTask} onChange={(checked) => toggleSetting("previewSettings", "showNextTask", checked)} />
-                                        </label>
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>Allow Subtask
-                                            <CustomSwitch checked={settings.previewSettings.allowSubtask} onChange={(checked) => toggleSetting("previewSettings", "allowSubtask", checked)} />
-                                        </label>
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>Hide Parent Task Hours/Minutes (if Subtasks Exist)
-                                            <CustomSwitch checked={settings.previewSettings.hideParentTaskTime} onChange={(checked) => toggleSetting("previewSettings", "hideParentTaskTime", checked)} />
-                                        </label>
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>Hide Parent Task Status (if Subtasks Exist)
-                                            <CustomSwitch checked={settings.previewSettings.hideParentTaskStatus} onChange={(checked) => toggleSetting("previewSettings", "hideParentTaskStatus", checked)} />
-                                        </label>
-                                    </div>
-                                </div>
-                                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                    {/* Right column: second half of options */}
+        <div className="settings-content">
+          <div className="settings-section-head">
+            <h2>{activeSection.label}</h2>
+            <p>{activeSection.description}</p>
+          </div>
 
-
-                                    <div className="settings-option">
-                                        <label>Allow Line After "Work Update Text"
-                                            <CustomSwitch checked={settings.previewSettings.allowLineAfterWorkUpdate} onChange={(checked) => toggleSetting("previewSettings", "allowLineAfterWorkUpdate", checked)} />
-                                        </label>
-                                        {settings.previewSettings.allowLineAfterWorkUpdate && (
-                                            <Input type="number" className="line-input" placeholder="Len" value={settings.previewSettings.lineAfterWorkUpdate || 3} onChange={(e) => toggleSetting("previewSettings", "lineAfterWorkUpdate", parseInt(e.target.value) || 3)} onWheel={(e) => e.currentTarget.blur()} style={{ width: 200 }} />
-                                        )}
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>Allow Line After "Project"
-                                            <CustomSwitch checked={settings.previewSettings.allowLineAfterProject} onChange={(checked) => toggleSetting("previewSettings", "allowLineAfterProject", checked)} />
-                                        </label>
-                                        {settings.previewSettings.allowLineAfterProject && (
-                                            <Input type="number" className="line-input" placeholder="Len" value={settings.previewSettings.lineAfterProject || 3} onChange={(e) => toggleSetting("previewSettings", "lineAfterProject", parseInt(e.target.value) || 3)} onWheel={(e) => e.currentTarget.blur()} style={{ width: 200 }} />
-                                        )}
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>Allow Line After "Next Task"
-                                            <CustomSwitch checked={settings.previewSettings.allowLineAfterNextTask} onChange={(checked) => toggleSetting("previewSettings", "allowLineAfterNextTask", checked)} />
-                                        </label>
-                                        {settings.previewSettings.allowLineAfterNextTask && (
-                                            <Input type="number" className="line-input" placeholder="Len" value={settings.previewSettings.lineAfterNextTask || 3} onChange={(e) => toggleSetting("previewSettings", "lineAfterNextTask", parseInt(e.target.value) || 3)} onWheel={(e) => e.currentTarget.blur()} style={{ width: 200 }} />
-                                        )}
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>Allow Line Before "Closing Text"
-                                            <CustomSwitch checked={settings.previewSettings.allowLineBeforeClosingText} onChange={(checked) => toggleSetting("previewSettings", "allowLineBeforeClosingText", checked)} />
-                                        </label>
-                                        {settings.previewSettings.allowLineBeforeClosingText && (
-                                            <Input type="number" className="line-input" placeholder="Len" value={settings.previewSettings.lineBeforeClosingText || 3} onChange={(e) => toggleSetting("previewSettings", "lineBeforeClosingText", parseInt(e.target.value) || 3)} onWheel={(e) => e.currentTarget.blur()} style={{ width: 200 }} />
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </Tabs.TabPane>
-                    <Tabs.TabPane tab="General Settings" key="general">
-                        {/* Generate Settings Section */}
-                        <div className="settings-section">
-                            <h3 className="settings-section-title">General Settings</h3>
-                            <div style={{ display: 'flex', gap: 32 }}>
-                                {/* Left column: previous general settings content */}
-                                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                    <div className="settings-option">
-                                        <label>
-                                            Task Gap
-                                            <input
-                                                type="number"
-                                                className="gap-input"
-                                                value={settings.generateSettings.taskGap || 1}
-                                                onChange={(e) =>
-                                                    toggleSetting("generateSettings", "taskGap", parseInt(e.target.value) || 1)
-                                                }
-                                            />
-                                        </label>
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>
-                                            Subtask Gap
-                                            <input
-                                                type="number"
-                                                className="gap-input"
-                                                value={settings.generateSettings.subtaskGap || 1}
-                                                onChange={(e) =>
-                                                    toggleSetting("generateSettings", "subtaskGap", parseInt(e.target.value) || 1)
-                                                }
-                                            />
-                                        </label>
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>
-                                            Work Update Text
-                                            <Input
-                                                className="text-input"
-                                                value={generateSettings.workUpdateText || "Today's work update -"}
-                                                onChange={(e) =>
-                                                    toggleSetting("generateSettings", "workUpdateText", e.target.value || "Today's work update -")
-                                                }
-                                            />
-                                        </label>
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>
-                                            Closing Text
-                                            <Input
-                                                className="text-input"
-                                                value={generateSettings.closingText || "Thanks & regards"}
-                                                onChange={(e) =>
-                                                    toggleSetting("generateSettings", "closingText", e.target.value || "Thanks & regards")
-                                                }
-                                            />
-                                        </label>
-                                    </div>
-                                    <div className="settings-option">
-                                        <label>
-                                            Upload Profile Picture
-                                            <Upload
-                                                showUploadList={false}
-                                                beforeUpload={(file) => {
-                                                    const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
-                                                    if (!isJpgOrPng) {
-                                                        message.error("You can only upload JPG/PNG files!");
-                                                        return false;
-                                                    }
-                                                    const reader = new FileReader();
-                                                    reader.onload = () => {
-                                                        const result = reader.result as string;
-                                                        try {
-                                                            localStorage.setItem("profilePicture", result);
-                                                            setUploadedImage(result);
-                                                            setProfilePicture(result);
-                                                        } catch (error) {
-                                                            if (error instanceof DOMException && error.name === "QuotaExceededError") {
-                                                                message.error("Image is too large to store in localStorage.");
-                                                            } else {
-                                                                console.error("Failed to store image:", error);
-                                                            }
-                                                        }
-                                                    };
-                                                    reader.readAsDataURL(file);
-                                                    return false;
-                                                }}
-                                            >
-                                                <Button icon={<UploadOutlined />}>Upload</Button>
-                                            </Upload>
-                                        </label>
-                                        {uploadedImage && (
-                                            <Avatar
-                                                src={uploadedImage}
-                                                size={64}
-                                                style={{ marginTop: "10px", border: "1px solid #4caf50" }}
-                                            />
-                                        )}
-                                    </div>
-                                </div>
-                                {/* Right column: Add Project and Project List */}
-                                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16 }}>
-                                        <Input
-                                            placeholder="Add new project"
-                                            value={projectInput}
-                                            onChange={e => setProjectInput(e.target.value)}
-                                            onPressEnter={handleAddProject}
-                                            style={{ maxWidth: 220 }}
-
-                                        />
-                                        <Button
-                                            type="primary"
-                                            icon={<PlusOutlined />}
-                                            onClick={handleAddProject}
-                                        >
-                                            Add
-                                        </Button>
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 280 }}>
-                                        {projects.map((item, idx) => (
-                                            <div
-                                                key={item}
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'space-between',
-                                                    background: 'linear-gradient(90deg, #23272f 60%, #23272f 100%)',
-                                                    boxShadow: '0 1px 6px 0 rgba(60,70,90,0.08)',
-                                                    borderRadius: 8,
-                                                    padding: '6px 10px',
-                                                    border: '1px solid #23272f',
-                                                    transition: 'box-shadow 0.2s, border 0.2s',
-                                                    position: 'relative',
-                                                    cursor: 'default',
-                                                    minWidth: 0,
-                                                    maxWidth: 260,
-                                                }}
-                                                onMouseOver={e => {
-                                                    (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 10px 0 rgba(76,175,80,0.10)';
-                                                    (e.currentTarget as HTMLDivElement).style.border = '1.5px solid #4caf50';
-                                                }}
-                                                onMouseOut={e => {
-                                                    (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 6px 0 rgba(60,70,90,0.08)';
-                                                    (e.currentTarget as HTMLDivElement).style.border = '1px solid #23272f';
-                                                }}
-                                            >
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                    <span style={{ color: '#bbb', fontWeight: 400, fontSize: 13, minWidth: 18, textAlign: 'right' }}>{idx + 1}.</span>
-                                                    <span style={{
-                                                        color: DEFAULT_PROJECTS.includes(item) ? '#43a047' : '#fff',
-                                                        fontWeight: DEFAULT_PROJECTS.includes(item) ? 700 : 500,
-                                                        fontSize: 15,
-                                                        letterSpacing: 0.1,
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: 6,
-                                                    }}>
-                                                        {item}                                                        
-                                                    </span>
-                                                </div>
-                                                {!DEFAULT_PROJECTS.includes(item) && (
-                                                    <Popconfirm
-                                                        title="Remove this project?"
-                                                        onConfirm={() => {
-                                                            setProjects(projects.filter((p) => p !== item));
-                                                            localStorage.setItem("allProjects", JSON.stringify(projects.filter((p) => p !== item)));
-                                                        }}
-                                                        okText="Yes"
-                                                        cancelText="No"
-                                                    >
-                                                        <Button
-                                                            type="text"
-                                                            icon={<DeleteOutlined style={{ color: '#ff5252', fontSize: 16 }} />}
-                                                            danger
-                                                            size="small"
-                                                            style={{
-                                                                marginLeft: 6,
-                                                                background: 'rgba(255,82,82,0.08)',
-                                                                border: 'none',
-                                                                boxShadow: 'none',
-                                                                borderRadius: 6,
-                                                                transition: 'background 0.2s',
-                                                                height: 24,
-                                                                width: 24,
-                                                                minWidth: 24,
-                                                                padding: 0,
-                                                            }}
-                                                            onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,82,82,0.18)')}
-                                                            onMouseOut={e => (e.currentTarget.style.background = 'rgba(255,82,82,0.08)')}
-                                                        />
-                                                    </Popconfirm>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </Tabs.TabPane>
-                    <Tabs.TabPane tab="Export Settings" key="export">
-                        {/* Export Settings Section */}
-                        <div className="settings-section">
-                            <h3 className="settings-section-title">Export Settings</h3>
-                            <div className="settings-option">
-                                <label>
-                                    Show ID
-                                    <CustomSwitch
-                                        checked={settings.exportSettings.showID}
-                                        onChange={(checked) => toggleSetting("exportSettings", "showID", checked)}
-                                    />
-                                </label>
-                            </div>
-                            <div className="settings-option">
-                                <label>
-                                    Show Date
-                                    <CustomSwitch
-                                        checked={settings.exportSettings.showDate}
-                                        onChange={(checked) => toggleSetting("exportSettings", "showDate", checked)}
-                                    />
-                                </label>
-                            </div>
-                            <div className="settings-option">
-                                <label>
-                                    Show Project
-                                    <CustomSwitch
-                                        checked={settings.exportSettings.showProject}
-                                        onChange={(checked) => toggleSetting("exportSettings", "showProject", checked)}
-                                    />
-                                </label>
-                            </div>
-                            <div className="settings-option">
-                                <label>
-                                    Show Status
-                                    <CustomSwitch
-                                        checked={settings.exportSettings.showStatus}
-                                        onChange={(checked) => toggleSetting("exportSettings", "showStatus", checked)}
-                                    />
-                                </label>
-                            </div>
-                            <div className="settings-option">
-                                <label>
-                                    Show Hours
-                                    <CustomSwitch
-                                        checked={settings.exportSettings.showHours}
-                                        onChange={(checked) => toggleSetting("exportSettings", "showHours", checked)}
-                                    />
-                                </label>
-                            </div>
-                            <div className="settings-option">
-                                <label>
-                                    Show Next Task
-                                    <CustomSwitch
-                                        checked={settings.exportSettings.showNextTask}
-                                        onChange={(checked) => toggleSetting("exportSettings", "showNextTask", checked)}
-                                    />
-                                </label>
-                            </div>
-                            <div className="settings-option">
-                                <label>
-                                    Allow Subtask
-                                    <CustomSwitch
-                                        checked={settings.exportSettings.allowSubtask}
-                                        onChange={(checked) => toggleSetting("exportSettings", "allowSubtask", checked)}
-                                    />
-                                </label>
-                            </div>
-                        </div>
-                    </Tabs.TabPane>
-
-                    <Tabs.TabPane tab="Backup & Reset" key="backup">
-                        {/* Backup & Restore Section */}
-                        <div className="settings-section">
-                            <h3 className="settings-section-title">Backup</h3>
-                            <div className="settings-option">
-                                <Button
-                                    type="primary"
-                                    icon={<ExportOutlined />}
-                                    style={{ background: '#23272f', color: '#4caf50', border: '1px solid #333', marginRight: 12 }}
-                                    onClick={async () => {
-                                        setExportModalVisible(true);
-                                        setExportProgress(0);
-                                        // Simulate progress for UX
-                                        let progress = 0;
-                                        const interval = setInterval(() => {
-                                            progress += 20;
-                                            setExportProgress(progress);
-                                            if (progress >= 100) {
-                                                clearInterval(interval);
-                                                setTimeout(() => {
-                                                    const backupData = getAllLocalStorageData();
-                                                    const now = new Date();
-                                                    const date = now.toISOString().slice(0, 10);
-                                                    const time = now.toTimeString().slice(0, 8).replace(/:/g, '-');
-                                                    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-                                                    const url = URL.createObjectURL(blob);
-                                                    const a = document.createElement('a');
-                                                    a.href = url;
-                                                    a.download = `task-report-backup-${date}_${time}.json`;
-                                                    a.click();
-                                                    URL.revokeObjectURL(url);
-                                                    setExportModalVisible(false);
-                                                }, 500);
-                                            }
-                                        }, 200);
-                                    }}
-                                >
-                                    Export Data
-                                </Button>
-                                <input
-                                    type="file"
-                                    accept="application/json"
-                                    style={{ display: 'none' }}
-                                    id="import-backup-input"
-                                    onChange={async (e) => {
-                                        const file = e.target.files?.[0];
-                                        if (!file) return;
-                                        try {
-                                            const text = await file.text();
-                                            const data = JSON.parse(text);
-                                            if (!data.__taskReportBackup) {
-                                                message.error("File format not supported. Please select a valid Task Report backup file.");
-                                                return;
-                                            }
-                                            const keys = Object.keys(data).filter(k => k !== "__taskReportBackup" && k !== "timestamp");
-                                            setImportData(data);
-                                            setImportKeys(keys);
-                                            setSelectedImportKeys(keys);
-                                            // Find which keys already exist in localStorage
-                                            const existing = keys.filter(k => localStorage.getItem(k) !== null);
-                                            setExistingKeys(existing);
-                                            setImportSelectionModalVisible(true);
-                                        } catch {
-                                            message.error("Failed to import backup. File may be corrupted or invalid.");
-                                        }
-                                    }}
-                                />
-                                <Button
-                                    type="primary"
-                                    icon={<ImportOutlined />}
-                                    style={{ background: '#23272f', color: '#4caf50', border: '1px solid #333' }}
-                                    onClick={() => document.getElementById('import-backup-input')?.click()}
-                                >
-                                    Import Data
-                                </Button>
-                                <div style={{ color: '#888', fontSize: 13, marginTop: 8 }}>
-                                    Export your data as a backup JSON file. Import it on another device to restore your projects and settings.<br />
-                                    Only files exported from this app are supported.
-                                </div>
-                                {/* Divider for separation */}
-                                <div style={{ borderTop: '1px solid #333', margin: '24px 0 16px 0', width: '100%' }} />
-
-                                <Button
-                                    danger
-                                    type="primary"
-                                    icon={<ExclamationCircleOutlined />}
-                                    style={{ background: '#b71c1c', border: '1px solid #b71c1c', color: '#fff', }}
-                                    onClick={() => {
-                                        Modal.confirm({
-                                            title: 'Clear All App Data?',
-                                            content: (
-                                                <div>
-                                                    <div style={{ color: '#e53935', fontWeight: 600, marginBottom: 8 }}>
-                                                        This will remove <b>all your saved projects, settings, reports, profile picture, and any other data</b> stored in your browser for this app.
-                                                    </div>
-                                                    <div style={{ color: '#888', fontSize: 13 }}>
-                                                        This action <b>cannot be undone</b>. You will lose all your local data for this app.<br />
-                                                        Are you sure you want to continue?
-                                                    </div>
-                                                </div>
-                                            ),
-                                            okText: 'Yes, Clear All Data',
-                                            okType: 'danger',
-                                            cancelText: 'Cancel',
-                                            centered: true,
-                                            onOk: () => {
-                                                localStorage.clear();
-                                                window.location.replace(window.location.pathname);
-                                            },
-                                        });
-                                    }}
-                                >
-                                    Reset APP
-                                </Button>
-                                <div style={{ color: '#e53935', fontSize: 13, marginBottom: 12, fontWeight: 500 }}>
-                                    Reset will permanently delete all (Except deafult) your saved projects, settings, reports, profile picture, and any other data stored in your browser for this app. This cannot be undone.
-                                </div>
-                            </div>
-                        </div>
-                        {/* Export Progress Modal */}
-                        <Modal open={exportModalVisible} footer={null} closable={false} centered maskClosable={false} title="Exporting Backup...">
-                            <Progress percent={exportProgress} status={exportProgress < 100 ? "active" : "success"} />
-                            <div style={{ marginTop: 16, color: '#888' }}>Preparing your backup file...</div>
-                        </Modal>
-                        {/* Import Progress Modal */}
-                        <Modal open={importModalVisible} footer={null} closable={false} centered maskClosable={false} title={importDone ? "Import Complete" : "Importing Backup..."}>
-                            {importDone ? (
-                                <div style={{ textAlign: 'center' }}>
-                                    <Progress percent={100} status="success" />
-                                    <div style={{ margin: '16px 0', color: '#4caf50', fontWeight: 600 }}>Backup imported successfully!</div>
-                                    <Button type="primary" onClick={() => window.location.reload()}>Apply Changes</Button>
-                                </div>
-                            ) : (
-                                <>
-                                    <Progress percent={importProgress} status="active" />
-                                    <div style={{ marginTop: 16, color: '#888' }}>Restoring your data...</div>
-                                </>
-                            )}
-                        </Modal>
-                        {/* Import Selection Modal */}
-                        <Modal
-                            open={importSelectionModalVisible}
-                            title="Select Data to Import"
-                            onCancel={() => setImportSelectionModalVisible(false)}
-                            onOk={async () => {
-                                setImportSelectionModalVisible(false);
-                                setImportModalVisible(true);
-                                setImportProgress(0);
-                                setImportDone(false);
-                                // Simulate progress for UX
-                                let progress = 0;
-                                for (let i = 0; i < selectedImportKeys.length; i++) {
-                                    const key = selectedImportKeys[i];
-                                    let value = importData[key];
-                                    try {
-                                        if (typeof value === "object") {
-                                            localStorage.setItem(key, JSON.stringify(value));
-                                        } else {
-                                            localStorage.setItem(key, value);
-                                        }
-                                    } catch { }
-                                    progress = Math.round(((i + 1) / selectedImportKeys.length) * 100);
-                                    setImportProgress(progress);
-                                    // eslint-disable-next-line no-await-in-loop
-                                    await new Promise(res => setTimeout(res, 100));
-                                }
-                                setImportDone(true);
-                            }}
-                            okText="Import Selected"
-                            cancelText="Cancel"
-                            centered
-                            width={900}
-                        >
-                            <div style={{ marginBottom: 12, color: '#e53935', fontWeight: 500 }}>
-                                {existingKeys.length > 0 ? (
-                                    <>
-                                        <span>Warning: Importing will <b>replace existing data</b> for the following keys:</span>
-                                        <ul style={{ margin: '8px 0 0 18px', color: '#ff9800', fontSize: 13 }}>
-                                            {existingKeys.map(k => <li key={k}>{k}</li>)}
-                                        </ul>
-                                    </>
-                                ) : (
-                                    <span>Choose which data to import. New data will be added.</span>
-                                )}
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-                                <Checkbox
-                                    indeterminate={selectedImportKeys.length > 0 && selectedImportKeys.length < importKeys.length}
-                                    checked={selectedImportKeys.length === importKeys.length}
-                                    onChange={e => setSelectedImportKeys(e.target.checked ? importKeys : [])}
-                                    style={{ fontWeight: 500 }}
-                                >
-                                    Select All
-                                </Checkbox>
-                            </div>
-                            {/* Split keys into two columns for compactness */}
-                            {(() => {
-                                const mid = Math.ceil(importKeys.length / 2);
-                                const leftKeys = importKeys.slice(0, mid);
-                                const rightKeys = importKeys.slice(mid);
-                                return (
-                                    <div style={{ display: 'flex', gap: 24, width: '100%' }}>
-                                        {[leftKeys, rightKeys].map((colKeys, colIdx) => (
-                                            <div key={colIdx} style={{ flex: 1, minWidth: 0 }}>
-                                                {/* Table header */}
-                                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 110px', background: '#22252b', borderTopLeftRadius: colIdx === 0 ? 8 : 0, borderTopRightRadius: colIdx === 1 ? 8 : 0, border: '1px solid #333', borderBottom: 'none' }}>
-                                                    <div style={{ padding: '8px 16px', fontWeight: 600, color: '#fff', fontSize: 16 }}>Key</div>
-                                                    <div style={{ padding: '8px 16px', fontWeight: 600, color: '#fff', fontSize: 16, textAlign: 'center' }}>Import?</div>
-                                                </div>
-                                                <div style={{
-                                                    display: 'grid',
-                                                    gridTemplateColumns: '2fr 80px',
-                                                    border: '1px solid #333',
-                                                    borderTop: 'none',
-                                                    borderBottomLeftRadius: colIdx === 0 ? 8 : 0,
-                                                    borderBottomRightRadius: colIdx === 1 ? 8 : 0,
-                                                    background: '#191c22',
-                                                    overflow: 'hidden',
-                                                }}>
-                                                    {colKeys.map(key => (
-                                                        <React.Fragment key={key}>
-                                                            <div style={{ padding: '8px 16px', color: existingKeys.includes(key) ? '#ff9800' : '#fff', fontWeight: 500, borderBottom: '1px solid #222', fontSize: 15, display: 'flex', alignItems: 'center' }}>
-                                                                {key} {existingKeys.includes(key) && <span style={{ color: '#ff9800', fontSize: 12, marginLeft: 6 }}>(will replace)</span>}
-                                                            </div>
-                                                            <div style={{ padding: '8px 16px', textAlign: 'center', borderBottom: '1px solid #222' }}>
-                                                                <Checkbox
-                                                                    checked={selectedImportKeys.includes(key)}
-                                                                    onChange={e => {
-                                                                        if (e.target.checked) {
-                                                                            setSelectedImportKeys([...selectedImportKeys, key]);
-                                                                        } else {
-                                                                            setSelectedImportKeys(selectedImportKeys.filter(k => k !== key));
-                                                                        }
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                        </React.Fragment>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                );
-                            })()}
-                        </Modal>
-                    </Tabs.TabPane>
-                </Tabs>
+          {activeTab === "task" && (
+            <div className="settings-group">
+              <SettingToggle icon={<IdcardOutlined />} title="Show ID" description="Display a task ID column on the form.">
+                <CustomSwitch checked={settings.taskSettings.showID} onChange={(v) => toggleSetting("taskSettings", "showID", v)} />
+              </SettingToggle>
+              <SettingToggle icon={<CalendarOutlined />} title="Show Date" description="Show the date picker next to the name.">
+                <CustomSwitch checked={settings.taskSettings.showDate} onChange={(v) => toggleSetting("taskSettings", "showDate", v)} />
+              </SettingToggle>
+              <SettingToggle icon={<ProjectOutlined />} title="Show Project" description="Let you pick one or more projects per report.">
+                <CustomSwitch checked={settings.taskSettings.showProject} onChange={(v) => toggleSetting("taskSettings", "showProject", v)} />
+              </SettingToggle>
+              <SettingToggle icon={<CheckSquareOutlined />} title="Show Status" description="Add a status dropdown to every task.">
+                <CustomSwitch checked={settings.taskSettings.showStatus} onChange={(v) => toggleSetting("taskSettings", "showStatus", v)} />
+              </SettingToggle>
+              <SettingToggle icon={<ClockCircleOutlined />} title="Show Hours / Minutes" description="Track time spent per task.">
+                <CustomSwitch checked={settings.taskSettings.showHours} onChange={(v) => toggleSetting("taskSettings", "showHours", v)} />
+              </SettingToggle>
+              <SettingToggle icon={<ArrowRightOutlined />} title="Show Next Task" description="Prompt for tomorrow's plan at the bottom of the form.">
+                <CustomSwitch checked={settings.taskSettings.showNextTask} onChange={(v) => toggleSetting("taskSettings", "showNextTask", v)} />
+              </SettingToggle>
+              <SettingToggle icon={<BranchesOutlined />} title="Allow Subtasks" description="Nest smaller items under a parent task.">
+                <CustomSwitch checked={settings.taskSettings.allowSubtask} onChange={(v) => toggleSetting("taskSettings", "allowSubtask", v)} />
+              </SettingToggle>
             </div>
+          )}
+
+          {activeTab === "preview" && (
+            <div className="settings-two-col">
+              <div className="settings-group">
+                <SettingToggle icon={<IdcardOutlined />} title="Show ID" description="Include task IDs in the preview text.">
+                  <CustomSwitch checked={settings.previewSettings.showID} onChange={(v) => toggleSetting("previewSettings", "showID", v)} />
+                </SettingToggle>
+                <SettingToggle icon={<CalendarOutlined />} title="Show Date" description="Prefix the preview with today's date.">
+                  <CustomSwitch checked={settings.previewSettings.showDate} onChange={(v) => toggleSetting("previewSettings", "showDate", v)} />
+                </SettingToggle>
+                <SettingToggle icon={<ProjectOutlined />} title="Show Project" description="Include the project line in the preview.">
+                  <CustomSwitch checked={settings.previewSettings.showProject} onChange={(v) => toggleSetting("previewSettings", "showProject", v)} />
+                </SettingToggle>
+                <SettingToggle icon={<CheckSquareOutlined />} title="Show Status" description="Append the status to each task line.">
+                  <CustomSwitch checked={settings.previewSettings.showStatus} onChange={(v) => toggleSetting("previewSettings", "showStatus", v)} />
+                </SettingToggle>
+                <SettingToggle icon={<ClockCircleOutlined />} title="Show Hours" description="Append time spent to each task line.">
+                  <CustomSwitch checked={settings.previewSettings.showHours} onChange={(v) => toggleSetting("previewSettings", "showHours", v)} />
+                </SettingToggle>
+                <SettingToggle icon={<ArrowRightOutlined />} title="Show Next Task" description="Include tomorrow's plan block.">
+                  <CustomSwitch checked={settings.previewSettings.showNextTask} onChange={(v) => toggleSetting("previewSettings", "showNextTask", v)} />
+                </SettingToggle>
+                <SettingToggle icon={<BranchesOutlined />} title="Allow Subtasks" description="Render subtasks under their parent.">
+                  <CustomSwitch checked={settings.previewSettings.allowSubtask} onChange={(v) => toggleSetting("previewSettings", "allowSubtask", v)} />
+                </SettingToggle>
+                <SettingToggle icon={<EyeInvisibleOutlined />} title="Hide parent time" description="Omit hours on parent rows when subtasks exist.">
+                  <CustomSwitch checked={settings.previewSettings.hideParentTaskTime} onChange={(v) => toggleSetting("previewSettings", "hideParentTaskTime", v)} />
+                </SettingToggle>
+                <SettingToggle icon={<MinusSquareOutlined />} title="Hide parent status" description="Omit status on parent rows when subtasks exist.">
+                  <CustomSwitch checked={settings.previewSettings.hideParentTaskStatus} onChange={(v) => toggleSetting("previewSettings", "hideParentTaskStatus", v)} />
+                </SettingToggle>
+              </div>
+              <div className="settings-group">
+                <SettingToggle icon={<LineOutlined />} title='Divider after "Work Update Text"' description="Dashes separator length.">
+                  <CustomSwitch checked={settings.previewSettings.allowLineAfterWorkUpdate} onChange={(v) => toggleSetting("previewSettings", "allowLineAfterWorkUpdate", v)} />
+                  {settings.previewSettings.allowLineAfterWorkUpdate && (
+                    <Input type="number" className="line-input" placeholder="Len" value={settings.previewSettings.lineAfterWorkUpdate || 3} onChange={(e) => toggleSetting("previewSettings", "lineAfterWorkUpdate", parseInt(e.target.value, 10) || 3)} onWheel={(e) => e.currentTarget.blur()} style={{ width: 70 }} />
+                  )}
+                </SettingToggle>
+                <SettingToggle icon={<LineOutlined />} title='Divider after "Project"' description="Dashes separator length.">
+                  <CustomSwitch checked={settings.previewSettings.allowLineAfterProject} onChange={(v) => toggleSetting("previewSettings", "allowLineAfterProject", v)} />
+                  {settings.previewSettings.allowLineAfterProject && (
+                    <Input type="number" className="line-input" placeholder="Len" value={settings.previewSettings.lineAfterProject || 3} onChange={(e) => toggleSetting("previewSettings", "lineAfterProject", parseInt(e.target.value, 10) || 3)} onWheel={(e) => e.currentTarget.blur()} style={{ width: 70 }} />
+                  )}
+                </SettingToggle>
+                <SettingToggle icon={<LineOutlined />} title='Divider after "Next Task"' description="Dashes separator length.">
+                  <CustomSwitch checked={settings.previewSettings.allowLineAfterNextTask} onChange={(v) => toggleSetting("previewSettings", "allowLineAfterNextTask", v)} />
+                  {settings.previewSettings.allowLineAfterNextTask && (
+                    <Input type="number" className="line-input" placeholder="Len" value={settings.previewSettings.lineAfterNextTask || 3} onChange={(e) => toggleSetting("previewSettings", "lineAfterNextTask", parseInt(e.target.value, 10) || 3)} onWheel={(e) => e.currentTarget.blur()} style={{ width: 70 }} />
+                  )}
+                </SettingToggle>
+                <SettingToggle icon={<LineOutlined />} title='Divider before "Closing Text"' description="Dashes separator length.">
+                  <CustomSwitch checked={settings.previewSettings.allowLineBeforeClosingText} onChange={(v) => toggleSetting("previewSettings", "allowLineBeforeClosingText", v)} />
+                  {settings.previewSettings.allowLineBeforeClosingText && (
+                    <Input type="number" className="line-input" placeholder="Len" value={settings.previewSettings.lineBeforeClosingText || 3} onChange={(e) => toggleSetting("previewSettings", "lineBeforeClosingText", parseInt(e.target.value, 10) || 3)} onWheel={(e) => e.currentTarget.blur()} style={{ width: 70 }} />
+                  )}
+                </SettingToggle>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "general" && (
+            <div className="settings-two-col">
+              <div className="settings-group">
+                <SettingToggle
+                  icon={<BgColorsOutlined />}
+                  title="Accent color"
+                  description="Pick the color used for buttons, highlights, and the sidebar's active state."
+                  stacked
+                >
+                  <AccentPicker />
+                </SettingToggle>
+                <SettingToggle
+                  icon={<CloudSyncOutlined />}
+                  title="Auto-save draft"
+                  description="Keep your in-progress form in memory. If you reload the page, your tasks come back. Clears on save or reset."
+                >
+                  <CustomSwitch
+                    checked={settings.generateSettings.draftEnabled}
+                    onChange={(v) => toggleSetting("generateSettings", "draftEnabled", v)}
+                  />
+                </SettingToggle>
+                <SettingToggle icon={<LineOutlined />} title="Task gap" description="Blank lines between top-level tasks in the preview.">
+                  <Input
+                    type="number"
+                    className="gap-input"
+                    value={settings.generateSettings.taskGap || 1}
+                    onChange={(e) => toggleSetting("generateSettings", "taskGap", parseInt(e.target.value, 10) || 1)}
+                  />
+                </SettingToggle>
+                <SettingToggle icon={<LineOutlined />} title="Subtask gap" description="Blank lines between subtasks.">
+                  <Input
+                    type="number"
+                    className="gap-input"
+                    value={settings.generateSettings.subtaskGap || 1}
+                    onChange={(e) => toggleSetting("generateSettings", "subtaskGap", parseInt(e.target.value, 10) || 1)}
+                  />
+                </SettingToggle>
+                <SettingToggle icon={<FontSizeOutlined />} title="Work update heading" description="First line of every report.">
+                  <Input
+                    className="text-input"
+                    value={generateSettings.workUpdateText || "Today's work update -"}
+                    onChange={(e) => toggleSetting("generateSettings", "workUpdateText", e.target.value || "Today's work update -")}
+                    style={{ width: 260 }}
+                  />
+                </SettingToggle>
+                <SettingToggle icon={<FontSizeOutlined />} title="Closing text" description="Sign-off line above your name.">
+                  <Input
+                    className="text-input"
+                    value={generateSettings.closingText || "Thanks & regards"}
+                    onChange={(e) => toggleSetting("generateSettings", "closingText", e.target.value || "Thanks & regards")}
+                    style={{ width: 260 }}
+                  />
+                </SettingToggle>
+                <SettingToggle icon={<UploadOutlined />} title="Profile picture" description="Shown in the sidebar.">
+                  <Upload
+                    showUploadList={false}
+                    beforeUpload={(file) => {
+                      const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
+                      if (!isJpgOrPng) {
+                        message.error("You can only upload JPG/PNG files!");
+                        return false;
+                      }
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        const result = reader.result as string;
+                        try {
+                          localStorage.setItem("profilePicture", result);
+                          setUploadedImage(result);
+                          setProfilePicture(result);
+                        } catch (error) {
+                          if (error instanceof DOMException && error.name === "QuotaExceededError") {
+                            message.error("Image is too large to store in localStorage.");
+                          }
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                      return false;
+                    }}
+                  >
+                    <Button icon={<UploadOutlined />}>Upload</Button>
+                  </Upload>
+                  {uploadedImage && (
+                    <Avatar src={uploadedImage} size={36} style={{ border: "2px solid var(--accent)" }} />
+                  )}
+                </SettingToggle>
+              </div>
+
+              <div className="settings-group">
+                <div className="project-manager">
+                  <div className="project-add-row">
+                    <Input
+                      placeholder="Add new project"
+                      value={projectInput}
+                      onChange={(e) => setProjectInput(e.target.value)}
+                      onPressEnter={handleAddProject}
+                    />
+                    <Button type="primary" icon={<PlusOutlined />} onClick={handleAddProject}>
+                      Add
+                    </Button>
+                  </div>
+                  <div className="project-list">
+                    {projects.map((item, idx) => (
+                      <div key={item} className="project-item">
+                        <span className="project-idx">{idx + 1}.</span>
+                        <span className={`project-name ${DEFAULT_PROJECTS.includes(item) ? "is-default" : ""}`}>
+                          {item}
+                        </span>
+                        {!DEFAULT_PROJECTS.includes(item) && (
+                          <Popconfirm
+                            title="Remove this project?"
+                            onConfirm={() => updateProjects(projects.filter((p) => p !== item))}
+                            okText="Yes"
+                            cancelText="No"
+                          >
+                            <Button
+                              type="text"
+                              icon={<DeleteOutlined style={{ color: "var(--danger)" }} />}
+                              size="small"
+                            />
+                          </Popconfirm>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "export" && (
+            <div className="settings-group">
+              <SettingToggle icon={<IdcardOutlined />} title="Include ID column" description="Print task IDs in the export.">
+                <CustomSwitch checked={settings.exportSettings.showID} onChange={(v) => toggleSetting("exportSettings", "showID", v)} />
+              </SettingToggle>
+              <SettingToggle icon={<CalendarOutlined />} title="Include Date column" description="Group rows by date.">
+                <CustomSwitch checked={settings.exportSettings.showDate} onChange={(v) => toggleSetting("exportSettings", "showDate", v)} />
+              </SettingToggle>
+              <SettingToggle icon={<ProjectOutlined />} title="Include Project" description="Show the project name per row.">
+                <CustomSwitch checked={settings.exportSettings.showProject} onChange={(v) => toggleSetting("exportSettings", "showProject", v)} />
+              </SettingToggle>
+              <SettingToggle icon={<CheckSquareOutlined />} title="Include Status" description="Show each task's status.">
+                <CustomSwitch checked={settings.exportSettings.showStatus} onChange={(v) => toggleSetting("exportSettings", "showStatus", v)} />
+              </SettingToggle>
+              <SettingToggle icon={<ClockCircleOutlined />} title="Include Time" description="Show hours + minutes.">
+                <CustomSwitch checked={settings.exportSettings.showHours} onChange={(v) => toggleSetting("exportSettings", "showHours", v)} />
+              </SettingToggle>
+              <SettingToggle icon={<ArrowRightOutlined />} title="Include Next Task" description="Append tomorrow's plan at the bottom.">
+                <CustomSwitch checked={settings.exportSettings.showNextTask} onChange={(v) => toggleSetting("exportSettings", "showNextTask", v)} />
+              </SettingToggle>
+              <SettingToggle icon={<BranchesOutlined />} title="Include Subtasks" description="Render subtasks under their parent row.">
+                <CustomSwitch checked={settings.exportSettings.allowSubtask} onChange={(v) => toggleSetting("exportSettings", "allowSubtask", v)} />
+              </SettingToggle>
+              <SettingToggle
+                icon={<MenuOutlined />}
+                title="Column order"
+                description="Drag to set the order columns appear in PDF and CSV exports."
+                stacked
+              >
+                <ColumnOrder
+                  order={(settings.exportSettings as unknown as { columnOrder?: string[] }).columnOrder}
+                  enabled={{
+                    showID: settings.exportSettings.showID,
+                    showDate: settings.exportSettings.showDate,
+                    showStatus: settings.exportSettings.showStatus,
+                    showHours: settings.exportSettings.showHours,
+                    showProject: settings.exportSettings.showProject,
+                  }}
+                  onChange={(next: ExportColumnKey[]) =>
+                    toggleSetting("exportSettings", "columnOrder", next)
+                  }
+                />
+              </SettingToggle>
+            </div>
+          )}
+
+          {activeTab === "templates" && <TemplatesManager />}
+
+          {activeTab === "notifications" && <NotificationsSettings />}
+
+          {activeTab === "backup" && (
+            <div className="settings-group">
+              <div className="backup-card">
+                <div className="backup-row">
+                  <div className="backup-row-text">
+                    <div className="backup-row-title">Export backup</div>
+                    <div className="backup-row-desc">Download a JSON file of all projects, settings, and reports.</div>
+                  </div>
+                  <Button
+                    type="primary"
+                    icon={<ExportOutlined />}
+                    onClick={() => {
+                      setExportModalVisible(true);
+                      setExportProgress(0);
+                      let progress = 0;
+                      const interval = setInterval(() => {
+                        progress += 20;
+                        setExportProgress(progress);
+                        if (progress >= 100) {
+                          clearInterval(interval);
+                          setTimeout(() => {
+                            const backupData = getAllLocalStorageData();
+                            const now = new Date();
+                            const date = now.toISOString().slice(0, 10);
+                            const time = now.toTimeString().slice(0, 8).replace(/:/g, "-");
+                            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = `task-report-backup-${date}_${time}.json`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                            setExportModalVisible(false);
+                          }, 400);
+                        }
+                      }, 150);
+                    }}
+                  >
+                    Export
+                  </Button>
+                </div>
+
+                <div className="backup-row">
+                  <div className="backup-row-text">
+                    <div className="backup-row-title">Import backup</div>
+                    <div className="backup-row-desc">Restore from a backup file exported above.</div>
+                  </div>
+                  <input
+                    type="file"
+                    accept="application/json"
+                    style={{ display: "none" }}
+                    id="import-backup-input"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const text = await file.text();
+                        const data = JSON.parse(text);
+                        if (!data.__taskReportBackup) {
+                          message.error("File format not supported.");
+                          return;
+                        }
+                        const keys = Object.keys(data).filter((k) => k !== "__taskReportBackup" && k !== "timestamp");
+                        setImportData(data);
+                        setImportKeys(keys);
+                        setSelectedImportKeys(keys);
+                        const existing = keys.filter((k) => localStorage.getItem(k) !== null);
+                        setExistingKeys(existing);
+                        setImportSelectionModalVisible(true);
+                      } catch {
+                        message.error("Failed to import backup.");
+                      }
+                    }}
+                  />
+                  <Button
+                    icon={<ImportOutlined />}
+                    onClick={() => document.getElementById("import-backup-input")?.click()}
+                  >
+                    Import
+                  </Button>
+                </div>
+
+                <div className="backup-row danger">
+                  <div className="backup-row-text">
+                    <div className="backup-row-title">Reset app</div>
+                    <div className="backup-row-desc">Permanently delete all local data: projects, settings, reports, profile.</div>
+                  </div>
+                  <Button
+                    danger
+                    type="primary"
+                    icon={<ExclamationCircleOutlined />}
+                    onClick={() => {
+                      Modal.confirm({
+                        title: "Clear all app data?",
+                        content: "This cannot be undone. All local data will be lost.",
+                        okText: "Yes, clear",
+                        okType: "danger",
+                        cancelText: "Cancel",
+                        centered: true,
+                        onOk: () => {
+                          localStorage.clear();
+                          window.location.replace(window.location.pathname);
+                        },
+                      });
+                    }}
+                  >
+                    Reset
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-    );
+      </div>
+
+      <Modal open={exportModalVisible} footer={null} closable={false} centered maskClosable={false} title="Exporting backup">
+        <Progress percent={exportProgress} status={exportProgress < 100 ? "active" : "success"} />
+        <div style={{ marginTop: 14, color: "var(--text-muted)" }}>Preparing your backup file…</div>
+      </Modal>
+      <Modal
+        open={importModalVisible}
+        footer={null}
+        closable={false}
+        centered
+        maskClosable={false}
+        title={importDone ? "Import complete" : "Importing backup"}
+      >
+        {importDone ? (
+          <div style={{ textAlign: "center" }}>
+            <Progress percent={100} status="success" />
+            <div style={{ margin: "16px 0", color: "var(--success)", fontWeight: 600 }}>Backup imported.</div>
+            <Button type="primary" onClick={() => window.location.reload()}>
+              Apply changes
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Progress percent={importProgress} status="active" />
+            <div style={{ marginTop: 14, color: "var(--text-muted)" }}>Restoring your data…</div>
+          </>
+        )}
+      </Modal>
+      <Modal
+        open={importSelectionModalVisible}
+        title="Select data to import"
+        onCancel={() => setImportSelectionModalVisible(false)}
+        onOk={async () => {
+          setImportSelectionModalVisible(false);
+          setImportModalVisible(true);
+          setImportProgress(0);
+          setImportDone(false);
+          let progress = 0;
+          for (let i = 0; i < selectedImportKeys.length; i++) {
+            const key = selectedImportKeys[i];
+            const value = importData[key];
+            try {
+              if (typeof value === "object") {
+                localStorage.setItem(key, JSON.stringify(value));
+              } else {
+                localStorage.setItem(key, value as string);
+              }
+            } catch {
+              // skip on quota error
+            }
+            progress = Math.round(((i + 1) / selectedImportKeys.length) * 100);
+            setImportProgress(progress);
+            await new Promise((res) => setTimeout(res, 80));
+          }
+          setImportDone(true);
+        }}
+        okText="Import selected"
+        cancelText="Cancel"
+        centered
+        width={720}
+      >
+        {existingKeys.length > 0 && (
+          <div style={{ marginBottom: 12, color: "var(--danger)", fontWeight: 500 }}>
+            {existingKeys.length} existing {existingKeys.length === 1 ? "entry" : "entries"} will be replaced.
+          </div>
+        )}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
+          <Checkbox
+            indeterminate={selectedImportKeys.length > 0 && selectedImportKeys.length < importKeys.length}
+            checked={selectedImportKeys.length === importKeys.length}
+            onChange={(e) => setSelectedImportKeys(e.target.checked ? importKeys : [])}
+          >
+            Select all
+          </Checkbox>
+        </div>
+        <div className="import-keys-grid">
+          {importKeys.map((key) => (
+            <label key={key} className={`import-key ${existingKeys.includes(key) ? "is-existing" : ""}`}>
+              <Checkbox
+                checked={selectedImportKeys.includes(key)}
+                onChange={(e) => {
+                  if (e.target.checked) setSelectedImportKeys([...selectedImportKeys, key]);
+                  else setSelectedImportKeys(selectedImportKeys.filter((k) => k !== key));
+                }}
+              />
+              <span className="import-key-name">{key}</span>
+              {existingKeys.includes(key) && <span className="import-key-flag">will replace</span>}
+            </label>
+          ))}
+        </div>
+      </Modal>
+    </div>
+  );
 };
 
 export default SettingsPage;

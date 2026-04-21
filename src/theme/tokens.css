@@ -1,0 +1,240 @@
+/* =========================================================
+   Design tokens — the single source of truth for the theme.
+   Override via [data-theme="dark"] / [data-theme="light"].
+   ========================================================= */
+
+:root {
+  /* Font stack */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono",
+    "Fira Code", Menlo, Consolas, monospace;
+
+  /* Radius */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-pill: 999px;
+
+  /* Spacing helpers */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Motion */
+  --motion-fast: 140ms;
+  --motion-med: 220ms;
+  --motion-slow: 420ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Accent — indigo to violet to pink */
+  --accent-1: #6366f1;
+  --accent-2: #8b5cf6;
+  --accent-3: #ec4899;
+  --accent: var(--accent-2);
+  --accent-soft: rgba(139, 92, 246, 0.16);
+  --gradient-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 45%, #ec4899 100%);
+
+  /* Semantic palette */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #0ea5e9;
+
+  /* Default (light) surface palette */
+  --bg-app: #f6f7fb;
+  --bg-app-gradient: radial-gradient(
+      1200px 600px at -10% -20%,
+      rgba(99, 102, 241, 0.14),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 500px at 110% -10%,
+      rgba(236, 72, 153, 0.1),
+      transparent 60%
+    ),
+    var(--bg-app);
+  --bg-surface: #ffffff;
+  --bg-surface-2: #fafbff;
+  --bg-surface-hover: #f1f3fa;
+  --bg-sunken: #eef0f7;
+  --bg-overlay: rgba(255, 255, 255, 0.72);
+
+  --border-subtle: rgba(15, 23, 42, 0.06);
+  --border-default: rgba(15, 23, 42, 0.1);
+  --border-strong: rgba(15, 23, 42, 0.16);
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
+
+  /* Semantic status palette (light) */
+  --status-success-bg: rgba(34, 197, 94, 0.12);
+  --status-success-text: #15803d;
+  --status-success-border: rgba(34, 197, 94, 0.28);
+  --status-info-bg: rgba(14, 165, 233, 0.12);
+  --status-info-text: #0369a1;
+  --status-info-border: rgba(14, 165, 233, 0.28);
+  --status-warning-bg: rgba(245, 158, 11, 0.14);
+  --status-warning-text: #b45309;
+  --status-warning-border: rgba(245, 158, 11, 0.3);
+  --status-danger-bg: rgba(239, 68, 68, 0.12);
+  --status-danger-text: #b91c1c;
+  --status-danger-border: rgba(239, 68, 68, 0.28);
+  --status-muted-bg: rgba(100, 116, 139, 0.12);
+  --status-muted-text: #475569;
+  --status-muted-border: rgba(100, 116, 139, 0.22);
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05),
+    0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06),
+    0 2px 6px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 20px 40px -16px rgba(15, 23, 42, 0.18),
+    0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-glow: 0 0 0 3px var(--accent-soft);
+}
+
+[data-theme="dark"] {
+  --bg-app: #0a0b12;
+  --bg-app-gradient: radial-gradient(
+      1200px 600px at -10% -20%,
+      rgba(99, 102, 241, 0.18),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 500px at 110% -10%,
+      rgba(236, 72, 153, 0.12),
+      transparent 60%
+    ),
+    var(--bg-app);
+  --bg-surface: #141825;
+  --bg-surface-2: #171b2a;
+  --bg-surface-hover: #1d2234;
+  --bg-sunken: #0f121d;
+  --bg-overlay: rgba(20, 24, 37, 0.72);
+
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-default: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --text-primary: #e6e8ef;
+  --text-secondary: #b8bdcc;
+  --text-muted: #8891a6;
+  --text-inverse: #0f172a;
+
+  --accent-soft: rgba(139, 92, 246, 0.22);
+
+  /* Semantic status palette (dark) */
+  --status-success-bg: rgba(34, 197, 94, 0.16);
+  --status-success-text: #86efac;
+  --status-success-border: rgba(34, 197, 94, 0.32);
+  --status-info-bg: rgba(14, 165, 233, 0.16);
+  --status-info-text: #7dd3fc;
+  --status-info-border: rgba(14, 165, 233, 0.32);
+  --status-warning-bg: rgba(245, 158, 11, 0.16);
+  --status-warning-text: #fcd34d;
+  --status-warning-border: rgba(245, 158, 11, 0.32);
+  --status-danger-bg: rgba(239, 68, 68, 0.16);
+  --status-danger-text: #fca5a5;
+  --status-danger-border: rgba(239, 68, 68, 0.32);
+  --status-muted-bg: rgba(148, 163, 184, 0.14);
+  --status-muted-text: #cbd5e1;
+  --status-muted-border: rgba(148, 163, 184, 0.28);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45),
+    0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 22px 48px -18px rgba(0, 0, 0, 0.7),
+    0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* =========================================================
+   Base
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg-app-gradient);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--motion-med) var(--ease-out),
+    color var(--motion-med) var(--ease-out);
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Scrollbars */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-glow);
+  border-radius: var(--radius-sm);
+}
+
+/* =========================================================
+   Reusable surface card
+   ========================================================= */
+.surface {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* =========================================================
+   Theme transition — when switching themes,
+   animate color-affecting properties for ~220ms.
+   ========================================================= */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: background-color var(--motion-med) var(--ease-out),
+    color var(--motion-med) var(--ease-out),
+    border-color var(--motion-med) var(--ease-out),
+    box-shadow var(--motion-med) var(--ease-out) !important;
+}

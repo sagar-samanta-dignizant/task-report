@@ -1,6 +1,8 @@
 {
-    "rewrites": [
-      { "source": "/(.*)", "destination": "/" }
-    ]
-  }
-  
+  "rewrites": [
+    {
+      "source": "/((?!version\\.json|assets/|test-1\\.png|vite\\.svg|favicon).*)",
+      "destination": "/"
+    }
+  ]
+}

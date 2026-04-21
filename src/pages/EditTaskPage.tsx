@@ -1,167 +1,230 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import {
   ALL_AVAILABLE_PROJECTS,
   ALL_BULLET_TYPES,
-  ALL_STATUS_OPTIONS,
 } from "../constant/task.constant";
-import { AddIcon, minusIcon } from "../assets/fontAwesomeIcons";
-import { Button, DatePicker, Input, Select, Tooltip } from "antd";
-import { CloseOutlined, SaveOutlined, EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
-import { useEffect, useRef, useState } from "react";
+import { AddIcon } from "../assets/fontAwesomeIcons";
+import {
+  Alert,
+  App as AntdApp,
+  Button,
+  DatePicker,
+  Input,
+  Modal,
+  Segmented,
+  Select,
+  Tooltip,
+} from "antd";
+import {
+  CloseOutlined,
+  CopyOutlined,
+  ExpandOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
 
-import dayjs from "dayjs"; // Replace moment with dayjs
-import { getBullet } from "../utils/icon.utils";
-import { reverseDate } from "../utils/dateUtils";
+import dayjs from "dayjs";
+import { formatPreview } from "../utils/previewFormatter";
+import {
+  deleteReport,
+  reportExists,
+  saveReport,
+  QuotaError,
+} from "../utils/reportsStore";
+import { newUid } from "../utils/uid";
+import { computeTitleHistory } from "../utils/titleHistory";
+import PageHeader from "../components/layout/PageHeader";
+import TaskCard from "../components/home/TaskCard";
+import ResizableSplit from "../components/home/ResizableSplit";
+import type {
+  AllSettings,
+  GenerateSettings,
+  PreviewFormat,
+  PreviewSettings,
+  Report,
+  Subtask,
+  Task,
+} from "../types/task";
 
-const { Option } = Select;
-
-interface Task {
-  id: number;
-  taskId: string | number;
-  title: string;
-  hours: string | number;
-  minutes: string | number;
-  status: string;
-  subtasks?: Omit<Task, "subtasks">[];
-  view?: boolean; // Add view property for show/hide in preview
-}
-const getProjectsFromStorage = () => {
-  const stored = localStorage.getItem("allProjects");
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) return parsed;
-    } catch { }
+const PREVIEW_FORMAT_KEY = "app:preview-format";
+const readPreviewFormat = (): PreviewFormat => {
+  try {
+    const raw = localStorage.getItem(PREVIEW_FORMAT_KEY);
+    if (raw === "plain" || raw === "markdown" || raw === "slack") return raw;
+  } catch {
+    // ignore
   }
-  return ALL_AVAILABLE_PROJECTS;
+  return "plain";
 };
 
+const { Option } = Select;
+const WORKING_TIME_LIMIT = 8.5;
 
-const EditTaskPage = ({ settings }: { settings: any }) => {
+const getProjectsFromStorage = (): string[] => {
+  try {
+    const stored = localStorage.getItem("allProjects");
+    if (!stored) return ALL_AVAILABLE_PROJECTS;
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : ALL_AVAILABLE_PROJECTS;
+  } catch {
+    return ALL_AVAILABLE_PROJECTS;
+  }
+};
+
+const readGenerateSettings = (): GenerateSettings => {
+  try {
+    return JSON.parse(localStorage.getItem("generateSettings") || "{}");
+  } catch {
+    return {};
+  }
+};
+
+const ensureUids = (tasks: Task[] | undefined): Task[] => {
+  if (!tasks) return [];
+  return tasks.map((t) => ({
+    ...t,
+    uid: t.uid || newUid(),
+    view: t.view !== false,
+    subtasks: t.subtasks?.map((s) => ({
+      ...s,
+      uid: s.uid || newUid(),
+      view: s.view !== false,
+    })),
+  }));
+};
+
+const recomputeParentTime = (parent: Task): Task => {
+  const subs = parent.subtasks || [];
+  if (subs.length === 0) return parent;
+  const totals = subs.reduce(
+    (acc, s) => ({
+      hours: acc.hours + (parseInt(s.hours as string, 10) || 0),
+      minutes: acc.minutes + (parseInt(s.minutes as string, 10) || 0),
+    }),
+    { hours: 0, minutes: 0 }
+  );
+  return {
+    ...parent,
+    hours: String(totals.hours + Math.floor(totals.minutes / 60)),
+    minutes: String(totals.minutes % 60),
+  };
+};
+
+const EditTaskPage = ({ settings }: { settings: AllSettings }) => {
+  const { message } = AntdApp.useApp();
   const location = useLocation();
   const navigate = useNavigate();
-  const report = location.state?.report;
-  const {
-    bulletType: taskIcon,
-    selectedProjects: projectsSeleted,
-    subIcon,
-    date: selectedDate,
-  } = report?.data;
-  const [tasks, setTasks] = useState<Task[]>(
-    (report?.data.tasks || []).map((t: any) => ({ ...t, view: t.view !== false }))
-  );
+  const report = location.state?.report as
+    | { date: string; data: Report }
+    | undefined;
+  const data = report?.data;
+
+  const [tasks, setTasks] = useState<Task[]>(() => ensureUids(data?.tasks));
   const [selectedProjects, setSelectedProjects] = useState<string[]>(
-    projectsSeleted || []
+    data?.selectedProjects || []
   );
+  const [name, setName] = useState(data?.name || "");
+  const [date, setDate] = useState(data?.date || "");
+  const [bulletType, setBulletType] = useState<string>(data?.bulletType || "dot");
+  const [nextTaskValue, setNextTaskValue] = useState(data?.nextTask || "");
+  const [selectedSubIcon, setSelectedSubIcon] = useState<string>(
+    data?.subIcon || "dot"
+  );
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [isDateConflict, setIsDateConflict] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFormat, setPreviewFormat] = useState<PreviewFormat>(readPreviewFormat);
 
-  const [name, setName] = useState(report?.data.name || "");
-  const [date, setDate] = useState(selectedDate || "");
-  const [bulletType, setBulletType] = useState(taskIcon);
-  const [nextTaskValue, setNextTaskValue] = useState(
-    report?.data.nextTask || ""
-  );
-  const [selectedSubIcon, setSelectedSubIcon] = useState(subIcon);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null); // Add state for alert messages
-  const [isDateConflict, setIsDateConflict] = useState(false); // Track if the selected date conflicts with an existing record
-  const taskRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const subtaskRefs = useRef<(HTMLInputElement | null)[][]>([]);
-  const projects = getProjectsFromStorage()
-  const workingTimeLimit = 8.5;
+  useEffect(() => {
+    try {
+      localStorage.setItem(PREVIEW_FORMAT_KEY, previewFormat);
+    } catch {
+      // ignore
+    }
+  }, [previewFormat]);
+  const taskRefs = useRef<Map<string, HTMLInputElement | null>>(new Map());
+  const subtaskRefs = useRef<
+    Map<string, import("antd").InputRef | null>
+  >(new Map());
+  const projects = useMemo(() => getProjectsFromStorage(), []);
 
-  const generateSettings = JSON.parse(
-    localStorage.getItem("generateSettings") || "{}"
-  );
-  const previewSettings = JSON.parse(
-    localStorage.getItem("previewSettings") || "{}"
-  );
-  const TASK_GAP = generateSettings.taskGap || 1; // Default to 1 if not set
-  const SUBTASK_GAP = generateSettings.subtaskGap || 1; // Default to 1 if not set
-
-  const calculateRemainingTime = () => {
-    const totalTaskTime = tasks.reduce((sum, task) => {
+  const remainingTime = useMemo(() => {
+    const total = tasks.reduce((sum, task) => {
       const subtaskTime =
-        task.subtasks?.reduce((subSum, subtask) => {
-          const subtaskHours = parseFloat(subtask.hours as string) || 0;
-          const subtaskMinutes =
-            (parseFloat(subtask.minutes as string) || 0) / 60;
-          return subSum + subtaskHours + subtaskMinutes;
+        task.subtasks?.reduce((s, st) => {
+          const h = parseFloat(st.hours as string) || 0;
+          const m = (parseFloat(st.minutes as string) || 0) / 60;
+          return s + h + m;
         }, 0) || 0;
-
-      const taskHours = task.subtasks
+      const taskHours = task.subtasks?.length
         ? 0
-        : parseFloat(task.hours as string) || 0; // Ignore task hours if subtasks exist
-      const taskMinutes = task.subtasks
+        : parseFloat(task.hours as string) || 0;
+      const taskMinutes = task.subtasks?.length
         ? 0
-        : (parseFloat(task.minutes as string) || 0) / 60; // Ignore task minutes if subtasks exist
-
+        : (parseFloat(task.minutes as string) || 0) / 60;
       return sum + taskHours + taskMinutes + subtaskTime;
     }, 0);
-    return workingTimeLimit - totalTaskTime;
-  };
+    return WORKING_TIME_LIMIT - total;
+  }, [tasks]);
 
-  const formatRemainingTime = (remainingTime: number) => {
-    const hours = Math.floor(Math.abs(remainingTime));
-    const minutes = Math.round((Math.abs(remainingTime) - hours) * 60);
-    return remainingTime < 0
-      ? `${hours}h ${minutes}m (Extra hour)`
-      : `${hours}h ${minutes}m`;
-  };
-
-  const remainingTime = calculateRemainingTime();
   const isTimeExceeded = remainingTime < 0;
-
-  const handleTaskChange = (
-    index: number,
-    field: keyof Task,
-    value: string | number
-  ) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[index][field] = value as never;
-    setTasks(updatedTasks);
+  const formatRemainingTime = (r: number) => {
+    const hours = Math.floor(Math.abs(r));
+    const minutes = Math.round((Math.abs(r) - hours) * 60);
+    return r < 0 ? `${hours}h ${minutes}m (Extra hour)` : `${hours}h ${minutes}m`;
   };
 
-  const handleSubtaskChange = (
-    parentIndex: number,
-    subtaskIndex: number,
-    field: keyof Task,
-    value: string | number
-  ) => {
-    const updatedTasks = [...tasks];
-    const parentTask = updatedTasks[parentIndex];
-    if (parentTask.subtasks) {
-      parentTask.subtasks[subtaskIndex] = {
-        ...parentTask.subtasks[subtaskIndex],
-        [field]: value,
-      };
+  const handleTaskChange = useCallback(
+    (index: number, field: keyof Task, value: string | number) => {
+      setTasks((prev) => {
+        const next = [...prev];
+        next[index] = { ...next[index], [field]: value };
+        return next;
+      });
+    },
+    []
+  );
 
-      // Recalculate parent task's hours and minutes based on subtasks
-      const totalSubtaskTime = parentTask.subtasks.reduce(
-        (sum, subtask) => {
-          const subtaskHours = parseInt(subtask.hours as string) || 0;
-          const subtaskMinutes = parseInt(subtask.minutes as string) || 0;
-          return {
-            hours: sum.hours + subtaskHours,
-            minutes: sum.minutes + subtaskMinutes,
-          };
-        },
-        { hours: 0, minutes: 0 }
-      );
+  const handleSubtaskChange = useCallback(
+    (
+      parentIndex: number,
+      subtaskIndex: number,
+      field: keyof Subtask,
+      value: string | number
+    ) => {
+      setTasks((prev) => {
+        const next = [...prev];
+        const parent = { ...next[parentIndex] };
+        if (parent.subtasks) {
+          const subs = [...parent.subtasks];
+          subs[subtaskIndex] = { ...subs[subtaskIndex], [field]: value };
+          parent.subtasks = subs;
+          const totals = subs.reduce(
+            (acc, s) => ({
+              hours: acc.hours + (parseInt(s.hours as string, 10) || 0),
+              minutes: acc.minutes + (parseInt(s.minutes as string, 10) || 0),
+            }),
+            { hours: 0, minutes: 0 }
+          );
+          parent.hours = String(totals.hours + Math.floor(totals.minutes / 60));
+          parent.minutes = String(totals.minutes % 60);
+        }
+        next[parentIndex] = parent;
+        return next;
+      });
+    },
+    []
+  );
 
-      const totalMinutes = totalSubtaskTime.minutes % 60;
-      const totalHours =
-        totalSubtaskTime.hours + Math.floor(totalSubtaskTime.minutes / 60);
-
-      parentTask.hours = totalHours.toString();
-      parentTask.minutes = totalMinutes.toString();
-    }
-    setTasks(updatedTasks);
-  };
-
-  const addTask = () => {
+  const addTask = useCallback(() => {
     const newTask: Task = {
-      id: tasks.length + 1,
+      uid: newUid(),
       taskId: "",
       title: "",
       hours: "",
@@ -169,29 +232,13 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       status: "Completed",
       view: true,
     };
-    setTasks((prevTasks) => {
-      const updatedTasks = [...prevTasks, newTask]; // Add new task at the bottom
-      taskRefs.current.push(null); // Adjust the refs array
-      return updatedTasks;
-    });
-    setTimeout(() => {
-      if (settings.taskSettings.showID) {
-        // Focus on the ID input if it exists
-        const lastTaskRef = taskRefs.current[taskRefs.current.length - 1];
-        lastTaskRef?.focus();
-      } else {
-        // Focus on the title input if ID is not shown
-        const titleInputs = document.querySelectorAll<HTMLInputElement>(
-          ".task-details-inputs .title-field input"
-        );
-        titleInputs[titleInputs.length - 1]?.focus();
-      }
-    }, 0);
-  };
+    setTasks((prev) => [...prev, newTask]);
+    setTimeout(() => taskRefs.current.get(newTask.uid!)?.focus(), 0);
+  }, []);
 
-  const addSubtask = (parentIndex: number) => {
-    const newSubtask: Task = {
-      id: Date.now(), // Unique ID for the subtask
+  const addSubtask = useCallback((parentIndex: number) => {
+    const newSubtask: Subtask = {
+      uid: newUid(),
       taskId: "",
       title: "",
       hours: "",
@@ -199,70 +246,139 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       status: "Completed",
       view: true,
     };
-
-    setTasks((prevTasks) => {
-      const updatedTasks = [...prevTasks];
-      if (!updatedTasks[parentIndex].subtasks) {
-        updatedTasks[parentIndex].subtasks = [];
-        subtaskRefs.current[parentIndex] = []; // Initialize subtask refs for the parent
-      }
-      updatedTasks[parentIndex].subtasks.push(newSubtask);
-      subtaskRefs.current[parentIndex].push(null); // Add a new ref for the new subtask
-      return updatedTasks;
+    setTasks((prev) => {
+      const next = [...prev];
+      const parent = { ...next[parentIndex] };
+      parent.subtasks = [...(parent.subtasks || []), newSubtask];
+      next[parentIndex] = recomputeParentTime(parent);
+      return next;
     });
-    setTimeout(() => {
-      const subtaskRef =
-        subtaskRefs.current[parentIndex]?.[
-        subtaskRefs.current[parentIndex].length - 1
-        ];
-      subtaskRef?.focus(); // Focus on the Title input of the new subtask
-    }, 0);
-  };
+    setTimeout(() => subtaskRefs.current.get(newSubtask.uid!)?.focus(), 0);
+  }, []);
 
-  const clearTask = (taskIndex: number) => {
-    setTasks((prevTasks) =>
-      prevTasks.filter((_, index) => index !== taskIndex)
-    );
-  };
+  const clearTask = useCallback((taskIndex: number) => {
+    setTasks((prev) => prev.filter((_, i) => i !== taskIndex));
+  }, []);
 
-  const clearSubtask = (parentIndex: number, subtaskIndex: number) => {
-    setTasks((prevTasks) => {
-      const updatedTasks = [...prevTasks];
-      const parentTask = updatedTasks[parentIndex];
-      if (parentTask.subtasks) {
-        parentTask.subtasks = parentTask.subtasks.filter(
-          (_, index) => index !== subtaskIndex
-        );
-      }
-      return updatedTasks;
+  const clearSubtask = useCallback(
+    (parentIndex: number, subtaskIndex: number) => {
+      setTasks((prev) => {
+        const next = [...prev];
+        const parent = { ...next[parentIndex] };
+        parent.subtasks = parent.subtasks?.filter((_, i) => i !== subtaskIndex);
+        next[parentIndex] = recomputeParentTime(parent);
+        return next;
+      });
+    },
+    []
+  );
+
+  const toggleTaskView = useCallback((taskIndex: number) => {
+    setTasks((prev) => {
+      const next = [...prev];
+      next[taskIndex] = {
+        ...next[taskIndex],
+        view: next[taskIndex].view === false ? true : false,
+      };
+      return next;
     });
-  };
+  }, []);
+
+  const toggleSubtaskView = useCallback(
+    (parentIndex: number, subtaskIndex: number) => {
+      setTasks((prev) => {
+        const next = [...prev];
+        const parent = { ...next[parentIndex] };
+        if (parent.subtasks) {
+          const subs = [...parent.subtasks];
+          subs[subtaskIndex] = {
+            ...subs[subtaskIndex],
+            view: subs[subtaskIndex].view === false ? true : false,
+          };
+          parent.subtasks = subs;
+        }
+        next[parentIndex] = parent;
+        return next;
+      });
+    },
+    []
+  );
+
+  const handleDragEnd = useCallback((result: DropResult) => {
+    if (!result.destination) return;
+    const s = result.source.index;
+    const d = result.destination.index;
+    if (s === d) return;
+    setTasks((prev) => {
+      const next = Array.from(prev);
+      const [moved] = next.splice(s, 1);
+      next.splice(d, 0, moved);
+      return next;
+    });
+  }, []);
+
+  const registerTaskRef = useCallback(
+    (uid: string, el: HTMLInputElement | null) => {
+      taskRefs.current.set(uid, el);
+    },
+    []
+  );
+  const registerSubtaskRef = useCallback(
+    (uid: string, ref: import("antd").InputRef | null) => {
+      subtaskRefs.current.set(uid, ref);
+    },
+    []
+  );
 
   const handleDateChange = (dateString: string) => {
-    const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
     const formattedDate = dayjs(dateString, "DD-MM-YYYY").format("YYYY-MM-DD");
-
-    // Check if the new date already exists in the store and is not the current record's date
-    if (formattedDate !== report.date && savedReports[formattedDate]) {
+    if (formattedDate !== report?.date && reportExists(formattedDate)) {
       setAlertMessage(
-        `Warning: A record already exists for the date: ${dayjs(
-          formattedDate
-        ).format("DD-MM-YYYY")}. Saving will replace the existing record.`
+        `A record already exists for ${dayjs(formattedDate).format("DD-MM-YYYY")}. Saving will replace it.`
       );
-      setIsDateConflict(true); // Indicate a date conflict
+      setIsDateConflict(true);
     } else {
-      setAlertMessage(null); // Clear the warning if no conflict
-      setIsDateConflict(false); // No conflict
+      setAlertMessage(null);
+      setIsDateConflict(false);
     }
-
-    setDate(formattedDate); // Update the date
+    setDate(formattedDate);
   };
 
-  const handleSave = () => {
-    const savedReports = JSON.parse(localStorage.getItem("reports") || "{}");
+  const preview = useMemo(() => {
+    const r: Report = {
+      date,
+      tasks,
+      selectedProjects,
+      name,
+      nextTask: nextTaskValue,
+      bulletType,
+      subIcon: selectedSubIcon,
+    };
+    return formatPreview({
+      report: r,
+      previewSettings: settings.previewSettings as PreviewSettings,
+      generateSettings: readGenerateSettings(),
+      format: previewFormat,
+    });
+  }, [
+    date,
+    tasks,
+    selectedProjects,
+    name,
+    nextTaskValue,
+    bulletType,
+    selectedSubIcon,
+    settings.previewSettings,
+    previewFormat,
+  ]);
 
-    // Save the updated report data
-    const updatedReport = {
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(preview);
+    message.success("Copied to clipboard");
+  }, [preview, message]);
+
+  const handleSave = () => {
+    const updatedReport: Report = {
       date,
       tasks,
       selectedProjects,
@@ -272,644 +388,326 @@ const EditTaskPage = ({ settings }: { settings: any }) => {
       subIcon: selectedSubIcon,
     };
 
-    // Remove the old record if the date has changed
-    if (date !== report.date) {
-      delete savedReports[report.date];
+    try {
+      if (report && date !== report.date) {
+        deleteReport(report.date);
+      }
+      saveReport(date, updatedReport);
+    } catch (err) {
+      if (err instanceof QuotaError) {
+        message.error(err.message);
+      } else {
+        message.error("Failed to save the report. Please try again.");
+      }
+      return;
     }
 
-    savedReports[date] = updatedReport; // Save the updated report under the new date
-    localStorage.setItem("reports", JSON.stringify(savedReports));
-
-    navigate("/reports"); // Navigate back to the reports page after saving
+    message.success("Report updated");
+    navigate("/reports");
   };
 
-  const handleCancel = () => {
-    navigate("/reports"); // Navigate back to the reports page
-  };
-
-  const getFormattedPreview = () => {
-    const formatLine = (
-      task: Task,
-      level = 0,
-      bulletType: string,
-      index: number
-    ) => {
-      const bullet = getBullet(bulletType, index);
-      const indent = "    ".repeat(level); // 4 spaces per level for better visual offset
-
-      let line = `${indent}${bullet} `;
-      if (previewSettings.showID && task.taskId)
-        line += `ID: ${task.taskId.toString().trim()} - `;
-      line += task.title.trim();
-      if (
-        previewSettings.showStatus &&
-        task?.status?.trim() &&
-        !(
-          previewSettings.hideParentTaskStatus &&
-          (task.subtasks?.length ?? 0) > 0
-        )
-      ) {
-        line += task?.status ? ` (${task?.status.trim()})` : "";
-      }
-      if (
-        previewSettings.showHours &&
-        !(
-          previewSettings.hideParentTaskTime && (task.subtasks?.length ?? 0) > 0
-        )
-      ) {
-        // Only show non-zero hours/minutes, use "m" instead of "min"
-        const h = parseInt(task.hours as string) || 0;
-        const m = parseInt(task.minutes as string) || 0;
-        const timeParts = [];
-        if (h > 0) timeParts.push(`${h}h`);
-        if (m > 0) timeParts.push(`${m}m`);
-        const taskTime = timeParts.join(" ");
-        if (taskTime) line += ` (${taskTime})`;
-      }
-      return line;
-    };
-
-    const formatTasks = (
-      tasks: Task[],
-      level = 0,
-      bulletType: string,
-      subIcon: string
-    ): string =>
-      tasks
-        .filter((task) => task.view !== false)
-        .map((task, index) => {
-          const taskLine = `${formatLine(task, level, bulletType, index)}`;
-          const subtaskLines =
-            previewSettings.allowSubtask && task.subtasks
-              ? formatTasks(
-                task.subtasks.filter((subtask) => subtask.view !== false),
-                level + 1,
-                subIcon,
-                subIcon
-              )
-              : "";
-          return `${taskLine}${subtaskLines ? `\n${subtaskLines}` : ""}`;
-        })
-        .join("\n".repeat(level === 0 ? TASK_GAP : SUBTASK_GAP));
-
-    const workUpdateText =
-      generateSettings.workUpdateText || "Today's work update -";
-    const closingText = generateSettings.closingText || "Thanks & regards";
-
-    const lineAfterWorkUpdate = previewSettings.allowLineAfterWorkUpdate
-      ? "-".repeat(previewSettings.lineAfterWorkUpdate || 3)
-      : "";
-    const lineAfterProject = previewSettings.allowLineAfterProject
-      ? "-".repeat(previewSettings.lineAfterProject || 3)
-      : "";
-    const lineAfterNextTask = previewSettings.allowLineAfterNextTask
-      ? "-".repeat(previewSettings.lineAfterNextTask || 3)
-      : "";
-    const lineBeforeClosingText = previewSettings.allowLineBeforeClosingText
-      ? "-".repeat(previewSettings.lineBeforeClosingText || 3)
-      : "";
-
-    // Build preview lines conditionally, skipping empty lines
-    const previewLines = [
-      `${workUpdateText}${settings.previewSettings.showDate ? " " + reverseDate(date) : ""
-      }`,
-      lineAfterWorkUpdate,
-      settings.previewSettings.showProject
-        ? `Project : ${selectedProjects.map((p) => p.trim()).join(" & ") || "Not Selected"
-        }`
-        : "",
-      settings.previewSettings.allowLineAfterProject
-        ? lineAfterProject
-        : "",
-      !settings.previewSettings.allowLineAfterProject ? "" : "", // Add one empty line if not visible
-      formatTasks(tasks, 0, bulletType, selectedSubIcon),
-      settings.previewSettings.showNextTask && nextTaskValue.trim()
-        ? `\nNext's Tasks\n${lineAfterNextTask}\n=> ${nextTaskValue.trim()}`
-        : "",
-      lineBeforeClosingText,
-      closingText,
-      name.trim(),
-    ]
-      .filter((line, idx) => {
-        if (idx === 4 && !settings.previewSettings.allowLineAfterProject) return true;
-        return line && line.trim() !== "";
-      })
-      .join("\n");
-
-    return previewLines;
-  };
-
-  useEffect(() => {
-    // Remove hotkey handling to ensure it only works on the App page
-  }, []);
-
-  const toggleTaskView = (taskIndex: number) => {
-    setTasks((prevTasks) => {
-      const updatedTasks = [...prevTasks];
-      updatedTasks[taskIndex] = {
-        ...updatedTasks[taskIndex],
-        view: updatedTasks[taskIndex].view === false ? true : false,
-      };
-      return updatedTasks;
-    });
-  };
-
-  const toggleSubtaskView = (parentIndex: number, subtaskIndex: number) => {
-    setTasks((prevTasks) => {
-      const updatedTasks = [...prevTasks];
-      if (updatedTasks[parentIndex].subtasks) {
-        updatedTasks[parentIndex].subtasks[subtaskIndex] = {
-          ...updatedTasks[parentIndex].subtasks[subtaskIndex],
-          view: updatedTasks[parentIndex].subtasks[subtaskIndex].view === false ? true : false,
-        };
-      }
-      return updatedTasks;
-    });
-  };
+  const handleCancel = () => navigate("/reports");
 
   if (!report) {
-    return <p>Report not found!</p>;
+    return (
+      <>
+        <PageHeader title="Edit report" />
+        <div className="page-body">
+          <div className="surface-card" style={{ textAlign: "center" }}>
+            <p style={{ color: "var(--text-muted)" }}>Report not found.</p>
+            <Button onClick={() => navigate("/reports")}>Back to Reports</Button>
+          </div>
+        </div>
+      </>
+    );
   }
 
-  return (
-    <div className="edit-task-container">
-      {alertMessage && (
-        <div
-          style={{
-            backgroundColor: isDateConflict ? "#fff3cd" : "#d4edda", // Yellow for warning, green for success
-            color: isDateConflict ? "#856404" : "#155724", // Text color based on warning or success
-            padding: "10px",
-            borderRadius: "5px",
-            marginBottom: "15px",
-            border: `1px solid ${isDateConflict ? "#ffeeba" : "#c3e6cb"}`, // Border color based on warning or success
-          }}
+  const headerActions = (
+    <>
+      <Tooltip title="Discard and return to Reports">
+        <Button icon={<CloseOutlined />} onClick={handleCancel}>
+          Cancel
+        </Button>
+      </Tooltip>
+      <Tooltip title="Save changes">
+        <Button
+          type="primary"
+          icon={<SaveOutlined />}
+          onClick={handleSave}
         >
-          {alertMessage}
-        </div>
-      )}
-      <h2>Edit Report</h2>
-      <div className="content" style={{ display: "flex", gap: "20px" }}>
-        <div className="task-input-container" style={{ flex: "65%" }}>
-          <div className="personal-details-section">
-            <h4>Personal Details</h4>
-            <div className="task-info-row">
-              <div className="input-group">
-                <label htmlFor="name">User Name</label>
-                <Input
-                  id="name"
-                  placeholder="Enter your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-              <div className="input-group" style={{ width: "140px" }}>
-                <label htmlFor="date">Date</label>
-                <DatePicker
-                  id="date"
-                  value={date ? dayjs(date, "YYYY-MM-DD") : null} // Use dayjs object for value
-                  onChange={(_, dateString) =>
-                    handleDateChange(dateString as string)
-                  } // Handle date change
-                  format="DD-MM-YYYY" // Display date in DD-MM-YYYY format
-                  style={{ width: "100%" }}
-                />
-              </div>
-              <div className="input-group" style={{ width: "120px" }}>
-                <label htmlFor="bulletType">Task Icon</label>
-                <Select
-                  id="bulletType"
-                  value={bulletType}
-                  onChange={(value) => setBulletType(value as any)}
-                  style={{ width: "100%" }}
-                >
-                  {ALL_BULLET_TYPES.map((type) => (
-                    <Option key={type} value={type}>
-                      {type}
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-              <div className="input-group" style={{ width: "120px" }}>
-                <label htmlFor="icon">Sub Icon</label>
-                <Select
-                  id="icon"
-                  placeholder="Select icon"
-                  value={selectedSubIcon}
-                  onChange={(value) => setSelectedSubIcon(value)}
-                  style={{ width: "100%" }}
-                >
-                  {ALL_BULLET_TYPES.map((type) => (
-                    <Option key={type} value={type}>
-                      {type}
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-              <div className="input-group" style={{ flex: "1 1 25%" }}>
-                <label htmlFor="project">Project</label>
-                <Select
-                  id="project"
-                  mode="multiple"
-                  placeholder="Select project(s)"
-                  value={selectedProjects}
-                  onChange={(value) => setSelectedProjects(value)}
-                  style={{ width: "100%" }}
-                >
-                  {projects.map((project: string) => (
-                    <Option key={project} value={project}>
-                      {project}
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-            </div>
-          </div>
+          Save
+        </Button>
+      </Tooltip>
+    </>
+  );
 
-          <div className="task-details-section">
-            <div className="task-details-header">
-              <h4>Task Details</h4>
-              <div className="time-info">
-                <p className="total-time">
-                  Total: <span>8h 30min</span>
-                </p>
-                <p className="remaining-time">
-                  Remaining:{" "}
-                  <span
-                    className={
-                      isTimeExceeded ? "time-exceeded" : "time-in-limit"
-                    }
-                  >
-                    {formatRemainingTime(remainingTime)}
-                  </span>
-                </p>
-              </div>
-              <div className="button-group edit-add-task">
-                <Tooltip title="Add a new task">
-                  <Button
-                    type="default"
-                    icon={AddIcon}
-                    onClick={addTask}
-                    className="add-task-btn"
-                  >
-                    Add Task
-                  </Button>
-                </Tooltip>
-              </div>
-            </div>
-            <div
-              className="task-details-inputs"
-              style={{
-                marginTop: "10px",
-                maxHeight: "400px", // Limit the height for scrolling
-                overflowY: "auto", // Enable vertical scrolling
-              }}
-            >
-              {tasks.map((task, index) => {
-                // Dynamic grid columns for task row
-                const showID = settings.taskSettings.showID;
-                const showStatus = settings.taskSettings.showStatus;
-                const showHourMin = settings.taskSettings.showHours;
-                // Build columns array for task
-                let columns = [];
-                if (showID) columns.push('id');
-                columns.push('title');
-                if (showHourMin) {
-                  columns.push('hours');
-                  columns.push('minutes');
-                }
-                if (showStatus) columns.push('status');
-                // Always add 3 action columns
-                columns.push('toggle');
-                columns.push('delete');
-                columns.push('addsub');
-                const gridTemplateColumns = columns.map(col => {
-                  if (col === 'id') return '1fr';
-                  if (col === 'title') return '3fr';
-                  if (col === 'hours' || col === 'minutes') return '1fr';
-                  if (col === 'status') return '1fr';
-                  return '40px';
-                }).join(' ');
+  const titleHistory = useMemo(() => computeTitleHistory(), []);
 
-                return (
-                  <div key={`task-${index}`}>
+  const taskHandlers = {
+    onTaskChange: handleTaskChange,
+    onSubtaskChange: handleSubtaskChange,
+    onAddSubtask: addSubtask,
+    onClearTask: clearTask,
+    onClearSubtask: clearSubtask,
+    onToggleTaskView: toggleTaskView,
+    onToggleSubtaskView: toggleSubtaskView,
+    registerTaskRef,
+    registerSubtaskRef,
+    titleHistory,
+  };
+
+  return (
+    <>
+      <PageHeader
+        title="Edit report"
+        subtitle={date ? dayjs(date, "YYYY-MM-DD").format("dddd · DD MMM YYYY") : "Update a previously saved entry"}
+        actions={headerActions}
+      />
+      <div className="page-body">
+        {alertMessage && (
+          <Alert
+            message={alertMessage}
+            type={isDateConflict ? "warning" : "info"}
+            closable
+            onClose={() => setAlertMessage(null)}
+            style={{ marginBottom: 15 }}
+          />
+        )}
+
+        <ResizableSplit
+          storageKey="edit-split"
+          defaultRatio={0.62}
+          minRatio={0.38}
+          maxRatio={0.8}
+          left={
+            <section className="surface-card builder">
+              <div className="section-head">
+                <h2 className="section-title">Personal details</h2>
+                <div className="time-info" style={{ marginLeft: "auto" }}>
+                  <p className="total-time">
+                    Total : <span>{WORKING_TIME_LIMIT}h</span>
+                  </p>
+                  <p className="remaining-time">
+                    Remaining :{" "}
+                    <span className={isTimeExceeded ? "time-exceeded" : "time-in-limit"}>
+                      {formatRemainingTime(remainingTime)}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <div className="task-info-row">
+                <div className="input-group">
+                  <label htmlFor="name">Name</label>
+                  <Input
+                    id="name"
+                    placeholder="Enter name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className="input-group" style={{ width: 160 }}>
+                  <label htmlFor="date">Date</label>
+                  <DatePicker
+                    id="date"
+                    value={date ? dayjs(date, "YYYY-MM-DD") : null}
+                    onChange={(_, dateString) => handleDateChange(dateString as string)}
+                    format="DD-MM-YYYY"
+                    style={{ width: "100%" }}
+                  />
+                </div>
+                <div className="input-group" style={{ width: 140 }}>
+                  <label htmlFor="bulletType">Task Icon</label>
+                  <Select
+                    id="bulletType"
+                    value={bulletType}
+                    onChange={(value) => setBulletType(value as string)}
+                    style={{ width: "100%" }}
+                  >
+                    {ALL_BULLET_TYPES.map((type) => (
+                      <Option key={type} value={type}>
+                        {type}
+                      </Option>
+                    ))}
+                  </Select>
+                </div>
+                <div
+                  className="input-group"
+                  style={{
+                    width: 140,
+                    display: settings.taskSettings.allowSubtask ? "block" : "none",
+                  }}
+                >
+                  <label htmlFor="icon">Sub Icon</label>
+                  <Select
+                    id="icon"
+                    placeholder="Select icon"
+                    value={selectedSubIcon}
+                    onChange={(value) => setSelectedSubIcon(value as string)}
+                    style={{ width: "100%" }}
+                  >
+                    {ALL_BULLET_TYPES.map((type) => (
+                      <Option key={type} value={type}>
+                        {type}
+                      </Option>
+                    ))}
+                  </Select>
+                </div>
+                <div
+                  className="input-group"
+                  style={{
+                    flex: "2 1 260px",
+                    display: settings.taskSettings.showProject ? "block" : "none",
+                  }}
+                >
+                  <label htmlFor="project">Project</label>
+                  <Select
+                    id="project"
+                    mode="multiple"
+                    placeholder="Select project(s)"
+                    value={selectedProjects}
+                    onChange={(value) => setSelectedProjects(value as string[])}
+                    style={{ width: "100%" }}
+                  >
+                    {projects.map((project: string) => (
+                      <Option key={project} value={project}>
+                        {project}
+                      </Option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+
+              <div className="section-head with-actions">
+                <h2 className="section-title">Tasks</h2>
+                <div className="section-actions">
+                  <Tooltip title="Add new task">
+                    <Button type="primary" icon={AddIcon} onClick={addTask}>
+                      Add task
+                    </Button>
+                  </Tooltip>
+                </div>
+              </div>
+
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="editTaskList">
+                  {(provided) => (
                     <div
-                      className="task-row"
-                      style={{
-                        display: 'grid',
-                        alignItems: 'center',
-                        gridTemplateColumns,
-                        gap: '8px',
-                      }}
+                      className="task-list"
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
                     >
-                      {showID && (
-                        <div className="input-group id-field">
-                          <Input
-                            ref={(el) => {
-                              taskRefs.current[index] = el?.input || null;
-                            }}
-                            placeholder="Task ID"
-                            value={task.taskId}
-                            onChange={(e) =>
-                              handleTaskChange(index, "taskId", e.target.value)
-                            }
-                          />
-                        </div>
-                      )}
-                      <div className="input-group title-field">
-                        <Input
-                          placeholder="Task Title"
-                          value={task.title}
-                          onChange={(e) =>
-                            handleTaskChange(index, "title", e.target.value)
-                          }
-                          spellCheck={true}
-                        />
-                      </div>
-                      {showHourMin && (
-                        <>
-                          <div className="input-group">
-                            <Input
-                              type="number"
-                              placeholder="Hours"
-                              value={task.hours}
-                              onChange={(e) =>
-                                handleTaskChange(index, "hours", e.target.value)
-                              }
-                              onWheel={(e) => e.currentTarget.blur()}
-                              min={0}
-                              max={23}
-                              disabled={!!task.subtasks?.length}
+                      {tasks.map((task, index) => (
+                        <Draggable key={task.uid} draggableId={task.uid!} index={index}>
+                          {(prov) => (
+                            <TaskCard
+                              task={task}
+                              index={index}
+                              settings={settings.taskSettings}
+                              draggable={prov}
+                              handlers={taskHandlers}
                             />
-                          </div>
-                          <div className="input-group">
-                            <Input
-                              type="number"
-                              placeholder="Minutes"
-                              value={task.minutes}
-                              onChange={(e) =>
-                                handleTaskChange(index, "minutes", e.target.value)
-                              }
-                              onWheel={(e) => e.currentTarget.blur()}
-                              min={0}
-                              max={59}
-                              disabled={!!task.subtasks?.length}
-                            />
-                          </div>
-                        </>
-                      )}
-                      {showStatus && (
-                        <div className="input-group">
-                          <Select
-                            placeholder="Select status"
-                            value={task?.status || undefined}
-                            onChange={(value) =>
-                              handleTaskChange(index, "status", value || "")
-                            }
-                            optionLabelProp="label"
-                          >
-                            {ALL_STATUS_OPTIONS.map((status) => (
-                              <Option
-                                key={status}
-                                value={status === "None" ? null : status}
-                                label={status}
-                              >
-                                {status}
-                              </Option>
-                            ))}
-                          </Select>
-                        </div>
-                      )}
-                      <div
-                        className="toggle-view-circle"
-                        onClick={() => toggleTaskView(index)}
-                        title={task.view === false ? "Show in Preview" : "Hide from Preview"}
-                        style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-                      >
-                        {task.view === false ? <EyeInvisibleOutlined style={{ color: '#ff9800', fontSize: 18 }} /> : <EyeOutlined style={{ color: '#4caf50', fontSize: 18 }} />}
-                      </div>
-                      <div
-                        className="clear-task-circle"
-                        onClick={() => clearTask(index)}
-                        title="Delete Task"
-                      >
-                        {minusIcon}
-                      </div>
-                      <div
-                        className="add-task-circle"
-                        onClick={() => addSubtask(index)}
-                        title="Add Subtask"
-                        style={{ marginLeft: "-10px" }}
-                      >
-                        {AddIcon}
-                      </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
                     </div>
-                    {task.subtasks && task.subtasks.map((subtask, subIndex) => {
-                      // Dynamic grid columns for subtask row
-                      let subColumns = [];
-                      if (showID) subColumns.push('id');
-                      subColumns.push('title');
-                      if (showHourMin) {
-                        subColumns.push('hours');
-                        subColumns.push('minutes');
-                      }
-                      if (showStatus) subColumns.push('status');
-                      subColumns.push('toggle');
-                      subColumns.push('delete');
-                      subColumns.push('spacer');
-                      const subGridTemplateColumns = subColumns.map(col => {
-                        if (col === 'id') return '1fr';
-                        if (col === 'title') return '3fr';
-                        if (col === 'hours' || col === 'minutes') return '1fr';
-                        if (col === 'status') return '1fr';
-                        return '40px';
-                      }).join(' ');
-                      return (
-                        <div
-                          className="task-row subtask-row"
-                          key={`subtask-${index}-${subIndex}`}
-                          style={{
-                            display: 'grid',
-                            alignItems: 'center',
-                            gridTemplateColumns: subGridTemplateColumns,
-                            gap: '8px',
-                          }}
-                        >
-                          {showID && (
-                            <div className="input-group id-field">
-                              {/* Empty cell for subtask to align with task ID column */}
-                            </div>
-                          )}
-                          <div className="input-group title-field">
-                            <Input
-                              ref={(el) => {
-                                if (!subtaskRefs.current[index]) {
-                                  subtaskRefs.current[index] = [];
-                                }
-                                subtaskRefs.current[index][subIndex] =
-                                  el?.input || null;
-                              }}
-                              placeholder="Subtask Title"
-                              value={subtask.title}
-                              onChange={(e) =>
-                                handleSubtaskChange(
-                                  index,
-                                  subIndex,
-                                  "title",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </div>
-                          {showHourMin && (
-                            <>
-                              <div className="input-group">
-                                <Input
-                                  type="number"
-                                  placeholder="Hours"
-                                  value={subtask.hours}
-                                  onChange={(e) =>
-                                    handleSubtaskChange(
-                                      index,
-                                      subIndex,
-                                      "hours",
-                                      e.target.value
-                                    )
-                                  }
-                                  onWheel={(e) => e.currentTarget.blur()}
-                                  min={0}
-                                  max={23}
-                                />
-                              </div>
-                              <div className="input-group">
-                                <Input
-                                  type="number"
-                                  placeholder="Minutes"
-                                  value={subtask.minutes}
-                                  onChange={(e) =>
-                                    handleSubtaskChange(
-                                      index,
-                                      subIndex,
-                                      "minutes",
-                                      e.target.value
-                                    )
-                                  }
-                                  onWheel={(e) => e.currentTarget.blur()}
-                                  min={0}
-                                  max={59}
-                                />
-                              </div>
-                            </>
-                          )}
-                          {showStatus && (
-                            <div className="input-group">
-                              <Select
-                                placeholder="Select status"
-                                value={subtask?.status}
-                                onChange={(value) =>
-                                  handleSubtaskChange(
-                                    index,
-                                    subIndex,
-                                    "status",
-                                    value
-                                  )
-                                }
-                                optionLabelProp="label"
-                              >
-                                {ALL_STATUS_OPTIONS.map((status) => (
-                                  <Option
-                                    key={status}
-                                    value={status === "None" ? null : status}
-                                    label={status}
-                                  >
-                                    {status}
-                                  </Option>
-                                ))}
-                              </Select>
-                            </div>
-                          )}
-                          <div
-                            className="toggle-view-circle"
-                            onClick={() => toggleSubtaskView(index, subIndex)}
-                            title={subtask.view === false ? "Show in Preview" : "Hide from Preview"}
-                            style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-                          >
-                            {subtask.view === false ? <EyeInvisibleOutlined style={{ color: '#ff9800', fontSize: 18 }} /> : <EyeOutlined style={{ color: '#4caf50', fontSize: 18 }} />}
-                          </div>
-                          <div
-                            className="clear-task-circle"
-                            onClick={() => clearSubtask(index, subIndex)}
-                            title="Delete Subtask"
-                          >
-                            {minusIcon}
-                          </div>
-                          <div style={{ width: 40 }} />
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="input-group" style={{ marginTop: "20px" }}>
-              <Input
-                id="nextTask"
-                placeholder="Enter next day's task"
-                value={nextTaskValue}
-                onChange={(e) => setNextTaskValue(e.target.value)}
-                spellCheck={true} // Enable spell checking
-              />
-            </div>
-          </div>
-        </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
 
-        <div className="task-preview-container" style={{ flex: "35%" }}>
-          <div className="task-preview-header">
-            <h3>Preview</h3>
+              {settings.taskSettings.showNextTask && (
+                <div className="input-group" style={{ marginTop: "var(--space-4)" }}>
+                  <label htmlFor="nextTask">Tomorrow</label>
+                  <Input
+                    id="nextTask"
+                    placeholder="What's on deck for tomorrow?"
+                    value={nextTaskValue}
+                    onChange={(e) => setNextTaskValue(e.target.value)}
+                    spellCheck
+                  />
+                </div>
+              )}
+            </section>
+          }
+          right={
+            <section className="surface-card preview">
+              <div className="section-head with-actions">
+                <h2 className="section-title">Preview</h2>
+                <div className="section-actions">
+                  <Segmented
+                    size="small"
+                    value={previewFormat}
+                    onChange={(v) => setPreviewFormat(v as PreviewFormat)}
+                    options={[
+                      { label: "Plain", value: "plain" },
+                      { label: "MD", value: "markdown" },
+                      { label: "Slack", value: "slack" },
+                    ]}
+                  />
+                  <Tooltip title="Expand">
+                    <Button
+                      type="text"
+                      icon={<ExpandOutlined />}
+                      onClick={() => setPreviewOpen(true)}
+                    />
+                  </Tooltip>
+                  <Tooltip title="Copy to clipboard">
+                    <Button
+                      type="text"
+                      icon={<CopyOutlined />}
+                      onClick={handleCopy}
+                    />
+                  </Tooltip>
+                </div>
+              </div>
+              <pre className="script-style">{preview}</pre>
+            </section>
+          }
+        />
+      </div>
+
+      <Modal
+        open={previewOpen}
+        onCancel={() => setPreviewOpen(false)}
+        width="min(1200px, 95vw)"
+        centered
+        className="preview-modal"
+        title={
+          <div className="preview-modal-title">
+            <span>Preview</span>
+            <Segmented
+              size="small"
+              value={previewFormat}
+              onChange={(v) => setPreviewFormat(v as PreviewFormat)}
+              options={[
+                { label: "Plain", value: "plain" },
+                { label: "MD", value: "markdown" },
+                { label: "Slack", value: "slack" },
+              ]}
+            />
           </div>
-          <pre
-            className="script-style"
-            style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}
-          >
-            {getFormattedPreview()}
-          </pre>
-        </div>
-      </div>
-      <div className="edit-button-group button-group">
-        <Tooltip title="Cancel editing">
+        }
+        footer={[
+          <Button key="copy" icon={<CopyOutlined />} onClick={handleCopy}>
+            Copy
+          </Button>,
           <Button
-            type="default"
-            icon={<CloseOutlined />}
-            onClick={handleCancel}
-            className="cancel-btn"
-            style={{
-              border: "1px solid #e53935",
-              color: "#e53935",
-              backgroundColor: "transparent",
-            }}
-          >
-            Cancel
-          </Button>
-        </Tooltip>
-        <Tooltip title="Save changes">
-          <Button
-            type="default"
+            key="save"
+            type="primary"
             icon={<SaveOutlined />}
-            onClick={handleSave}
-            className="save-btn"
-            style={{
-              border: "1px solid #43a047",
-              color: "#43a047",
-              backgroundColor: "transparent",
+            onClick={() => {
+              handleSave();
+              setPreviewOpen(false);
             }}
           >
-            Save
-          </Button>
-        </Tooltip>
-      </div>
-      {/* Add bottom spacing so buttons are not flush with the bottom */}
-      <div style={{ height: 40 }} />
-    </div>
+            Save changes
+          </Button>,
+        ]}
+      >
+        <pre className="script-style preview-modal-body">{preview}</pre>
+      </Modal>
+    </>
   );
 };
-export default EditTaskPage;
 
+export default EditTaskPage;

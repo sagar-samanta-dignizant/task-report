@@ -1,0 +1,133 @@
+.heatmap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 16px 18px;
+  margin-bottom: var(--space-4);
+}
+
+.heatmap-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.heatmap-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.heatmap-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.heatmap-summary strong {
+  color: var(--text-primary);
+}
+.heatmap-summary-sep {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.heatmap-chart {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  overflow-x: auto;
+  padding-top: 16px;
+  position: relative;
+}
+
+.heatmap-dow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 0;
+  margin-top: 0;
+}
+.heatmap-dow-label {
+  width: 24px;
+  height: 12px;
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 12px;
+}
+
+.heatmap-grid-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.heatmap-month-row {
+  position: relative;
+  height: 14px;
+  margin-bottom: 2px;
+}
+
+.heatmap-month-label {
+  position: absolute;
+  top: -16px;
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.heatmap-grid {
+  display: flex;
+  gap: 2px;
+}
+
+.heatmap-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heatmap-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: none;
+  padding: 0;
+  background: var(--bg-sunken);
+  cursor: pointer;
+  transition: transform var(--motion-fast) var(--ease-out),
+    background var(--motion-fast) var(--ease-out);
+}
+.heatmap-cell:hover {
+  transform: scale(1.25);
+  z-index: 1;
+}
+.heatmap-cell.is-empty {
+  background: transparent;
+  cursor: default;
+}
+.heatmap-cell.is-filled {
+  background: var(--accent);
+}
+.heatmap-cell.is-today {
+  box-shadow: 0 0 0 1.5px var(--accent);
+}
+.heatmap-cell.is-legend {
+  cursor: default;
+  width: 10px;
+  height: 10px;
+}
+
+.heatmap-legend {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}

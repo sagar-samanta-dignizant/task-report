@@ -1,47 +1,51 @@
-import { useEffect, useState } from 'react';
-import { ReloadOutlined } from '@ant-design/icons';
-import './VersionChecker.css';
+import { useEffect, useRef, useState } from "react";
+import { ReloadOutlined } from "@ant-design/icons";
+import "./VersionChecker.css";
+
+const POLL_MS = 5 * 60 * 1000; // 5 minutes
 
 const VersionChecker = () => {
   const [showUpdateNotice, setShowUpdateNotice] = useState(false);
-  const [currentVersion, setCurrentVersion] = useState<string | null>(null);
   const [newVersion, setNewVersion] = useState<string | null>(null);
+  const currentVersionRef = useRef<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     const checkVersion = async () => {
+      if (document.visibilityState === "hidden") return;
       try {
-        const response = await fetch('/version.json', { cache: 'no-cache' });
-        console.log('Checking version.json', response);
-        
-        const text = await response.text();
-        console.log('version.json content:', text);
-        
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (jsonErr) {
-          // If not JSON, probably got an HTML error page (e.g., 404)
-          console.error('version.json is not valid JSON:', text);
-          return;
-        }
-        console.log(currentVersion, data.version);
-        
-        if (!currentVersion) {
-          setCurrentVersion(data.version);
-        } else if (data.version !== currentVersion) {
+        const response = await fetch("/version.json", { cache: "no-cache" });
+        if (!response.ok) return;
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) return;
+        const data = (await response.json()) as { version?: string };
+        if (cancelled || !data.version) return;
+        if (currentVersionRef.current == null) {
+          currentVersionRef.current = data.version;
+        } else if (data.version !== currentVersionRef.current) {
           setShowUpdateNotice(true);
           setNewVersion(data.version);
         }
-      } catch (err) {
-        console.error('Error checking version:', err);
+      } catch {
+        // network hiccup — ignore, we'll retry on next tick
       }
     };
 
-    const interval = setInterval(checkVersion, 10000); // every 10s
-    checkVersion(); // initial
+    const onVisible = () => {
+      if (document.visibilityState === "visible") checkVersion();
+    };
 
-    return () => clearInterval(interval);
-  }, [currentVersion]);
+    checkVersion();
+    const interval = window.setInterval(checkVersion, POLL_MS);
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
 
   if (!showUpdateNotice) return null;
 

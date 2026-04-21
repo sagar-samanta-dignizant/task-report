@@ -1,145 +1,122 @@
 .reports-page {
-    display: flex;
-    flex-direction: column;
-    height: 100vh; /* Full viewport height */
-    overflow: hidden; /* Prevent scrolling on the entire page */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
 }
 
-.sticky-header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    padding: 16px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.reports-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 14px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
 }
 
-.reports-header {
-    display: flex;
-    justify-content: space-between; /* Space between title and controls */
-    align-items: center;
+.reports-toolbar-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.reports-header h2 {
-    margin-right: auto; /* Push the title to the far left */
+.quick-chips {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
 }
 
-.reports-header-controls {
-    display: flex;
-    flex-direction: row-reverse;
-    gap: 10px; /* Allow the controls to take up remaining space */
+.chip {
+  padding: 5px 12px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--motion-fast) var(--ease-out);
+}
+.chip:hover {
+  color: var(--text-primary);
+}
+.chip.active {
+  background: var(--bg-surface);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
 }
 
+/* Summary pills */
+.summary-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px;
+  background: var(--bg-sunken);
+  border-radius: var(--radius-md);
+  min-width: 140px;
+  flex: 1 1 160px;
+}
+.summary-stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.summary-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+/* Content */
 .reports-content {
-    flex: 1;
-    overflow-y: auto; /* Enable scrolling for the report content */
-    padding: 16px;
-    scrollbar-width: thin; /* For Firefox */
-    scrollbar-color: #888 #f0f0f0; /* Thumb and track colors */
+  flex: 1;
 }
-
-/* For WebKit browsers (Chrome, Edge, Safari) */
-.reports-content::-webkit-scrollbar {
-    width: 2px; /* Thin scrollbar width */
-}
-
-.reports-content::-webkit-scrollbar-thumb {
-    background-color: #888; /* Thumb color */
-    border-radius: 10px; /* Rounded corners */
-}
-
-.reports-content::-webkit-scrollbar-track {
-    background-color: #f0f0f0; /* Track color */
+.reports-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 80px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
 }
 
 .report-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Increase min-width to 320px */
-    gap: 16px; /* Maintain gap between cards */
-    align-items: stretch; /* Ensure all cards in a row have the same height */
-    justify-content: center; /* Center the grid content */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: var(--space-5);
+  align-items: stretch;
 }
 
-.report-card {
-    max-width: 100%; /* Ensure cards don't exceed their container */
-    border: 1px solid #ddd; /* Optional: Add a border for better visual separation */
-    padding: 16px; /* Optional: Add padding for better content spacing */
-    border-radius: 8px; /* Optional: Add rounded corners */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle shadow */
-    overflow: hidden; /* Prevent internal scrolling */
-    display: flex;
-    flex-direction: column; /* Ensure content stacks vertically */
-    height: auto; /* Allow cards to expand naturally */
-}
-
-.working-hours-info {
-    margin-top: 8px;
-    padding: 8px;
-    background-color: #f9f9f9; /* Light background for better visibility */
-    border: 1px solid #ddd; /* Subtle border */
-    border-radius: 4px; /* Rounded corners */
-    font-size: 14px; /* Slightly smaller font size */
-    color: #333; /* Dark text color */
-}
-
-.working-hours-info p {
-    margin: 4px 0; /* Spacing between lines */
-}
-
-.summary-section {
-    margin-bottom: 16px;
-    padding: 16px;
-    border: 1px solid #ddd; /* Subtle border */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    font-size: 14px; /* Standard font size */
-    color: #c6bfbf; /* Dark text color */
-    display: flex; /* Use flexbox for alignment */
-    justify-content: center; /* Distribute items evenly */
-    align-items: center; /* Align items vertically */
-    gap: 16px; /* Add spacing between items */
-}
-
-.summary-section h3 {
-    margin-bottom: 8px;
-    font-size: 18px;
-    color: #555; /* Slightly darker heading color */
-}
-
-.summary-section p {
-    margin: 0; /* Remove default margin */
-    white-space: nowrap; /* Prevent text wrapping */
-}
-
-/* Media query for smaller screens (e.g., tablets) */
-@media (max-width: 768px) {
-    .report-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjust card size for smaller screens */
-    }
-}
-
-/* Media query for very small screens (e.g., mobile devices) */
-@media (max-width: 480px) {
-    .report-grid {
-        grid-template-columns: 1fr; /* Show one card per row */
-    }
-}
-
-button.ant-btn-primary {
-    background-color: #3498db; /* Custom button background color */
-    border-color: #2980b9; /* Custom border color */
-}
-
-button.ant-btn-primary:hover {
-    background-color: #2980b9; /* Darker shade on hover */
-    border-color: #1c6ea4;
-}
-
-button.ant-btn-default {
-    transition: all 0.3s ease;
-}
-
-button.ant-btn-default:hover {
-    background-color: #f39c12; /* Highlight background on hover */
-    color: #fff; /* White text on hover */
-    border-color: #f39c12; /* Keep border consistent */
+@media (max-width: 720px) {
+  .report-grid {
+    grid-template-columns: 1fr;
+  }
+  .reports-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reports-toolbar-right {
+    justify-content: flex-start;
+  }
 }

@@ -1,0 +1,108 @@
+.today-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: 16px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.today-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.today-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.today-date-icon {
+  font-size: 16px;
+}
+
+.today-progress {
+  flex: 1;
+  min-width: 120px;
+  height: 8px;
+  background: var(--bg-sunken);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.today-progress-bar {
+  height: 100%;
+  background: var(--gradient-accent);
+  border-radius: var(--radius-pill);
+  transition: width var(--motion-med) var(--ease-out);
+}
+.today-progress-bar.overtime {
+  background: linear-gradient(135deg, var(--warning), var(--danger));
+}
+
+.today-progress-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.today-progress-text .overtime-text {
+  color: var(--danger);
+}
+.today-progress-text .today-divider {
+  margin: 0 4px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.today-progress-text .today-total {
+  color: var(--text-muted);
+}
+
+.today-stats {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.today-stat {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 16px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  min-width: 60px;
+}
+
+.today-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.today-stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 720px) {
+  .today-strip {
+    padding: 14px 16px;
+  }
+}
