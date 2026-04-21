@@ -63,3 +63,21 @@
   filter: brightness(1.05);
   box-shadow: 0 12px 28px -10px rgba(139, 92, 246, 0.75);
 }
+
+/* "Updated" welcome banner variant */
+.version-checker-notice-updated::before {
+  background: linear-gradient(135deg, var(--success), var(--accent));
+}
+.version-checker-icon-accent {
+  font-size: 18px;
+  color: var(--accent);
+}
+.version-checker-version {
+  color: var(--accent);
+  font-weight: 700;
+  margin-left: 6px;
+}
+.version-checker-muted {
+  color: var(--text-muted);
+  font-weight: 400;
+}
