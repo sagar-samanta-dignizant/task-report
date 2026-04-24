@@ -88,6 +88,12 @@
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
+.task-card-suggest-popup {
+  max-width: 520px;
+}
+.task-card-suggest-popup .ant-select-item-option-content {
+  overflow: hidden;
+}
 
 .task-card-status .ant-select-selector {
   background: var(--status-bg, var(--bg-surface-hover)) !important;

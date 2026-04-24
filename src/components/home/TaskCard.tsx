@@ -144,26 +144,42 @@ export const TaskCard = ({ task, index, settings, draggable, handlers }: Props) 
 
         <div className="task-card-body">
           <div className="task-card-row">
-            <AutoComplete
-              className="task-card-title"
-              value={task.title}
-              options={historyToOptions(handlers.titleHistory)}
-              filterOption={filterHistory}
-              onChange={(v) => handlers.onTaskChange(index, "title", v)}
-              getPopupContainer={(trigger) => trigger.parentElement || document.body}
-              popupMatchSelectWidth={false}
-              style={{ flex: 1, minWidth: 0 }}
-            >
+            {handlers.titleHistory && handlers.titleHistory.length > 0 ? (
+              <AutoComplete
+                className="task-card-title"
+                value={task.title}
+                options={historyToOptions(handlers.titleHistory)}
+                filterOption={filterHistory}
+                onChange={(v) => handlers.onTaskChange(index, "title", v)}
+                popupClassName="task-card-suggest-popup"
+                popupMatchSelectWidth
+                style={{ flex: 1, minWidth: 0 }}
+              >
+                <Input
+                  ref={(el) => {
+                    if (task.uid && handlers.registerTaskRef) {
+                      handlers.registerTaskRef(task.uid, el?.input || null);
+                    }
+                  }}
+                  placeholder="What did you work on?"
+                  spellCheck
+                />
+              </AutoComplete>
+            ) : (
               <Input
                 ref={(el) => {
                   if (task.uid && handlers.registerTaskRef) {
                     handlers.registerTaskRef(task.uid, el?.input || null);
                   }
                 }}
+                className="task-card-title"
+                value={task.title}
+                onChange={(e) => handlers.onTaskChange(index, "title", e.target.value)}
                 placeholder="What did you work on?"
+                style={{ flex: 1, minWidth: 0 }}
                 spellCheck
               />
-            </AutoComplete>
+            )}
             {showStatus && (
               <StatusSelect
                 value={task.status}
@@ -253,27 +269,44 @@ export const TaskCard = ({ task, index, settings, draggable, handlers }: Props) 
                 className={`subtask-row ${subHidden ? "is-hidden" : ""}`}
               >
                 <div className="subtask-bullet" aria-hidden>└─</div>
-                <AutoComplete
-                  className="task-card-title subtask-title"
-                  value={subtask.title}
-                  options={historyToOptions(handlers.titleHistory)}
-                  filterOption={filterHistory}
-                  onChange={(v) =>
-                    handlers.onSubtaskChange(index, subIndex, "title", v)
-                  }
-                  getPopupContainer={(trigger) => trigger.parentElement || document.body}
-                  popupMatchSelectWidth={false}
-                  style={{ flex: 1, minWidth: 0 }}
-                >
+                {handlers.titleHistory && handlers.titleHistory.length > 0 ? (
+                  <AutoComplete
+                    className="task-card-title subtask-title"
+                    value={subtask.title}
+                    options={historyToOptions(handlers.titleHistory)}
+                    filterOption={filterHistory}
+                    onChange={(v) =>
+                      handlers.onSubtaskChange(index, subIndex, "title", v)
+                    }
+                    popupClassName="task-card-suggest-popup"
+                    popupMatchSelectWidth
+                    style={{ flex: 1, minWidth: 0 }}
+                  >
+                    <Input
+                      ref={(el) => {
+                        if (subtask.uid && handlers.registerSubtaskRef) {
+                          handlers.registerSubtaskRef(subtask.uid, el);
+                        }
+                      }}
+                      placeholder="Subtask"
+                    />
+                  </AutoComplete>
+                ) : (
                   <Input
                     ref={(el) => {
                       if (subtask.uid && handlers.registerSubtaskRef) {
                         handlers.registerSubtaskRef(subtask.uid, el);
                       }
                     }}
+                    className="task-card-title subtask-title"
+                    value={subtask.title}
+                    onChange={(e) =>
+                      handlers.onSubtaskChange(index, subIndex, "title", e.target.value)
+                    }
                     placeholder="Subtask"
+                    style={{ flex: 1, minWidth: 0 }}
                   />
-                </AutoComplete>
+                )}
                 {showStatus && (
                   <StatusSelect
                     value={subtask.status}

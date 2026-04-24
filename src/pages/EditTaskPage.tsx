@@ -441,7 +441,10 @@ const EditTaskPage = ({ settings }: { settings: AllSettings }) => {
     </>
   );
 
-  const titleHistory = useMemo(() => computeTitleHistory(), []);
+  const titleHistory = useMemo(
+    () => (readGenerateSettings().titleSuggestionsEnabled ? computeTitleHistory() : undefined),
+    []
+  );
 
   const taskHandlers = {
     onTaskChange: handleTaskChange,

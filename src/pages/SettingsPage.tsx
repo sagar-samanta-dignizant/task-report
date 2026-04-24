@@ -302,6 +302,16 @@ const SettingsPage = ({ settings, toggleSetting, setProfilePicture }: SettingsPa
                     onChange={(v) => toggleSetting("generateSettings", "draftEnabled", v)}
                   />
                 </SettingToggle>
+                <SettingToggle
+                  icon={<FileSearchOutlined />}
+                  title="Title suggestions"
+                  description="Suggest past task titles as you type, ranked by how often you've used them."
+                >
+                  <CustomSwitch
+                    checked={settings.generateSettings.titleSuggestionsEnabled}
+                    onChange={(v) => toggleSetting("generateSettings", "titleSuggestionsEnabled", v)}
+                  />
+                </SettingToggle>
                 <SettingToggle icon={<LineOutlined />} title="Task gap" description="Blank lines between top-level tasks in the preview.">
                   <Input
                     type="number"

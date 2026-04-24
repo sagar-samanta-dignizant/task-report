@@ -192,6 +192,7 @@ const loadSettings = (): AllSettings => {
       taskGap: 1,
       subtaskGap: 1,
       draftEnabled: true,
+      titleSuggestionsEnabled: false,
     }),
   };
 };
@@ -723,7 +724,11 @@ const App = () => {
 
   // Must be declared before any early returns so hook order stays stable
   // across login/logout (React rules of hooks).
-  const titleHistory = useMemo(() => computeTitleHistory(), [allReportDates]);
+  const suggestionsEnabled = !!settings.generateSettings.titleSuggestionsEnabled;
+  const titleHistory = useMemo(
+    () => (suggestionsEnabled ? computeTitleHistory() : undefined),
+    [allReportDates, suggestionsEnabled]
+  );
 
   if (!isLoggedIn) {
     if (location.pathname !== "/") {

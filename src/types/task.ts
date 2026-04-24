@@ -43,6 +43,7 @@ export interface GenerateSettings {
   closingText?: string;
   notificationTime?: string;
   draftEnabled?: boolean;
+  titleSuggestionsEnabled?: boolean;
 }
 
 export interface AllSettings {
